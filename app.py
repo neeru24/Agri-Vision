@@ -11,8 +11,7 @@ import uuid
 from datetime import datetime
 import tensorflow as tf
 from tensorflow import keras
-
- import json
+import json
 import logging
 import os
 from dotenv import load_dotenv
@@ -25,7 +24,11 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-app.secret_key = os.getenv("SECRET_KEY", "default-secret-key")
+# Enforce SECRET_KEY requirement - fail if not set
+secret_key = os.getenv("SECRET_KEY")
+if not secret_key:
+    raise ValueError("No SECRET_KEY set for Flask application. Set SECRET_KEY in .env file. Aborting startup.")
+app.secret_key = secret_key
 
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024
 
@@ -404,6 +407,7 @@ if __name__ == '__main__':
     # Try to load model
     load_model()
 
-    # Run Flask app
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Run Flask app with configurable debug mode
+    is_debug = os.getenv("FLASK_DEBUG", "False").lower() in ("true", "1", "t")
+    app.run(debug=is_debug, host='0.0.0.0', port=5000)
 # fix for issue #13
