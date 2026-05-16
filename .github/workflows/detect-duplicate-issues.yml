@@ -1,0 +1,97 @@
+name: Detect duplicate issues
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  detect-duplicates:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Detect and flag duplicate issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const newIssue = context.payload.issue;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // Combine title + body
+            const newText = `${newIssue.title}\n${newIssue.body || ""}`
+              .toLowerCase();
+
+            // Fetch recent issues (open + closed)
+            const issues = await github.paginate(
+              github.rest.issues.listForRepo,
+              {
+                owner,
+                repo,
+                state: "all",
+                per_page: 100,
+              }
+            );
+
+            const similarIssues = [];
+
+            for (const issue of issues) {
+              // Skip self & PRs
+              if (issue.number === newIssue.number) continue;
+              if (issue.pull_request) continue;
+
+              const oldText = `${issue.title}\n${issue.body || ""}`
+                .toLowerCase();
+
+              // Basic keyword similarity check
+              const words = newText.split(/\W+/).filter(w => w.length > 4);
+              let matches = 0;
+
+              for (const word of words) {
+                if (oldText.includes(word)) matches++;
+              }
+
+              // Heuristic threshold
+              if (matches >= 3) {
+                similarIssues.push(issue);
+              }
+            }
+
+            if (similarIssues.length === 0) {
+              console.log("No duplicates detected.");
+              return;
+            }
+
+            // Add duplicate label
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number: newIssue.number,
+              labels: ["duplicate"],
+            });
+
+            // Build comment
+            const commentBody = `
+            ⚠️ **Possible duplicate issue detected**
+
+            This issue looks similar to the following existing issue(s):
+
+            ${similarIssues
+              .slice(0, 5)
+              .map(i => `- #${i.number} — ${i.title}`)
+              .join("\n")}
+
+            Please review these before proceeding.
+            `;
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: newIssue.number,
+              body: commentBody,
+            });
+
+            console.log("Duplicate issue flagged.");
