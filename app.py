@@ -13,7 +13,6 @@ import tensorflow as tf
 from tensorflow import keras
 import json
 import logging
-import os
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
 
@@ -37,9 +36,10 @@ LANG = {
         "welcome": "Welcome to Agri Vision"
     },
     "te": {
-        "welcome": "అగ్రి విజన్‌కు స్వాగతం"
+        "welcome": "అగ్రి విజన్కు స్వాగతం"
     }
 }
+
 # Create directories
 os.makedirs('static/uploads', exist_ok=True)
 os.makedirs('static/css', exist_ok=True)
@@ -197,6 +197,7 @@ def datetimeformat_filter(value):
 @app.route('/')
 def index():
     """Home page"""
+    lang = request.args.get('lang', 'en')
     return render_template('index.html', text=LANG.get(lang, LANG["en"]), lang=lang)
 
 
@@ -380,10 +381,11 @@ def health():
         'service': 'Agri-Vision Cotton Analysis API'
     })
 
+
 @app.route("/set-language/<lang>")
 def set_language(lang):
+    """Set language preference"""
     return redirect(url_for("index", lang=lang))
-
 
 
 if __name__ == '__main__':
@@ -410,4 +412,3 @@ if __name__ == '__main__':
     # Run Flask app with configurable debug mode
     is_debug = os.getenv("FLASK_DEBUG", "False").lower() in ("true", "1", "t")
     app.run(debug=is_debug, host='0.0.0.0', port=5000)
-# fix for issue #13
