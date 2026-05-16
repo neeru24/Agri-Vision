@@ -1,215 +1,214 @@
 {% extends "index.html" %}
 
 {% block content %}
-<div class="results-container">
-    <div class="print-page">
-        <!-- Success Alert Animation -->
-        <div class="success-alert-container no-print">
-            <div class="success-alert">
-                <div class="success-icon">
-                    <i class="fas fa-check-circle"></i>
+<div class="main-content" style="background: var(--dashboard-bg); min-height: 100vh; padding-bottom: 5rem;">
+    <div class="dashboard-container">
+        <div class="print-page">
+            <div class="print-content">
+                <!-- Dashboard Header -->
+                <div class="dashboard-header">
+                    <div class="dashboard-title">
+                        <h1 style="color: var(--deep-forest);">AI Analysis Dashboard</h1>
+                        <p style="color: #333;">Report ID: #AGRI-{{ timestamp.split(' ')[0].replace('-', '') }} • Generated on {{ timestamp }}</p>
+                    </div>
+                    <div class="no-print" style="display: flex; gap: 1rem;">
+                        <a href="/analyze" class="btn btn-secondary" style="background: white; border: 1px solid rgba(0,0,0,0.1); color: var(--deep-forest);">
+                            <i class="fas fa-redo"></i> New Analysis
+                        </a>
+                        <button onclick="window.print()" class="btn btn-primary" style="background: var(--deep-forest);">
+                            <i class="fas fa-file-pdf"></i> Export PDF
+                        </button>
+                    </div>
                 </div>
-                <div class="success-text">
-                    <strong>Success!</strong> Analysis completed successfully.
+
+                <!-- Top Status Bar (Merged Alert & Primary Summary) -->
+                <div class="dashboard-status-bar">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div class="health-status-indicator {% if results.health_status == 'Healthy' %}health-good{% else %}health-danger{% endif %}"></div>
+                        <div>
+                            <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: #444; font-weight: 600;">Overall Assessment</div>
+                            <div style="font-size: 1.2rem; font-weight: 700; color: var(--deep-forest);">{{ results.health_status }} • {{ results.stage }}</div>
+                        </div>
+                    </div>
+                    <div class="no-print" style="text-align: right;">
+                        <div style="font-size: 0.8rem; color: #444; font-weight: 600; margin-bottom: 2px;">AI Confidence Score</div>
+                        <div style="font-size: 1.1rem; font-weight: 700; color: var(--emerald-green);">{{ "%.1f"|format(results.health_confidence * 100) }}%</div>
+                    </div>
+                </div>
+
+                <!-- Main Dashboard Content -->
+                <div class="dashboard-metrics-grid">
+                    <!-- Growth Metric -->
+                    <div class="dashboard-card fade-in">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                            <div style="width: 45px; height: 45px; background: rgba(46, 139, 87, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--emerald-green);">
+                                <i class="fas fa-seedling fa-lg"></i>
+                            </div>
+                            <span style="font-size: 0.8rem; color: #333; font-weight: 600; background: #f0f0f0; padding: 4px 10px; border-radius: 20px;">Growth Phase</span>
+                        </div>
+                        <h3 style="font-size: 0.9rem; color: #444; font-weight: 600; margin-bottom: 0.5rem;">Current Stage</h3>
+                        <h2 style="font-size: 1.8rem; color: var(--deep-forest); margin-bottom: 1rem;">{{ results.stage }}</h2>
+                        <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.05); font-size: 0.85rem; color: #333;">
+                            Classification Confidence: <strong style="color: black;">{{ "%.1f"|format(results.stage_confidence * 100) }}%</strong>
+                        </div>
+                    </div>
+
+                    <!-- Health Metric -->
+                    <div class="dashboard-card fade-in">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                            <div style="width: 45px; height: 45px; background: rgba(74, 144, 226, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--ai-blue);">
+                                <i class="fas fa-heartbeat fa-lg"></i>
+                            </div>
+                            <span style="font-size: 0.8rem; color: #333; font-weight: 600; background: #f0f0f0; padding: 4px 10px; border-radius: 20px;">Vital Signs</span>
+                        </div>
+                        <h3 style="font-size: 0.9rem; color: #444; font-weight: 600; margin-bottom: 0.5rem;">Health Score</h3>
+                        <h2 style="font-size: 1.8rem; color: {% if results.health_score > 70 %}var(--emerald-green){% elif results.health_score > 50 %}#D48806{% else %}#dc3545{% endif %}; margin-bottom: 1rem;">{{ "%.1f"|format(results.health_score) }}%</h2>
+                        <div style="margin-top: auto;">
+                            <div style="height: 6px; background: #eee; border-radius: 10px; overflow: hidden; margin-bottom: 10px;">
+                                <div style="width: {{ results.health_score }}%; height: 100%; background: {% if results.health_score > 70 %}var(--emerald-green){% elif results.health_score > 50 %}#ffc107{% else %}#dc3545{% endif %};"></div>
+                            </div>
+                            <div style="font-size: 0.85rem; color: #333;">{{ 'Excellent' if results.health_score > 85 else 'Good' if results.health_score > 70 else 'Fair' if results.health_score > 50 else 'Critical' }} condition detected</div>
+                        </div>
+                    </div>
+
+                    <!-- Harvest Metric -->
+                    <div class="dashboard-card fade-in">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                            <div style="width: 45px; height: 45px; background: rgba(141, 110, 99, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #5D4037;">
+                                <i class="fas fa-tractor fa-lg"></i>
+                            </div>
+                            <span style="font-size: 0.8rem; color: #333; font-weight: 600; background: #f0f0f0; padding: 4px 10px; border-radius: 20px;">Productivity</span>
+                        </div>
+                        <h3 style="font-size: 0.9rem; color: #444; font-weight: 600; margin-bottom: 0.5rem;">Harvest Readiness</h3>
+                        <h2 style="font-size: 1.8rem; color: var(--deep-forest); margin-bottom: 1rem;">{{ 'Optimized' if results.is_ripped else 'Developing' }}</h2>
+                        <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-info-circle" style="color: var(--ai-blue);"></i>
+                            <span style="font-size: 0.85rem; color: #333;">{{ 'Immediate harvest recommended' if results.is_ripped else 'Monitor for phase transition' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Vision Metric (Neural Vision Integrated) -->
+                    <div class="dashboard-card fade-in">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+                            <div style="width: 45px; height: 45px; background: rgba(0, 0, 0, 0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--deep-forest);">
+                                <i class="fas fa-eye fa-lg"></i>
+                            </div>
+                            <span style="font-size: 0.8rem; color: #333; font-weight: 600; background: #f0f0f0; padding: 4px 10px; border-radius: 20px;">Neural Vision</span>
+                        </div>
+                        <div style="text-align: center; flex: 1; display: flex; align-items: center; justify-content: center;">
+                            {% if filename != 'demo_cotton.jpg' %}
+                                <img src="{{ url_for('static', filename='uploads/' + filename) }}" alt="Analysis Vision" style="max-height: 120px; border-radius: 12px; box-shadow: var(--depth-layer);">
+                            {% else %}
+                                <div style="width: 100%; height: 120px; background: linear-gradient(135deg, var(--emerald-green), var(--ai-blue)); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;">
+                                    <i class="fas fa-microchip fa-2x"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div style="margin-top: 1rem; text-align: center; font-size: 0.8rem; color: #444; font-weight: 600;">Source ID: {{ filename }}</div>
+                    </div>
+                </div>
+
+                <div class="analysis-footer" style="text-align: center; padding-top: 2rem; border-top: 1px solid rgba(0,0,0,0.1); color: black; font-size: 0.9rem; margin-top: auto; margin-bottom: 1rem; font-weight: 500;">
+                    Report generated on <strong>{{ timestamp }}</strong> by Agri-Vision AI System
                 </div>
             </div>
         </div>
 
-        <div class="results-header">
-            <h1><i class="fas fa-chart-bar"></i> Analysis Results</h1>
-            <a href="/analyze" class="btn"><i class="fas fa-arrow-left"></i> Analyze Another</a>
-        </div>
-        
-        <!-- Results Summary -->
-        <div class="results-grid">
-            <div class="result-card">
-                <h3>Growth Phase</h3>
-                <h2 style="color: #2E7D32;">{{ results.stage }}</h2>
-                <p class="result-detail" style="color: #000;"><strong>Confidence:</strong> {{ "%.1f"|format(results.stage_confidence * 100) }}%</p>
-            </div>
-            
-            <div class="result-card">
-                <h3>Health Status</h3>
-                <h2 style="color: {% if results.health_status == 'Healthy' %}#2E7D32{% else %}#dc3545{% endif %};">
-                    {{ results.health_status }}
-                </h2>
-                <p class="result-detail" style="color: #000;"><strong>Confidence:</strong> {{ "%.1f"|format(results.health_confidence * 100) }}%</p>
-            </div>
-            
-            <div class="result-card">
-                <h3>Health Score</h3>
-                <h2 style="color: {% if results.health_score > 70 %}#2E7D32{% elif results.health_score > 50 %}#ffc107{% else %}#dc3545{% endif %};">
-                    {{ "%.1f"|format(results.health_score) }}%
-                </h2>
-                <p class="result-detail" style="color: #000; font-weight: bold;">
-                    {{ 'Good' if results.health_score > 70 else 'Fair' if results.health_score > 50 else 'Poor' }} Health
-                </p>
-            </div>
-            
-            <div class="result-card">
-                <h3>Harvest Status</h3>
-                <h2 style="color: {% if results.is_ripped %}#2E7D32{% else %}#ffc107{% endif %};">
-                    {{ 'Ready' if results.is_ripped else 'Not Ready' }}
-                </h2>
-                <p class="result-detail" style="color: #000; font-weight: bold;">
-                    {{ 'Optimal harvest time' if results.is_ripped else 'Continue monitoring' }}
-                </p>
-            </div>
-        </div>
-        
-        <!-- Image Preview -->
-        <div class="image-preview">
-            {% if filename != 'demo_cotton.jpg' %}
-                <h3><i class="fas fa-camera"></i> Uploaded Image</h3>
-                <img src="{{ url_for('static', filename='uploads/' + filename) }}" alt="Uploaded Image">
-            {% else %}
-                <h3><i class="fas fa-bullseye"></i> Demo Image</h3>
-                <div style="width: 100%; height: 300px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
-                    <div style="text-align: center;">
-                        <div style="font-size: 4rem;"><i class="fas fa-seedling"></i></div>
-                        <div>Cotton Crop Demo Image</div>
-                        <div style="font-size: 1rem; opacity: 0.8; margin-top: 1rem;">Bursting Phase with Pink Bollworm</div>
-                    </div>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-    
-    <div class="print-page">
-        <!-- Probabilities -->
-        <div class="probabilities-section">
-            <h3><i class="fas fa-chart-line"></i> Detailed Probabilities</h3>
-            
-            <div class="probabilities-grid">
-                <!-- Phase Probabilities -->
-                <div>
-                    <h4 class="mb-2" style="color: #666;">Growth Phase Distribution</h4>
-                    {% for phase, prob in results.phases.items() %}
-                    <div class="probability-item">
-                        <div class="probability-label">
-                            <span>{{ phase }}</span>
-                            <span style="font-weight: bold;">{{ "%.1f"|format(prob * 100) }}%</span>
-                        </div>
-                        <div class="progress-container">
-                            <div class="progress-fill" 
-                                 style="width: {{ prob * 100 }}%; 
-                                        background: {% if loop.index0 == 0 %}#4CAF50{% elif loop.index0 == 1 %}#FFC107{% elif loop.index0 == 2 %}#FF9800{% else %}#F44336{% endif %};">
+        <div class="print-page">
+            <div class="print-content">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 3rem;">
+                    <!-- Technical Insights -->
+                    <div class="dashboard-card fade-in" style="padding: 2.5rem;">
+                        <h3 style="font-size: 1.2rem; margin-bottom: 2rem; color: black;"><i class="fas fa-chart-pie" style="color: var(--emerald-green);"></i> Classification Distribution</h3>
+                        <div style="display: grid; gap: 1.5rem;">
+                            <div>
+                                <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.8rem; color: black;">Growth Phase Proximities</div>
+                                {% for phase, prob in results.phases.items() %}
+                                <div style="margin-bottom: 1rem;">
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; color: #333; font-weight: 600;">
+                                        <span>{{ phase }}</span><span style="font-weight: 800; color: black;">{{ "%.1f"|format(prob * 100) }}%</span>
+                                    </div>
+                                    <div style="height: 6px; background: #f0f0f0; border-radius: 10px; overflow: hidden;">
+                                        <div style="width: {{ prob * 100 }}%; height: 100%; background: var(--emerald-green);"></div>
+                                    </div>
+                                </div>
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
-                    {% endfor %}
-                </div>
-                
-                <!-- Health Probabilities -->
-                <div>
-                    <h4 class="mb-2" style="color: #666;">Health Status Distribution</h4>
-                    {% for health, prob in results.health.items() %}
-                    <div class="probability-item">
-                        <div class="probability-label">
-                            <span>{{ health }}</span>
-                            <span style="font-weight: bold;">{{ "%.1f"|format(prob * 100) }}%</span>
-                        </div>
-                        <div class="progress-container">
-                            <div class="progress-fill" 
-                                 style="width: {{ prob * 100 }}%; 
-                                        background: {% if loop.index0 == 0 %}#4CAF50{% elif loop.index0 == 1 %}#E91E63{% elif loop.index0 == 2 %}#9C27B0{% else %}#795548{% endif %};">
+
+                    <!-- Smart Recommendations -->
+                    <div class="dashboard-card fade-in" style="background: linear-gradient(to bottom right, #ffffff, var(--dashboard-bg));">
+                        <h3 style="font-size: 1.2rem; margin-bottom: 1.5rem; color: black;"><i class="fas fa-lightbulb" style="color: #444;"></i> Intelligence Insights</h3>
+                        <div style="display: grid; gap: 1rem;">
+                            {% for rec in results.recommendations %}
+                            <div style="background: white; padding: 1rem; border-radius: 12px; display: flex; gap: 12px; border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                                <i class="fas fa-check-circle" style="color: var(--emerald-green); margin-top: 3px;"></i>
+                                <span style="font-size: 0.9rem; line-height: 1.4; color: black; font-weight: 500;">{{ rec }}</span>
                             </div>
+                            {% endfor %}
                         </div>
                     </div>
-                    {% endfor %}
+                </div>
+
+                <div class="analysis-footer" style="text-align: center; padding-top: 2rem; border-top: 1px solid rgba(0,0,0,0.1); color: black; font-size: 0.9rem; margin-top: auto; margin-bottom: 1rem; font-weight: 500;">
+                    Report generated on <strong>{{ timestamp }}</strong> by Agri-Vision AI System
+                </div>
+
+                <!-- Technical Data (Compact Integration) -->
+                <div class="json-section no-print" style="max-width: 800px; margin: 0 auto;">
+                    <div class="dashboard-card" style="background: var(--deep-forest); padding: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3 style="color: white; font-size: 1rem; margin: 0;"><i class="fas fa-code"></i> RAW Technical Data</h3>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button onclick="copyJSON()" class="btn btn-secondary" style="background: rgba(255,255,255,0.1); color: white; border: none; font-size: 0.75rem; padding: 5px 12px;">Copy JSON</button>
+                                <button onclick="downloadJSON()" class="btn btn-primary" style="background: var(--ai-blue); border: none; font-size: 0.75rem; padding: 5px 12px;">Export JSON</button>
+                            </div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 10px; color: #a5d6a7; font-family: monospace; font-size: 0.8rem; max-height: 150px; overflow-y: auto;">
+                            <pre style="margin: 0; white-space: pre-wrap;">{{ results|tojson(indent=2) }}</pre>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Recommendations -->
-        <div class="recommendations-section">
-            <h3><i class="fas fa-lightbulb"></i> Recommendations</h3>
-            
-            <div class="recommendations-grid">
-                {% for recommendation in results.recommendations %}
-                <div class="recommendation-card">
-                    <div class="recommendation-icon"><i class="fas fa-check-circle"></i></div>
-                    <div>{{ recommendation }}</div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        
-        <!-- Analysis Time -->
-        <div class="analysis-footer">
-            Analysis completed on: <strong>{{ timestamp }}</strong>
-        </div>
-    </div>
-    
-    <!-- JSON Output -->
-    <div class="json-section">
-        <h3><i class="fas fa-file-code"></i> JSON Output</h3>
-        <div class="json-container">
-            <pre style="margin: 0; white-space: pre-wrap;">{
-  "stage": "{{ results.stage }}",
-  "stage_confidence": {{ "%.3f"|format(results.stage_confidence) }},
-  "health_status": "{{ results.health_status }}",
-  "health_confidence": {{ "%.3f"|format(results.health_confidence) }},
-  "health_score": {{ "%.1f"|format(results.health_score) }},
-  "is_ripped": {{ results.is_ripped|lower }},
-  "has_damage": {{ results.has_damage|lower }},
-  "timestamp": "{{ timestamp }}"
-}</pre>
-        </div>
-        
-        <div class="action-buttons">
-            <button onclick="copyJSON()" class="btn" style="background: #3498db;">
-                <i class="fas fa-copy"></i> Copy JSON
-            </button>
-            <button onclick="downloadJSON()" class="btn" style="background: #2ECC71;">
-                <i class="fas fa-download"></i> Download JSON
-            </button>
-            <button onclick="window.print()" class="btn" style="background: #95a5a6;">
-                <i class="fas fa-print"></i> Print Report
-            </button>
         </div>
     </div>
 </div>
 
 <script>
 function copyJSON() {
-    const jsonText = document.querySelector('.json-container pre').textContent;
-    
+    const jsonText = document.querySelector('.json-section pre').textContent;
     navigator.clipboard.writeText(jsonText).then(() => {
-        alert('JSON copied to clipboard!');
-    }).catch(err => {
-        console.error('Failed to copy: ', err);
-        alert('Failed to copy JSON. Please copy manually.');
+        alert('Data copied to clipboard!');
     });
 }
 
 function downloadJSON() {
-    const jsonData = {
-        stage: "{{ results.stage }}",
-        stage_confidence: {{ "%.3f"|format(results.stage_confidence) }},
-        health_status: "{{ results.health_status }}",
-        health_confidence: {{ "%.3f"|format(results.health_confidence) }},
-        health_score: {{ "%.1f"|format(results.health_score) }},
-        is_ripped: {{ results.is_ripped|lower }},
-        has_damage: {{ results.has_damage|lower }},
-        timestamp: "{{ timestamp }}",
-        recommendations: [
-            {% for rec in results.recommendations %}
-            "{{ rec }}"{% if not loop.last %},{% endif %}
-            {% endfor %}
-        ]
-    };
-    
-    const jsonStr = JSON.stringify(jsonData, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const jsonText = document.querySelector('.json-section pre').textContent;
+    const blob = new Blob([jsonText], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'agri-vision-analysis.json';
-    document.body.appendChild(a);
+    a.download = 'agri-vision-report.json';
     a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
 }
+
+// Re-initialize intersection observer for dynamic content
+const observerOptions = { threshold: 0.1 };
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, observerOptions);
+
+document.querySelectorAll('.fade-in').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'all 0.6s ease-out';
+    observer.observe(el);
+});
 </script>
 {% endblock %}

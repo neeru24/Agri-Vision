@@ -3,90 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agri-Vision: Cotton Crop Analysis</title>
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Agri-Vision | AI-Powered Cotton Crop Intelligence</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <!-- Page Frame for Printing -->
-    <div class="print-frame"></div>
+    <!-- Professional Print Frame (Only visible in print) -->
+    <div class="print-frame no-print"></div>
 
     <!-- Navigation -->
-    <nav class="navbar">
+    <nav class="navbar" id="navbar">
         <div class="nav-container">
-            <div class="nav-brand">
-                <i class="fas fa-seedling"></i> Agri-Vision
-            </div>
+            <a href="/" class="nav-brand">
+                <i class="fas fa-seedling"></i>
+                <span>Agri-Vision</span>
+            </a>
             <ul class="nav-menu">
                 <li><a href="/">Home</a></li>
                 <li><a href="/analyze">Analyze</a></li>
                 <li><a href="/demo">Demo</a></li>
+                <li><a href="/analyze" class="btn btn-primary">Get Started</a></li>
             </ul>
         </div>
     </nav>
 
     <!-- Main Content -->
-    <main class="main-content">
+    <main>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">
-                        {{ message }}
+                <div class="main-content">
+                    <div class="alert-container no-print">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                <i class="fas {% if category == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+                                <span>{{ message }}</span>
+                            </div>
+                        {% endfor %}
                     </div>
-                {% endfor %}
+                </div>
             {% endif %}
         {% endwith %}
 
         {% block content %}
-        <div class="hero">
-            <div class="hero-content">
-                <h1><i class="fas fa-seedling"></i> Agri-Vision</h1>
-                <h2>Smart Cotton Crop Analysis</h2>
-                <p>Revolutionizing cotton farming with AI-powered crop maturity detection, health assessment, and harvest timing recommendations.</p>
-                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                    <a href="/analyze" class="btn btn-primary btn-large"><i class="fas fa-camera"></i> Analyze Image</a>
-                    <a href="/demo" class="btn btn-large"><i class="fas fa-play-circle"></i> View Demo</a>
+        <section class="hero">
+            <div class="hero-container">
+                <div class="hero-content">
+                    <span class="hero-badge">AI-DRIVEN AGRICULTURE</span>
+                    <h1>
+                        AI-Powered 
+                        <span>Cotton Crop Intelligence</span>
+                    </h1>
+                    <p>Analyze crop maturity, detect plant health issues, and optimize harvest timing using smart AI-driven insights.</p>
+                    <div class="hero-cta">
+                        <a href="/analyze" class="btn btn-primary">
+                            <i class="fas fa-camera"></i> Analyze Image
+                        </a>
+                        <a href="/demo" class="btn btn-secondary">
+                            <i class="fas fa-play-circle"></i> View Demo
+                        </a>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <div class="image-wrapper">
+                        <img src="https://www.bighaat.com/_next/image?url=https%3A%2F%2Fmedia.bighaat.com%2Fkvplus%2Farticles%2F16fd9550acf212d700c44d57af13e7a3_pxfuel-1_11zon.jpg&w=3840&q=75" alt="Cotton Field Intelligence">
+                        <div class="image-overlay"></div>
+                    </div>
+                    <div class="floating-stats glass-card">
+                        <div style="display: flex; gap: 15px; align-items: center;">
+                            <div style="width: 45px; height: 45px; background: #e3f2fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--ai-blue);">
+                                <i class="fas fa-microchip"></i>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0; font-size: 1.1rem;">90.2% Accuracy</h4>
+                                <p style="margin: 0; font-size: 0.85rem; opacity: 0.7;">AI Model Performance</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="hero-image">
-                <img src="https://www.bighaat.com/_next/image?url=https%3A%2F%2Fmedia.bighaat.com%2Fkvplus%2Farticles%2F16fd9550acf212d700c44d57af13e7a3_pxfuel-1_11zon.jpg&w=3840&q=75" alt="Cotton Field">
-            </div>
-        </div>
+        </section>
 
-        <div class="features">
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-leaf"></i></div>
-                <h3>Growth Phase Detection</h3>
-                <p>Identify cotton growth stages: Vegetative, Flowering, Bursting, and Harvest Ready.</p>
+        <section class="features-section">
+            <div class="section-header fade-in">
+                <h2>Precision Farming Tools</h2>
+                <p>Equip yourself with state-of-the-art AI analysis specifically tuned for cotton crop cycles and common health stressors.</p>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-heartbeat"></i></div>
-                <h3>Health Assessment</h3>
-                <p>Detect diseases like Pink Bollworm with health score (0-100%).</p>
+            <div class="features-grid">
+                <div class="feature-card fade-in">
+                    <div class="feature-icon-wrapper">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Growth Detection</h3>
+                    <p>Identify critical cotton growth stages from vegetative to harvest-ready with precision.</p>
+                </div>
+                <div class="feature-card fade-in">
+                    <div class="feature-icon-wrapper">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <h3>Health Assessment</h3>
+                    <p>Early detection of diseases and pests like Pink Bollworm before they impact your yield.</p>
+                </div>
+                <div class="feature-card fade-in">
+                    <div class="feature-icon-wrapper">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>Smart Diagnostics</h3>
+                    <p>Leverage deep learning models trained on thousands of cotton-specific agricultural images.</p>
+                </div>
+                <div class="feature-card fade-in">
+                    <div class="feature-icon-wrapper">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <h3>Harvest Optimizer</h3>
+                    <p>Receive data-driven recommendations on the optimal window for cotton bursting and collection.</p>
+                </div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-robot"></i></div>
-                <h3>AI Analysis</h3>
-                <p>Deep learning model trained on cotton crop images.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-clock"></i></div>
-                <h3>Harvest Timing</h3>
-                <p>Get precise recommendations for optimal harvest time.</p>
-            </div>
-        </div>
+        </section>
         {% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="footer">
-        <p>&copy; 2026 Agri-Vision. All rights reserved.</p>
-        <p style="margin-top: 1rem; opacity: 0.8;">Smart Cotton Crop Analysis System</p>
+    <footer class="footer no-print">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <h2 style="margin-bottom: 0.5rem;"><i class="fas fa-leaf"></i> Agri-Vision</h2>
+                <p style="font-size: 0.85rem; opacity: 0.8;">Empowering cotton farmers with AI-driven insights.</p>
+            </div>
+            <div class="footer-links-compact">
+                <a href="/">Home</a>
+                <a href="/analyze">Analyze</a>
+                <a href="/demo">Demo</a>
+                <a href="#">Guide</a>
+                <a href="#">Support</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Agri-Vision. All rights reserved.</p>
+            <div class="footer-social">
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-github"></i></a>
+            </div>
+        </div>
     </footer>
 
     <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'all 0.8s ease-out';
+            observer.observe(el);
+        });
+
         // Flash message auto-hide
         setTimeout(() => {
             const alerts = document.querySelectorAll('.alert');

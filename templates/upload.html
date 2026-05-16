@@ -1,51 +1,65 @@
 {% extends "index.html" %}
 
 {% block content %}
-<div class="upload-section">
-    <h1 style="color: #2E7D32; margin-bottom: 1rem;"><i class="fas fa-camera"></i> Upload Cotton Image</h1>
-    <p style="color: #666; margin-bottom: 2rem;">Upload an image of cotton crop for analysis</p>
-    
-    <form action="/analyze" method="POST" enctype="multipart/form-data">
-        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-            <div style="font-size: 4rem; color: #4CAF50; margin-bottom: 1rem;"><i class="fas fa-cloud-upload-alt"></i></div>
-            <h3>Click to upload or drag & drop</h3>
-            <p>PNG, JPG, JPEG, GIF (Max: 10MB)</p>
+<section class="main-content">
+    <div class="container" style="padding-bottom: 4rem;">
+        <div class="glass-card fade-in" style="padding: 2.5rem; max-width: 750px; margin: 0 auto; text-align: center;">
+            <div class="section-header" style="margin-bottom: 1.5rem;">
+                <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">📸 Analyze Crop</h1>
+                <p style="font-size: 0.95rem;">Upload a high-resolution image of your cotton crop for instant AI diagnostics.</p>
+            </div>
+            
+            <form action="/analyze" method="POST" enctype="multipart/form-data">
+                <div class="upload-area" onclick="document.getElementById('fileInput').click()" 
+                     style="border: 2px dashed var(--emerald-green); background: rgba(46, 139, 87, 0.03); padding: 2.5rem; border-radius: 16px; cursor: pointer; transition: var(--transition-smooth); position: relative; overflow: hidden;">
+                    <div style="font-size: 2.5rem; color: var(--emerald-green); margin-bottom: 1rem; animation: float 3s ease-in-out infinite;">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 0.4rem;">Drop image here or click to browse</h3>
+                    <p style="opacity: 0.6; font-size: 0.85rem;">Supports: PNG, JPG, JPEG (Max 10MB)</p>
+                    
+                    <div id="previewContainer" style="display: none; margin-top: 2rem; animation: fadeInUp 0.5s ease;">
+                        <div style="position: relative; display: inline-block;">
+                            <img id="imagePreview" src="" alt="Preview" style="max-width: 100%; border-radius: 15px; box-shadow: var(--soft-shadow);">
+                            <div style="position: absolute; top: -10px; right: -10px; background: var(--emerald-green); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" onclick="event.stopPropagation(); resetUpload();">
+                                <i class="fas fa-times"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <input type="file" id="fileInput" name="file" accept="image/*" class="file-input" style="display: none;" onchange="previewImage(this)">
+                
+                <div style="margin-top: 3rem;">
+                    <button type="submit" class="btn btn-primary btn-large" style="width: 100%; justify-content: center; box-shadow: 0 10px 30px rgba(74, 144, 226, 0.2);">
+                        <i class="fas fa-magnifying-glass"></i> Start AI Analysis
+                    </button>
+                </div>
+            </form>
+            
+            <div style="margin-top: 4rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; text-align: left;">
+                <div class="glass-card" style="padding: 1.5rem; background: rgba(46, 139, 87, 0.05);">
+                    <h4 style="color: var(--emerald-green); margin-bottom: 1rem;"><i class="fas fa-lightbulb"></i> Pro Tips</h4>
+                    <ul style="list-style: none; font-size: 0.95rem; opacity: 0.8;">
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="margin-right: 8px;"></i> Use clear daylight</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="margin-right: 8px;"></i> Focus on the bolls</li>
+                        <li><i class="fas fa-check" style="margin-right: 8px;"></i> Keep camera steady</li>
+                    </ul>
+                </div>
+                <div class="glass-card" style="padding: 1.5rem; background: rgba(74, 144, 226, 0.05);">
+                    <h4 style="color: var(--ai-blue); margin-bottom: 1rem;"><i class="fas fa-info-circle"></i> Quick Help</h4>
+                    <p style="font-size: 0.9rem; opacity: 0.8;">Our AI analyzes over 50 specific markers to determine growth stage and health status.</p>
+                </div>
+            </div>
         </div>
-        
-        <input type="file" id="fileInput" name="file" accept="image/*" class="file-input" onchange="previewImage(this)">
-        
-        <div id="previewContainer" class="preview" style="display: none;">
-            <h4>Preview:</h4>
-            <img id="imagePreview" src="" alt="Preview">
-        </div>
-        
-        <div style="margin: 2rem 0;">
-            <button type="submit" class="btn btn-primary btn-large" style="width: 100%;">
-                <i class="fas fa-search"></i> Analyze Image
-            </button>
-        </div>
-    </form>
-    
-    <div style="margin-top: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 10px;">
-        <h3 style="color: #2E7D32; margin-bottom: 1rem;"><i class="fas fa-lightbulb"></i> Tips for Best Results:</h3>
-        <ul style="text-align: left; list-style-position: inside; color: #666; list-style-type: none;">
-            <li><i class="fas fa-check" style="color: #4CAF50; margin-right: 10px;"></i> Use clear, well-lit images</li>
-            <li><i class="fas fa-check" style="color: #4CAF50; margin-right: 10px;"></i> Focus on cotton bolls</li>
-            <li><i class="fas fa-check" style="color: #4CAF50; margin-right: 10px;"></i> Capture from multiple angles if possible</li>
-            <li><i class="fas fa-check" style="color: #4CAF50; margin-right: 10px;"></i> Ensure image is not blurry</li>
-            <li><i class="fas fa-check" style="color: #4CAF50; margin-right: 10px;"></i> File size should be less than 10MB</li>
-        </ul>
     </div>
-    
-    <div style="margin-top: 2rem;">
-        <p>Don't have an image? <a href="/demo" style="color: #4CAF50; text-decoration: none; font-weight: bold;">View Demo Results <i class="fas fa-arrow-right"></i></a></p>
-    </div>
-</div>
+</section>
 
 <script>
 function previewImage(input) {
     const previewContainer = document.getElementById('previewContainer');
     const preview = document.getElementById('imagePreview');
+    const uploadContent = document.querySelector('.upload-area > *:not(#previewContainer)');
     
     if (input.files && input.files[0]) {
         const reader = new FileReader();
@@ -53,31 +67,53 @@ function previewImage(input) {
         reader.onload = function(e) {
             preview.src = e.target.result;
             previewContainer.style.display = 'block';
+            // Hide the placeholder text
+            Array.from(document.querySelectorAll('.upload-area > *:not(#previewContainer)')).forEach(el => {
+                el.style.display = 'none';
+            });
         }
         
         reader.readAsDataURL(input.files[0]);
     }
 }
 
-// Drag and drop functionality
+function resetUpload() {
+    const input = document.getElementById('fileInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const preview = document.getElementById('imagePreview');
+    
+    input.value = '';
+    preview.src = '';
+    previewContainer.style.display = 'none';
+    
+    // Show the placeholder text again
+    Array.from(document.querySelectorAll('.upload-area > *:not(#previewContainer)')).forEach(el => {
+        el.style.display = '';
+    });
+}
+
+// Drag and drop enhanced interaction
 const uploadArea = document.querySelector('.upload-area');
 const fileInput = document.getElementById('fileInput');
 
 uploadArea.addEventListener('dragover', (e) => {
     e.preventDefault();
-    uploadArea.style.background = 'rgba(76, 175, 80, 0.1)';
-    uploadArea.style.borderColor = '#2E7D32';
+    uploadArea.style.transform = 'scale(1.02)';
+    uploadArea.style.background = 'rgba(46, 139, 87, 0.08)';
+    uploadArea.style.borderColor = 'var(--ai-blue)';
 });
 
 uploadArea.addEventListener('dragleave', () => {
-    uploadArea.style.background = '';
-    uploadArea.style.borderColor = '#4CAF50';
+    uploadArea.style.transform = 'scale(1)';
+    uploadArea.style.background = 'rgba(46, 139, 87, 0.03)';
+    uploadArea.style.borderColor = 'var(--emerald-green)';
 });
 
 uploadArea.addEventListener('drop', (e) => {
     e.preventDefault();
-    uploadArea.style.background = '';
-    uploadArea.style.borderColor = '#4CAF50';
+    uploadArea.style.transform = 'scale(1)';
+    uploadArea.style.background = 'rgba(46, 139, 87, 0.03)';
+    uploadArea.style.borderColor = 'var(--emerald-green)';
     
     if (e.dataTransfer.files.length) {
         fileInput.files = e.dataTransfer.files;

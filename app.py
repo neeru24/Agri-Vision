@@ -159,8 +159,8 @@ def analyze_image(image):
         'health_status': health_classes[health_idx],
         'health_confidence': float(health_pred[0][health_idx]),
         'health_score': health_score,
-        'is_ripped': phase_idx == 2,
-        'has_damage': health_idx > 0,
+        'is_ripped': bool(phase_idx == 2),
+        'has_damage': bool(health_idx > 0),
         'recommendations': recommendations,
         'phases': {
             phase_classes[i]: float(phase_pred[0][i]) for i in range(4)
