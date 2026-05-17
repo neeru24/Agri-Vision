@@ -18,6 +18,7 @@
     </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="{{ url_for('static', filename='js/animations.js') }}" defer></script>
 </head>
 <body>
     <!-- Professional Print Frame (Only visible in print) -->
@@ -100,34 +101,34 @@
             </div>
         </section>
 
-        <section class="features-section">
-            <div class="section-header fade-in">
+        <section class="features-section reveal-stagger">
+            <div class="section-header reveal reveal-fade-up">
                 <h2>Precision Farming Tools</h2>
                 <p>Equip yourself with state-of-the-art AI analysis specifically tuned for cotton crop cycles and common health stressors.</p>
             </div>
-            <div class="features-grid">
-                <div class="feature-card fade-in">
+            <div class="features-grid reveal-stagger">
+                <div class="feature-card reveal reveal-fade-up">
                     <div class="feature-icon-wrapper">
                         <i class="fas fa-chart-line"></i>
                     </div>
                     <h3>Growth Detection</h3>
                     <p>Identify critical cotton growth stages from vegetative to harvest-ready with precision.</p>
                 </div>
-                <div class="feature-card fade-in">
+                <div class="feature-card reveal reveal-fade-up">
                     <div class="feature-icon-wrapper">
                         <i class="fas fa-heartbeat"></i>
                     </div>
                     <h3>Health Assessment</h3>
                     <p>Early detection of diseases and pests like Pink Bollworm before they impact your yield.</p>
                 </div>
-                <div class="feature-card fade-in">
+                <div class="feature-card reveal reveal-fade-up">
                     <div class="feature-icon-wrapper">
                         <i class="fas fa-brain"></i>
                     </div>
                     <h3>Smart Diagnostics</h3>
                     <p>Leverage deep learning models trained on thousands of cotton-specific agricultural images.</p>
                 </div>
-                <div class="feature-card fade-in">
+                <div class="feature-card reveal reveal-fade-up">
                     <div class="feature-icon-wrapper">
                         <i class="fas fa-calendar-check"></i>
                     </div>
@@ -140,7 +141,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="footer no-print">
+    <footer class="footer no-print reveal reveal-fade-in">
         <div class="footer-container">
             <div class="footer-brand">
                 <h2 style="margin-bottom: 0.5rem;"><i class="fas fa-leaf"></i> Agri-Vision</h2>
@@ -213,26 +214,7 @@
             }
         });
 
-        // Intersection Observer for fade-in animations
-        const observerOptions = {
-            threshold: 0.1
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.fade-in').forEach(el => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(30px)';
-            el.style.transition = 'all 0.8s ease-out';
-            observer.observe(el);
-        });
+        // Animation logic moved to animations.js
 
         // Flash message auto-hide
         setTimeout(() => {

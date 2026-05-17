@@ -3,7 +3,7 @@
 {% block content %}
 <section class="main-content">
     <div class="container" style="padding-bottom: 4rem;">
-        <div class="glass-card fade-in" style="padding: 2.5rem; max-width: 750px; margin: 0 auto; text-align: center;">
+        <div class="glass-card reveal reveal-fade-up" style="padding: 2.5rem; max-width: 750px; margin: 0 auto; text-align: center;">
             <div class="section-header" style="margin-bottom: 1.5rem;">
                 <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">📸 Analyze Crop</h1>
                 <p style="font-size: 0.95rem;">Upload a high-resolution image of your cotton crop for instant AI diagnostics.</p>
@@ -39,8 +39,8 @@
                 </div>
             </form>
             
-            <div style="margin-top: 4rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; text-align: left;">
-                <div class="glass-card" style="padding: 1.5rem; background: var(--success-bg);">
+            <div style="margin-top: 4rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; text-align: left;" class="reveal-stagger">
+                <div class="glass-card reveal reveal-slide-right" style="padding: 1.5rem; background: var(--success-bg);">
                     <h4 style="color: var(--emerald-green); margin-bottom: 1rem;"><i class="fas fa-lightbulb"></i> Pro Tips</h4>
                     <ul style="list-style: none; font-size: 0.95rem; opacity: 0.8; color: var(--text-main);">
                         <li style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="margin-right: 8px;"></i> Use clear daylight</li>
@@ -48,7 +48,7 @@
                         <li><i class="fas fa-check" style="margin-right: 8px;"></i> Keep camera steady</li>
                     </ul>
                 </div>
-                <div class="glass-card" style="padding: 1.5rem; background: var(--info-bg);">
+                <div class="glass-card reveal reveal-slide-left" style="padding: 1.5rem; background: var(--info-bg);">
                     <h4 style="color: var(--ai-blue); margin-bottom: 1rem;"><i class="fas fa-info-circle"></i> Quick Help</h4>
                     <p style="font-size: 0.9rem; opacity: 0.8;">Our AI analyzes over 50 specific markers to determine growth stage and health status.</p>
                 </div>

@@ -3,7 +3,7 @@
 <section class="main-content">
     <div class="container" style="padding-bottom: 4rem;">
 
-        <div class="glass-card fade-in" style="padding: 2.5rem; max-width: 750px; margin: 0 auto;">
+        <div class="glass-card reveal reveal-fade-up" style="padding: 2.5rem; max-width: 750px; margin: 0 auto;">
             <div class="section-header" style="margin-bottom: 1.5rem;">
                 <h1 style="font-size: 2rem; margin-bottom: 0.5rem; color: var(--emerald-green)">
                     <i class="fas fa-robot"></i> Analysis Results
@@ -37,13 +37,13 @@
                 </li>
                 <li><b>Health Score:</b> {{ results.disease.health_score|round(4) }}%</li>
             </ul>
-            <table style="margin-bottom: 2.2rem; min-width: 60%; border-collapse: collapse; border-radius: 8px; overflow: hidden; color: var(--text-main);">
-                <tr>
+            <table class="reveal-stagger" style="margin-bottom: 2.2rem; min-width: 60%; border-collapse: collapse; border-radius: 8px; overflow: hidden; color: var(--text-main);">
+                <tr class="reveal reveal-fade-in">
                     <th style="background:var(--table-header-bg);">Disease Class</th>
                     <th style="background:var(--table-header-bg);">Probability</th>
                 </tr>
                 {% for cname, prob in results.disease.all_confidences.items() %}
-                <tr>
+                <tr class="reveal reveal-fade-in">
                     <td style="background:var(--table-cell-bg);">{{ cname }}</td>
                     <td style="background:var(--table-cell-bg);">{{ prob|round(4) }}</td>
                 </tr>
@@ -62,14 +62,14 @@
                     <span style="color:#555;">(Confidence: {{ results.growth.confidence|round(2) }})</span>
                 </li>
             </ul>
-            <table style="margin-bottom: 2rem; min-width: 60%; border-collapse: collapse; border-radius: 8px; overflow: hidden; color: var(--text-main);">
-                <tr>
+            <table class="reveal-stagger" style="margin-bottom: 2rem; min-width: 60%; border-collapse: collapse; border-radius: 8px; overflow: hidden; color: var(--text-main);">
+                <tr class="reveal reveal-fade-in">
                     <th style="background:var(--table-header-bg);">Stage Class</th>
                     <th style="background:var(--table-header-bg);">Confidence</th>
                     <th style="background:var(--table-header-bg);">BBox</th>
                 </tr>
                 {% for box in results.growth.boxes %}
-                <tr>
+                <tr class="reveal reveal-fade-in">
                     <td style="background:var(--table-cell-bg);">{{ box.class_name }}</td>
                     <td style="background:var(--table-cell-bg);">{{ box.confidence|round(3) }}</td>
                     <td style="background:var(--table-cell-bg);">[{{ box.bbox[0]|int }}, {{ box.bbox[1]|int }}, {{ box.bbox[2]|int }}, {{ box.bbox[3]|int }}]</td>
@@ -84,9 +84,9 @@
             <h2 style="color: var(--emerald-green); font-size:1.1rem; margin-bottom:0.9rem;">
                 <i class="fas fa-lightbulb"></i> Recommendations
             </h2>
-            <ul style="margin-bottom:1.2rem;">
+            <ul style="margin-bottom:1.2rem;" class="reveal-stagger">
                 {% for rec in results.recommendations %}
-                    <li style="margin-bottom:0.3em;">{{ rec }}</li>
+                    <li style="margin-bottom:0.3em;" class="reveal reveal-slide-left">{{ rec }}</li>
                 {% endfor %}
             </ul>
 

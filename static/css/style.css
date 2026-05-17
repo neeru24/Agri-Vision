@@ -896,3 +896,76 @@ body {
         font-size: 1.8rem;
     }
 }
+
+/* ==========================================
+   Scroll Reveal Animation System
+========================================== */
+
+:root {
+    --reveal-duration: 0.8s;
+    --reveal-easing: cubic-bezier(0.16, 1, 0.3, 1);
+    --reveal-delay: 0s;
+}
+
+.reveal {
+    /* Base reveal properties */
+    visibility: hidden;
+    transition-property: transform, opacity, filter;
+    transition-duration: var(--reveal-duration);
+    transition-timing-function: var(--reveal-easing);
+    transition-delay: var(--reveal-delay);
+    will-change: transform, opacity;
+}
+
+.reveal.active {
+    visibility: visible;
+    opacity: 1 !important;
+    transform: translate(0, 0) scale(1) !important;
+    filter: blur(0) !important;
+}
+
+/* Variants */
+.reveal-fade-in {
+    opacity: 0;
+}
+
+.reveal-fade-up {
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+.reveal-slide-left {
+    opacity: 0;
+    transform: translateX(40px);
+}
+
+.reveal-slide-right {
+    opacity: 0;
+    transform: translateX(-40px);
+}
+
+.reveal-scale {
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+.reveal-blur {
+    opacity: 0;
+    filter: blur(8px);
+}
+
+/* Stagger system */
+.reveal-stagger {
+    /* Container class for staggered elements, JS handles the children */
+}
+
+/* Accessibility: Respect Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .reveal {
+        transition: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+        visibility: visible !important;
+        filter: blur(0) !important;
+    }
+}
