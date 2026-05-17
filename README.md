@@ -127,42 +127,47 @@ Agri-Vision includes a comprehensive unit and integration testing suite built us
 
 The test suite runs programmatically in-memory, requiring no external files or slow deep learning model loading. This ensures tests run in **less than 1 second** with **89%+ code coverage**.
 
-### 1️⃣ Run Unit Tests
+### 1️⃣ Run Unit Tests & Coverage (Simultaneously)
 
-Execute the following command in the project root directory:
+Thanks to the pre-configured [pytest.ini](file:///d:/GITHUB%20LOCAL/Agri-Vision/pytest.ini), you don't need to pass long command line arguments. Running a single command will execute all 28 tests, generate verbose progress, check code coverage, and produce an HTML report automatically:
 
 ```bash
-python -m pytest -v
+python -m pytest
 ```
 
 **Expected Output:**
 ```text
-tests/test_app.py::test_preprocess_image_for_resnet PASSED
-tests/test_app.py::test_infer_disease_fallback PASSED
+tests/test_app.py::test_preprocess_image_for_resnet PASSED               [  3%]
+tests/test_app.py::test_infer_disease_fallback PASSED                    [  7%]
 ...
-tests/test_app.py::test_datetimeformat_filter PASSED
-============================= 28 passed in 0.50s ==============================
-```
+tests/test_app.py::test_post_api_analyze_exception PASSED                [100%]
 
-### 2️⃣ Run Coverage Report
-
-To measure and check code coverage (achieving 89%+ coverage):
-
-```bash
-python -m pytest --cov=app --cov-report=term-missing tests/
-```
-
-**Expected Output:**
-```text
+=============================== tests coverage ================================
 Name     Stmts   Miss  Cover   Missing
 --------------------------------------
 app.py     201     22    89%   81-83, 88-90, 159, 406-420
 --------------------------------------
 TOTAL      201     22    89%
-============================= 28 passed in 0.70s ==============================
+
+Coverage HTML written to dir htmlcov
+============================= 28 passed in 1.06s ==============================
 ```
 
+### 2️⃣ View Interactive HTML Coverage Report
+
+When you run the tests, a beautiful interactive HTML coverage report is automatically created in the `htmlcov/` directory.
+
+To visually inspect which lines are covered (in green) and which are missed (in red) line-by-line:
+1. Open the folder `htmlcov/` in your file explorer.
+2. Double-click `index.html` to open it in any web browser.
+3. Click on `app.py` to view the beautiful interactive code visualization.
+
+### 3️⃣ Automated Continuous Integration (CI)
+
+A GitHub Actions workflow is fully set up in [.github/workflows/tests.yml](file:///d:/GITHUB%20LOCAL/Agri-Vision/.github/workflows/tests.yml). It will automatically run your entire unit test suite and verify code quality/coverage metrics on every single `push` or `pull_request` to the `main` branch.
+
 ---
+
 
 
 ## 📊 Growth Phases Detected
