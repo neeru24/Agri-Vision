@@ -3,14 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <title>Agri-Vision</title>
+    <script>
+        (function() {
+            try {
+                var localTheme = localStorage.getItem('theme');
+                var sysTheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (localTheme === 'dark' || (!localTheme && sysTheme)) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                }
+            } catch (e) {}
+        })();
+    </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
-        body { font-family: Arial, sans-serif; background: #fafbfd; margin: 16px; color: #222; }
-        h2 { color: #18802c; }
+        body { font-family: Arial, sans-serif; background: var(--bg-main); margin: 16px; color: var(--text-main); transition: background-color 0.4s, color 0.4s; }
+        h2 { color: var(--emerald-green); }
         table { border-collapse: collapse; }
         th, td { padding: 6px 9px; }
-        th { background: #c4ecc9; }
-        td { background: #eafaea; }
+        th { background: var(--table-header-bg); color: var(--text-main); }
+        td { background: var(--table-cell-bg); color: var(--text-main); }
         ul, li { margin-bottom: 4px; }
     </style>
 </head>

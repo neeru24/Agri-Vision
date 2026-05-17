@@ -4,6 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agri-Vision | AI-Powered Cotton Crop Intelligence</title>
+    <!-- Prevent FOUC by setting theme immediately -->
+    <script>
+        (function() {
+            try {
+                var localTheme = localStorage.getItem('theme');
+                var sysTheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (localTheme === 'dark' || (!localTheme && sysTheme)) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                }
+            } catch (e) {}
+        })();
+    </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -22,6 +34,11 @@
                 <li><a href="/">Home</a></li>
                 <li><a href="/analyze">Analyze</a></li>
                 <li><a href="/demo">Demo</a></li>
+                <li>
+                    <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark mode" style="background:transparent; border:none; color:var(--deep-forest); font-size:1.2rem; cursor:pointer; padding:5px; transition:color 0.3s ease;">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </li>
                 <li><a href="/analyze" class="btn btn-primary">Get Started</a></li>
             </ul>
         </div>
@@ -70,7 +87,7 @@
                     </div>
                     <div class="floating-stats glass-card">
                         <div style="display: flex; gap: 15px; align-items: center;">
-                            <div style="width: 45px; height: 45px; background: #e3f2fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--ai-blue);">
+                            <div style="width: 45px; height: 45px; background: var(--info-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--ai-blue);">
                                 <i class="fas fa-microchip"></i>
                             </div>
                             <div>
@@ -152,6 +169,38 @@
 
     <script>
         document.getElementById("year").textContent = new Date().getFullYear();
+
+        // Theme Toggle Logic
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeIcon = themeToggleBtn ? themeToggleBtn.querySelector('i') : null;
+
+        function updateThemeIcon() {
+            if (!themeIcon) return;
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        }
+
+        if (themeToggleBtn) {
+            updateThemeIcon();
+            themeToggleBtn.addEventListener('click', () => {
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                
+                if (!isDark) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    localStorage.setItem('theme', 'light');
+                }
+                updateThemeIcon();
+            });
+        }
     </script>
     <script>
         // Navbar scroll effect
