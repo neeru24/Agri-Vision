@@ -1,216 +1,152 @@
 {% extends "index.html" %}
-
 {% block content %}
-<div class="main-content" style="background: var(--dashboard-bg); min-height: 100vh; padding-bottom: 5rem;">
-    <div class="dashboard-container">
-        <div class="print-page">
-            <div class="print-content">
-                <!-- Dashboard Header -->
-                <div class="dashboard-header">
-                    <div class="dashboard-title">
-                        <h1 style="color: var(--deep-forest);">AI Analysis Dashboard</h1>
-                        <p style="color: #333;">Report ID: #AGRI-{{ timestamp.split(' ')[0].replace('-', '') }} • Generated on {{ timestamp }}</p>
-                    </div>
-                    <div class="no-print" style="display: flex; gap: 1rem;">
-                        <a href="/analyze" class="btn btn-secondary" style="background: white; border: 1px solid rgba(0,0,0,0.1); color: var(--deep-forest);">
-                            <i class="fas fa-redo"></i> New Analysis
-                        </a>
-                        <button onclick="window.print()" class="btn btn-primary" style="background: var(--deep-forest);">
-                            <i class="fas fa-file-pdf"></i> Export PDF
-                        </button>
-                    </div>
-                </div>
+<section class="main-content">
+    <div class="container" style="padding-bottom: 4rem;">
 
-                <!-- Top Status Bar (Merged Alert & Primary Summary) -->
-                <div class="dashboard-status-bar">
-                    <div style="display: flex; align-items: center; gap: 20px;">
-                        <div class="health-status-indicator {% if results.health_status == 'Healthy' %}health-good{% else %}health-danger{% endif %}"></div>
-                        <div>
-                            <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: #444; font-weight: 600;">Overall Assessment</div>
-                            <div style="font-size: 1.2rem; font-weight: 700; color: var(--deep-forest);">{{ results.health_status }} • {{ results.stage }}</div>
-                        </div>
-                    </div>
-                    <div class="no-print" style="text-align: right;">
-                        <div style="font-size: 0.8rem; color: #444; font-weight: 600; margin-bottom: 2px;">AI Confidence Score</div>
-                        <div style="font-size: 1.1rem; font-weight: 700; color: var(--emerald-green);">{{ "%.1f"|format(results.health_confidence * 100) }}%</div>
-                    </div>
-                </div>
-
-                <!-- Main Dashboard Content -->
-                <div class="dashboard-metrics-grid">
-                    <!-- Growth Metric -->
-                    <div class="dashboard-card fade-in">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
-                            <div style="width: 45px; height: 45px; background: rgba(46, 139, 87, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--emerald-green);">
-                                <i class="fas fa-seedling fa-lg"></i>
-                            </div>
-                            <span style="font-size: 0.8rem; color: #333; font-weight: 600; background: #f0f0f0; padding: 4px 10px; border-radius: 20px;">Growth Phase</span>
-                        </div>
-                        <h3 style="font-size: 0.9rem; color: #444; font-weight: 600; margin-bottom: 0.5rem;">Current Stage</h3>
-                        <h2 style="font-size: 1.8rem; color: var(--deep-forest); margin-bottom: 1rem;">{{ results.stage }}</h2>
-                        <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.05); font-size: 0.85rem; color: #333;">
-                            Classification Confidence: <strong style="color: black;">{{ "%.1f"|format(results.stage_confidence * 100) }}%</strong>
-                        </div>
-                    </div>
-
-                    <!-- Health Metric -->
-                    <div class="dashboard-card fade-in">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
-                            <div style="width: 45px; height: 45px; background: rgba(74, 144, 226, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--ai-blue);">
-                                <i class="fas fa-heartbeat fa-lg"></i>
-                            </div>
-                            <span style="font-size: 0.8rem; color: #333; font-weight: 600; background: #f0f0f0; padding: 4px 10px; border-radius: 20px;">Vital Signs</span>
-                        </div>
-                        <h3 style="font-size: 0.9rem; color: #444; font-weight: 600; margin-bottom: 0.5rem;">Health Score</h3>
-                        <h2 style="font-size: 1.8rem; color: {% if results.health_score > 70 %}var(--emerald-green){% elif results.health_score > 50 %}#D48806{% else %}#dc3545{% endif %}; margin-bottom: 1rem;">{{ "%.1f"|format(results.health_score) }}%</h2>
-                        <div style="margin-top: auto;">
-                            <div style="height: 6px; background: #eee; border-radius: 10px; overflow: hidden; margin-bottom: 10px;">
-                                <div style="width: {{ results.health_score }}%; height: 100%; background: {% if results.health_score > 70 %}var(--emerald-green){% elif results.health_score > 50 %}#ffc107{% else %}#dc3545{% endif %};"></div>
-                            </div>
-                            <div style="font-size: 0.85rem; color: #333;">{{ 'Excellent' if results.health_score > 85 else 'Good' if results.health_score > 70 else 'Fair' if results.health_score > 50 else 'Critical' }} condition detected</div>
-                        </div>
-                    </div>
-
-                    <!-- Harvest Metric -->
-                    <div class="dashboard-card fade-in">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
-                            <div style="width: 45px; height: 45px; background: rgba(141, 110, 99, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #5D4037;">
-                                <i class="fas fa-tractor fa-lg"></i>
-                            </div>
-                            <span style="font-size: 0.8rem; color: #333; font-weight: 600; background: #f0f0f0; padding: 4px 10px; border-radius: 20px;">Productivity</span>
-                        </div>
-                        <h3 style="font-size: 0.9rem; color: #444; font-weight: 600; margin-bottom: 0.5rem;">Harvest Readiness</h3>
-                        <h2 style="font-size: 1.8rem; color: var(--deep-forest); margin-bottom: 1rem;">{{ 'Optimized' if results.is_ripped else 'Developing' }}</h2>
-                        <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-info-circle" style="color: var(--ai-blue);"></i>
-                            <span style="font-size: 0.85rem; color: #333;">{{ 'Immediate harvest recommended' if results.is_ripped else 'Monitor for phase transition' }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Vision Metric (Neural Vision Integrated) -->
-                    <div class="dashboard-card fade-in">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
-                            <div style="width: 45px; height: 45px; background: rgba(0, 0, 0, 0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--deep-forest);">
-                                <i class="fas fa-eye fa-lg"></i>
-                            </div>
-                            <span style="font-size: 0.8rem; color: #333; font-weight: 600; background: #f0f0f0; padding: 4px 10px; border-radius: 20px;">Neural Vision</span>
-                        </div>
-                        <div style="text-align: center; flex: 1; display: flex; align-items: center; justify-content: center;">
-                            {% if image_b64 %}
-                                <img src="data:image/jpeg;base64,{{ image_b64 }}" alt="Analysis Vision" style="max-height: 120px; border-radius: 12px; box-shadow: var(--depth-layer);">
-                            {% elif filename != 'demo_cotton.jpg' %}
-                                <img src="{{ url_for('static', filename='uploads/' + filename) }}" alt="Analysis Vision" style="max-height: 120px; border-radius: 12px; box-shadow: var(--depth-layer);">
-                            {% else %}
-                                <div style="width: 100%; height: 120px; background: linear-gradient(135deg, var(--emerald-green), var(--ai-blue)); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;">
-                                    <i class="fas fa-microchip fa-2x"></i>
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div style="margin-top: 1rem; text-align: center; font-size: 0.8rem; color: #444; font-weight: 600;">Source ID: {{ filename }}</div>
-                    </div>
-                </div>
-
-                <div class="analysis-footer" style="text-align: center; padding-top: 2rem; border-top: 1px solid rgba(0,0,0,0.1); color: black; font-size: 0.9rem; margin-top: auto; margin-bottom: 1rem; font-weight: 500;">
-                    Report generated on <strong>{{ timestamp }}</strong> by Agri-Vision AI System
-                </div>
+        <div class="glass-card fade-in" style="padding: 2.5rem; max-width: 750px; margin: 0 auto;">
+            <div class="section-header" style="margin-bottom: 1.5rem;">
+                <h1 style="font-size: 2rem; margin-bottom: 0.5rem; color: var(--emerald-green)">
+                    <i class="fas fa-robot"></i> Analysis Results
+                </h1>
+                <p style="font-size: 0.95rem;">
+                    Your crop image was analyzed using deep learning models for disease detection and growth stage recognition.
+                </p>
             </div>
-        </div>
 
-        <div class="print-page">
-            <div class="print-content">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 3rem;">
-                    <!-- Technical Insights -->
-                    <div class="dashboard-card fade-in" style="padding: 2.5rem;">
-                        <h3 style="font-size: 1.2rem; margin-bottom: 2rem; color: black;"><i class="fas fa-chart-pie" style="color: var(--emerald-green);"></i> Classification Distribution</h3>
-                        <div style="display: grid; gap: 1.5rem;">
-                            <div>
-                                <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.8rem; color: black;">Growth Phase Proximities</div>
-                                {% for phase, prob in results.phases.items() %}
-                                <div style="margin-bottom: 1rem;">
-                                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; color: #333; font-weight: 600;">
-                                        <span>{{ phase }}</span><span style="font-weight: 800; color: black;">{{ "%.1f"|format(prob * 100) }}%</span>
-                                    </div>
-                                    <div style="height: 6px; background: #f0f0f0; border-radius: 10px; overflow: hidden;">
-                                        <div style="width: {{ prob * 100 }}%; height: 100%; background: var(--emerald-green);"></div>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Smart Recommendations -->
-                    <div class="dashboard-card fade-in" style="background: linear-gradient(to bottom right, #ffffff, var(--dashboard-bg));">
-                        <h3 style="font-size: 1.2rem; margin-bottom: 1.5rem; color: black;"><i class="fas fa-lightbulb" style="color: #444;"></i> Intelligence Insights</h3>
-                        <div style="display: grid; gap: 1rem;">
-                            {% for rec in results.recommendations %}
-                            <div style="background: white; padding: 1rem; border-radius: 12px; display: flex; gap: 12px; border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
-                                <i class="fas fa-check-circle" style="color: var(--emerald-green); margin-top: 3px;"></i>
-                                <span style="font-size: 0.9rem; line-height: 1.4; color: black; font-weight: 500;">{{ rec }}</span>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="analysis-footer" style="text-align: center; padding-top: 2rem; border-top: 1px solid rgba(0,0,0,0.1); color: black; font-size: 0.9rem; margin-top: auto; margin-bottom: 1rem; font-weight: 500;">
-                    Report generated on <strong>{{ timestamp }}</strong> by Agri-Vision AI System
-                </div>
-
-                <!-- Technical Data (Compact Integration) -->
-                <div class="json-section no-print" style="max-width: 800px; margin: 0 auto;">
-                    <div class="dashboard-card" style="background: var(--deep-forest); padding: 1.5rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                            <h3 style="color: white; font-size: 1rem; margin: 0;"><i class="fas fa-code"></i> RAW Technical Data</h3>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <button onclick="copyJSON()" class="btn btn-secondary" style="background: rgba(255,255,255,0.1); color: white; border: none; font-size: 0.75rem; padding: 5px 12px;">Copy JSON</button>
-                                <button onclick="downloadJSON()" class="btn btn-primary" style="background: var(--ai-blue); border: none; font-size: 0.75rem; padding: 5px 12px;">Export JSON</button>
-                            </div>
-                        </div>
-                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 10px; color: #a5d6a7; font-family: monospace; font-size: 0.8rem; max-height: 150px; overflow-y: auto;">
-                            <pre style="margin: 0; white-space: pre-wrap;">{{ results|tojson(indent=2) }}</pre>
-                        </div>
-                    </div>
-                </div>
+            <!-- Analyzed Image + Bounding Boxes -->
+            {% if image_b64 %}
+            <div style="position: relative; width: 410px; margin: 0 auto 2rem auto;">
+                <img id="result-img" alt="Analyzed Crop Image"
+                     src="data:image/jpeg;base64,{{ image_b64 }}"
+                     style="border-radius: 13px; box-shadow: var(--soft-shadow); width: 410px; border: 2px solid #e2f3e6;">
+                <svg id="bbox-svg"
+                     style="position: absolute; top:0; left:0; width: 410px; height:auto; pointer-events:none; border-radius:13px;"
+                     width="410" height="{{ (img_shape.height / img_shape.width * 410)|int }}"></svg>
             </div>
+            {% endif %}
+
+            <!-- Disease Classification -->
+            <h2 style="color: var(--emerald-green); font-size:1.2rem; margin-top: 1.2rem; margin-bottom: 0.7rem;">
+                <i class="fas fa-stethoscope"></i> Disease Classification (ResNet50)
+            </h2>
+            <ul style="font-size:1.05rem; margin-bottom:1.3rem;">
+                <li>
+                    <b>Predicted Class:</b>
+                    {{ results.disease.predicted_class }}
+                    <span style="color:#555;">(Confidence: {{ results.disease.confidence|round(2) }})</span>
+                </li>
+                <li><b>Health Score:</b> {{ results.disease.health_score|round(1) }}%</li>
+            </ul>
+            <table style="margin-bottom: 2.2rem; min-width: 60%; border-collapse: collapse; border-radius: 8px; overflow: hidden;">
+                <tr>
+                    <th style="background:#c4ecc9;">Disease Class</th>
+                    <th style="background:#c4ecc9;">Probability</th>
+                </tr>
+                {% for cname, prob in results.disease.all_confidences.items() %}
+                <tr>
+                    <td style="background:#eafaea;">{{ cname }}</td>
+                    <td style="background:#eafaea;">{{ prob|round(4) }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+
+            <!-- Growth Stage Detection -->
+            <h2 style="color: var(--ai-blue); font-size:1.2rem; margin-bottom: 0.8rem;">
+                <i class="fas fa-seedling"></i> Growth Stage Detection (YOLOv8)
+            </h2>
+            {% if results.growth.main_class %}
+            <ul style="font-size:1.05rem; margin-bottom:1.3rem;">
+                <li>
+                    <b>Main Stage:</b>
+                    {{ results.growth.main_class }}
+                    <span style="color:#555;">(Confidence: {{ results.growth.confidence|round(2) }})</span>
+                </li>
+            </ul>
+            <table style="margin-bottom: 2rem; min-width: 60%; border-collapse: collapse; border-radius: 8px; overflow: hidden;">
+                <tr>
+                    <th style="background:#c4ecc9;">Stage Class</th>
+                    <th style="background:#c4ecc9;">Confidence</th>
+                    <th style="background:#c4ecc9;">BBox</th>
+                </tr>
+                {% for box in results.growth.boxes %}
+                <tr>
+                    <td style="background:#eafaea;">{{ box.class_name }}</td>
+                    <td style="background:#eafaea;">{{ box.confidence|round(3) }}</td>
+                    <td style="background:#eafaea;">[{{ box.bbox[0]|int }}, {{ box.bbox[1]|int }}, {{ box.bbox[2]|int }}, {{ box.bbox[3]|int }}]</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p style="margin-bottom: 2rem; color: #666;">No cotton growth stage detected.</p>
+            {% endif %}
+
+            <!-- Recommendations -->
+            <h2 style="color: var(--emerald-green); font-size:1.1rem; margin-bottom:0.9rem;">
+                <i class="fas fa-lightbulb"></i> Recommendations
+            </h2>
+            <ul style="margin-bottom:1.2rem;">
+                {% for rec in results.recommendations %}
+                    <li style="margin-bottom:0.3em;">{{ rec }}</li>
+                {% endfor %}
+            </ul>
+
+            <div style="margin-top: 18px; color: #555; font-size: 0.95em;">
+                <b>Analysis Time:</b> {{ timestamp }}
+            </div>
+
+            <!-- Raw output collapsible for advanced use -->
+            <details style="margin: 20px 0 0 0">
+                <summary style="cursor:pointer; color:#219345; font-weight:bold;">Show Full Model Output (JSON)</summary>
+                <pre style="background:#f7fbf7; border:1px solid #bde3bb; padding:10px; font-size:12px; max-height:220px; overflow:auto;">
+{{ raw_json }}
+                </pre>
+            </details>
         </div>
     </div>
-</div>
+</section>
 
+<!-- JS for drawing bounding boxes -->
 <script>
-function copyJSON() {
-    const jsonText = document.querySelector('.json-section pre').textContent;
-    navigator.clipboard.writeText(jsonText).then(() => {
-        alert('Data copied to clipboard!');
-    });
-}
-
-function downloadJSON() {
-    const jsonText = document.querySelector('.json-section pre').textContent;
-    const blob = new Blob([jsonText], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'agri-vision-report.json';
-    a.click();
-}
-
-// Re-initialize intersection observer for dynamic content
-const observerOptions = { threshold: 0.1 };
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
+document.addEventListener("DOMContentLoaded", function() {
+    {% if image_b64 and results.growth.boxes %}
+        function scale(x, inMin, inMax, outMin, outMax) {
+            return ((x - inMin)*(outMax - outMin)/(inMax-inMin)) + outMin;
         }
-    });
-}, observerOptions);
+        var origW = {{ img_shape.width }}, origH = {{ img_shape.height }};
+        var viewW = 410;
+        var viewH = Math.round(origH / origW * viewW);
+        var svg = document.getElementById("bbox-svg");
+        svg.setAttribute('width', viewW);
+        svg.setAttribute('height', viewH);
 
-document.querySelectorAll('.fade-in').forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(20px)';
-    el.style.transition = 'all 0.6s ease-out';
-    observer.observe(el);
+        {% for box in results.growth.boxes %}
+            let x1 = scale({{ box.bbox[0] }}, 0, origW, 0, viewW);
+            let y1 = scale({{ box.bbox[1] }}, 0, origH, 0, viewH);
+            let x2 = scale({{ box.bbox[2] }}, 0, origW, 0, viewW);
+            let y2 = scale({{ box.bbox[3] }}, 0, origH, 0, viewH);
+            // Draw rectangle
+            let rect = document.createElementNS("http://www.w3.org/2000/svg","rect");
+            rect.setAttribute('x', x1);
+            rect.setAttribute('y', y1);
+            rect.setAttribute('width', x2-x1);
+            rect.setAttribute('height', y2-y1);
+            rect.setAttribute('fill', 'none');
+            rect.setAttribute('stroke', '#e51d22');
+            rect.setAttribute('stroke-width', '2');
+            svg.appendChild(rect);
+
+            // Add label
+            let label = document.createElementNS("http://www.w3.org/2000/svg","text");
+            label.textContent = "{{ box.class_name }} ({{ box.confidence|round(2) }})";
+            label.setAttribute('x', x1+2);
+            label.setAttribute('y', Math.max(y1-8, 12));
+            label.setAttribute('fill', '#e51d22');
+            label.setAttribute('font-size', '13px');
+            label.setAttribute('stroke', 'white');
+            label.setAttribute('stroke-width', '0.7');
+            svg.appendChild(label);
+        {% endfor %}
+    {% endif %}
 });
 </script>
 {% endblock %}

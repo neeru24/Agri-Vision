@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Agri-Vision</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body { font-family: Arial, sans-serif; background: #fafbfd; margin: 16px; color: #222; }
+        h2 { color: #18802c; }
+        table { border-collapse: collapse; }
+        th, td { padding: 6px 9px; }
+        th { background: #c4ecc9; }
+        td { background: #eafaea; }
+        ul, li { margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Agri-Vision</h1>
+        <hr/>
+    </header>
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul id="alert-list">
+            {% for category, message in messages %}
+                <li style="color: {% if category == 'error' %}red{% else %}green{% endif %};">{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+    <footer>
+        <hr>
+        <p style="font-size:0.95em">Agri-Vision &copy; 2026</p>
+    </footer>
+</body>
+</html>
