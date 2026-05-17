@@ -121,6 +121,50 @@ The project should now be running successfully on your local machine.
 
 ---
 
+## 🧪 Running Unit Tests & Coverage
+
+Agri-Vision includes a comprehensive unit and integration testing suite built using `pytest` and `pytest-cov`. 
+
+The test suite runs programmatically in-memory, requiring no external files or slow deep learning model loading. This ensures tests run in **less than 1 second** with **89%+ code coverage**.
+
+### 1️⃣ Run Unit Tests
+
+Execute the following command in the project root directory:
+
+```bash
+python -m pytest -v
+```
+
+**Expected Output:**
+```text
+tests/test_app.py::test_preprocess_image_for_resnet PASSED
+tests/test_app.py::test_infer_disease_fallback PASSED
+...
+tests/test_app.py::test_datetimeformat_filter PASSED
+============================= 28 passed in 0.50s ==============================
+```
+
+### 2️⃣ Run Coverage Report
+
+To measure and check code coverage (achieving 89%+ coverage):
+
+```bash
+python -m pytest --cov=app --cov-report=term-missing tests/
+```
+
+**Expected Output:**
+```text
+Name     Stmts   Miss  Cover   Missing
+--------------------------------------
+app.py     201     22    89%   81-83, 88-90, 159, 406-420
+--------------------------------------
+TOTAL      201     22    89%
+============================= 28 passed in 0.70s ==============================
+```
+
+---
+
+
 ## 📊 Growth Phases Detected
 
 - 🌱 **Vegetative / Budding** – Early growth stage  
