@@ -18,7 +18,8 @@
     </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="{{ url_for('static', filename='js/animations.js') }}" defer></script>
+    <!-- Three.js CDN for interactive 3D model simulation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
     <!-- Professional Print Frame (Only visible in print) -->
@@ -65,14 +66,27 @@
 
         {% block content %}
         <section class="hero">
+            <!-- Ambient Background Layers -->
+            <div class="hero-bg-blobs">
+                <div class="blob blob-1"></div>
+                <div class="blob blob-2"></div>
+                <div class="blob blob-3"></div>
+            </div>
+            <div class="hero-grid-overlay"></div>
+
             <div class="hero-container">
                 <div class="hero-content">
-                    <span class="hero-badge">AI-DRIVEN AGRICULTURE</span>
+                    <div class="hero-badge-wrapper">
+                        <span class="hero-badge">
+                            <span class="badge-dot"></span>
+                            AI-DRIVEN COTTON INTEGRATION
+                        </span>
+                    </div>
                     <h1>
                         AI-Powered 
                         <span>Cotton Crop Intelligence</span>
                     </h1>
-                    <p>Analyze crop maturity, detect plant health issues, and optimize harvest timing using smart AI-driven insights.</p>
+                    <p>Analyze crop maturity, detect plant health issues, and optimize harvest timing using smart real-time deep learning analytics.</p>
                     <div class="hero-cta">
                         <a href="/analyze" class="btn btn-primary">
                             <i class="fas fa-camera"></i> Analyze Image
@@ -83,19 +97,48 @@
                     </div>
                 </div>
                 <div class="hero-image">
-                    <div class="image-wrapper">
-                        <img src="https://www.bighaat.com/_next/image?url=https%3A%2F%2Fmedia.bighaat.com%2Fkvplus%2Farticles%2F16fd9550acf212d700c44d57af13e7a3_pxfuel-1_11zon.jpg&w=3840&q=75" alt="Cotton Field Intelligence">
-                        <div class="image-overlay"></div>
+                    <div class="scanner-container">
+                        <!-- High Tech Corner Brackets -->
+                        <div class="scanner-bracket top-left"></div>
+                        <div class="scanner-bracket top-right"></div>
+                        <div class="scanner-bracket bottom-left"></div>
+                        <div class="scanner-bracket bottom-right"></div>
+
+                        <!-- Active Scanning Laser Line -->
+                        <div class="scanner-laser"></div>
+
+                        <!-- High Tech Sat Scan HUD overlay -->
+                        <div class="mock-bbox bbox-1" style="top: 12%; left: 8%;">
+                            <span class="bbox-label" id="hud-sat-status"><i class="fas fa-satellite"></i> Sat Scan: active</span>
+                        </div>
+                        <div class="mock-bbox bbox-2" style="bottom: 12%; right: 8%;">
+                            <span class="bbox-label" id="hud-anomalies"><i class="fas fa-exclamation-triangle"></i> ANOMALY DETECTION: 0%</span>
+                        </div>
+
+                        <!-- Interactive 3D WebGL Crop Scanner Container -->
+                        <div class="image-wrapper canvas-3d-wrapper">
+                            <div id="canvas-3d-container" style="position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4;"></div>
+                            <div class="image-overlay" style="z-index: 5; pointer-events: none;"></div>
+                        </div>
                     </div>
-                    <div class="floating-stats glass-card">
-                        <div style="display: flex; gap: 15px; align-items: center;">
-                            <div style="width: 45px; height: 45px; background: var(--info-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--ai-blue);">
-                                <i class="fas fa-microchip"></i>
-                            </div>
+
+                    <!-- Telemetry Metric Panel 1 (Performance) -->
+                    <div class="floating-telemetry-1 glass-card" id="telemetry-farm-card">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <div class="telemetry-pulse"></div>
                             <div>
-                                <h4 style="margin: 0; font-size: 1.1rem;">90.2% Accuracy</h4>
-                                <p style="margin: 0; font-size: 0.85rem; opacity: 0.7;">AI Model Performance</p>
+                                <h4 id="telemetry-farm-title" style="margin: 0; font-size: 0.95rem; font-weight: 700; color: var(--text-main);">IN-GJ GreenGrid Hub</h4>
+                                <p id="telemetry-farm-yield" style="margin: 0; font-size: 0.75rem; color: var(--text-muted);">Yield: 98.4% (Optimal)</p>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Telemetry Metric Panel 2 (Speed) -->
+                    <div class="floating-telemetry-2 glass-card" id="telemetry-status-card">
+                        <i class="fas fa-satellite telemetry-icon-spin" id="telemetry-status-icon" style="color: var(--emerald-green); font-size: 1.1rem; transition: color 0.3s ease;"></i>
+                        <div>
+                            <h4 id="telemetry-status-title" style="margin: 0; font-size: 0.9rem; font-weight: 700; color: var(--text-main);">Uplink Active</h4>
+                            <p id="telemetry-status-sub" style="margin: 0; font-size: 0.75rem; color: var(--text-muted);">Sat Latency: 24ms</p>
                         </div>
                     </div>
                 </div>
@@ -226,6 +269,457 @@
                 setTimeout(() => alert.remove(), 500);
             });
         }, 5000);
+    </script>
+    <script>
+        // Interactive 3D Globe and satellite scanner system
+        (function() {
+            const container = document.getElementById('canvas-3d-container');
+            if (!container) return;
+
+            // Define cotton farm coordinates and metrics
+            const farms = [
+                { name: "IN-GJ GreenGrid Hub", yield: "Yield: 98.4% (Optimal)", lat: 22.25, lon: 72.19, moisture: "Irrigation: Smart-ON", anomalies: "ANOMALY DETECTION: 0%", ping: "Sat Latency: 22ms", icon: "fa-seedling", country: "India" },
+                { name: "US-TX Precision Array", yield: "Yield: 95.1% (Ideal)", lat: 33.58, lon: -101.85, moisture: "Irrigation: Scheduled", anomalies: "ANOMALY DETECTION: 1%", ping: "Sat Latency: 28ms", icon: "fa-calculator", country: "USA" },
+                { name: "CN-XJ Automated Field", yield: "Yield: 96.8% (Optimal)", lat: 41.11, lon: 80.26, moisture: "Irrigation: Moisture-Max", anomalies: "ANOMALY DETECTION: 0%", ping: "Sat Latency: 31ms", icon: "fa-robot", country: "China" },
+                { name: "BR-BA Biosphere Grid", yield: "Yield: 93.4% (Stable)", lat: -12.18, lon: -45.00, moisture: "Irrigation: Humid-Adapt", anomalies: "ANOMALY DETECTION: 0%", ping: "Sat Latency: 45ms", icon: "fa-leaf", country: "Brazil" },
+                { name: "AU-QLD SatCrop Node", yield: "Yield: 94.2% (Stable)", lat: -23.44, lon: 144.26, moisture: "Irrigation: Arid-Sensor", anomalies: "ANOMALY DETECTION: 2%", ping: "Sat Latency: 52ms", icon: "fa-temperature-high", country: "Australia" },
+                { name: "UZ-UZ AgriVision Node", yield: "Yield: 91.9% (Balanced)", lat: 41.37, lon: 64.58, moisture: "Irrigation: Flow-Regulated", anomalies: "ANOMALY DETECTION: 0%", ping: "Sat Latency: 39ms", icon: "fa-water", country: "Uzbekistan" }
+            ];
+
+            let activeFarmIndex = 0;
+            let activeFarm = farms[activeFarmIndex];
+            let lastTargetTime = 0;
+            const cycleInterval = 3500; // Cycle farms every 3.5 seconds
+
+            // Setup the Three.js 3D rendering scene
+            const scene = new THREE.Scene();
+            
+            // Setup camera positioned to fit the globe beautifully
+            const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+            camera.position.set(0, 0, 8.5);
+
+            // Setup WebGL renderer with anti-aliasing
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            // Fetch colors dynamically based on active site theme
+            function getThemeColors() {
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                return {
+                    isDark: isDark,
+                    gridColor: isDark ? 0x2E8B57 : 0x1B4332,
+                    gridBack: isDark ? 0x112211 : 0xDFF5E1,
+                    particleColor: isDark ? 0x00E5FF : 0x2E8B57,
+                    satColor: isDark ? 0x00E5FF : 0x1B4332,
+                    arcColor: isDark ? 0x64B5F6 : 0x2E8B57,
+                    beaconColor: 0x00FFCC
+                };
+            }
+
+            let colors = getThemeColors();
+
+            // Add ambient and directional lights for clean globe visibility
+            const ambientLight = new THREE.AmbientLight(0xffffff, colors.isDark ? 0.4 : 0.85);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            dirLight.position.set(5, 5, 5);
+            scene.add(dirLight);
+
+            const dirLightBlue = new THREE.DirectionalLight(0x64B5F6, 0.6);
+            dirLightBlue.position.set(-5, 3, 2);
+            scene.add(dirLightBlue);
+
+            // Group all globe elements together for unified rotation
+            const globeGroup = new THREE.Group();
+            globeGroup.rotation.order = 'YXZ'; // Prevent gimbal lock
+            scene.add(globeGroup);
+
+            // Generate uniform globe dots using golden spiral distribution
+            const globeRadius = 3.0;
+            const dotCount = 800;
+            const dotGeo = new THREE.BufferGeometry();
+            const dotPositions = new Float32Array(dotCount * 3);
+            const phiGolden = Math.PI * (3 - Math.sqrt(5)); // Golden ratio
+
+            for (let i = 0; i < dotCount; i++) {
+                const y = 1 - (i / (dotCount - 1)) * 2; // from 1 to -1
+                const rAtY = Math.sqrt(1 - y * y); // radius at y
+                const theta = phiGolden * i;
+
+                const x = Math.cos(theta) * rAtY;
+                const z = Math.sin(theta) * rAtY;
+
+                dotPositions[i*3] = x * globeRadius;
+                dotPositions[i*3+1] = y * globeRadius;
+                dotPositions[i*3+2] = z * globeRadius;
+            }
+            dotGeo.setAttribute('position', new THREE.BufferAttribute(dotPositions, 3));
+            
+            // Create a soft radial gradient canvas for glowing dots
+            const pCanvas = document.createElement('canvas');
+            pCanvas.width = 16; pCanvas.height = 16;
+            const pCtx = pCanvas.getContext('2d');
+            const pGrad = pCtx.createRadialGradient(8,8,0, 8,8,8);
+            pGrad.addColorStop(0, 'rgba(255,255,255,1)');
+            pGrad.addColorStop(1, 'rgba(255,255,255,0)');
+            pCtx.fillStyle = pGrad;
+            pCtx.fillRect(0,0,16,16);
+            const dotTexture = new THREE.CanvasTexture(pCanvas);
+
+            const dotMat = new THREE.PointsMaterial({
+                size: 0.12,
+                color: colors.gridColor,
+                transparent: true,
+                opacity: 0.75,
+                map: dotTexture,
+                blending: THREE.AdditiveBlending
+            });
+            const globePoints = new THREE.Points(dotGeo, dotMat);
+            globeGroup.add(globePoints);
+
+            // Create secondary translucent wireframe globe sphere
+            const globeGeo = new THREE.SphereGeometry(globeRadius, 24, 24);
+            const globeMat = new THREE.MeshPhongMaterial({
+                color: colors.gridColor,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.08,
+                shininess: 20
+            });
+            const globeMesh = new THREE.Mesh(globeGeo, globeMat);
+            globeGroup.add(globeMesh);
+
+            // Convert GPS latitude and longitude to 3D spherical positions
+            function latLongToVector3(lat, lon, radius) {
+                const phi = (lat) * Math.PI / 180;
+                const theta = (lon + 180) * Math.PI / 180;
+
+                const x = -(radius * Math.cos(phi) * Math.sin(theta));
+                const y = radius * Math.sin(phi);
+                const z = radius * Math.cos(phi) * Math.cos(theta);
+
+                return new THREE.Vector3(x, y, z);
+            }
+
+            // Add agricultural farm location tracking beacons
+            const beacons = [];
+            const sonarRings = [];
+            const uplinkBeams = [];
+
+            // Setup cylinder laser uplink geometry
+            const beamGeo = new THREE.CylinderGeometry(0.015, 0.05, 1.2, 8);
+            beamGeo.translate(0, 0.6, 0); // translate pivot to base
+            const beamMat = new THREE.MeshBasicMaterial({
+                color: colors.beaconColor,
+                transparent: true,
+                opacity: 0.65,
+                side: THREE.DoubleSide,
+                blending: THREE.AdditiveBlending
+            });
+
+            // Setup glowing sonar ring geometry
+            const ringGeo = new THREE.RingGeometry(0.05, 0.22, 16);
+            const ringMat = new THREE.MeshBasicMaterial({
+                color: colors.beaconColor,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.8
+            });
+
+            farms.forEach((farm) => {
+                const pos = latLongToVector3(farm.lat, farm.lon, globeRadius);
+                
+                // Create coordinate beacon sphere
+                const sphereGeo = new THREE.SphereGeometry(0.08, 12, 12);
+                const sphereMat = new THREE.MeshBasicMaterial({ color: colors.beaconColor });
+                const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+                sphere.position.copy(pos);
+                globeGroup.add(sphere);
+                beacons.push(sphere);
+
+                // Create satellite uplink laser beam
+                const beam = new THREE.Mesh(beamGeo, beamMat);
+                beam.position.copy(pos);
+                // Align laser radially outwards from center
+                const beamTarget = pos.clone().multiplyScalar(2.0);
+                beam.lookAt(beamTarget);
+                beam.rotateX(Math.PI / 2);
+                globeGroup.add(beam);
+                uplinkBeams.push(beam);
+
+                // Create pulsating telemetry ring
+                const ring = new THREE.Mesh(ringGeo, ringMat.clone());
+                ring.position.copy(pos);
+                ring.lookAt(beamTarget);
+                globeGroup.add(ring);
+                sonarRings.push({
+                    mesh: ring,
+                    scale: 1.0,
+                    maxScale: 2.2 + Math.random() * 0.8,
+                    speed: 0.02 + Math.random() * 0.015
+                });
+
+                // Add local point light for localized beacon glows
+                const localLight = new THREE.PointLight(colors.beaconColor, 0.6, 2.5);
+                localLight.position.copy(pos);
+                globeGroup.add(localLight);
+            });
+
+            // Draw curved pathways connecting neighboring farm nodes
+            for (let i = 0; i < farms.length; i++) {
+                const p1 = latLongToVector3(farms[i].lat, farms[i].lon, globeRadius);
+                const p2 = latLongToVector3(farms[(i + 1) % farms.length].lat, farms[(i + 1) % farms.length].lon, globeRadius);
+
+                const midPoint = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
+                const dist = p1.distanceTo(p2);
+                const extrudeHeight = dist * 0.35;
+                const ctrlPos = midPoint.clone().normalize().multiplyScalar(globeRadius + extrudeHeight);
+
+                const curve = new THREE.QuadraticBezierCurve3(p1, ctrlPos, p2);
+                const pts = curve.getPoints(24);
+                const arcGeo = new THREE.BufferGeometry().setFromPoints(pts);
+                
+                const arcMat = new THREE.LineBasicMaterial({
+                    color: colors.arcColor,
+                    transparent: true,
+                    opacity: 0.3,
+                    blending: THREE.AdditiveBlending
+                });
+                const arcLine = new THREE.Line(arcGeo, arcMat);
+                globeGroup.add(arcLine);
+            }
+
+            // Add polar orbiting scanning satellites
+            const satGroup = new THREE.Group();
+            scene.add(satGroup);
+
+            // Create satellite body mesh
+            const satGeo = new THREE.BoxGeometry(0.24, 0.12, 0.12);
+            const satMat = new THREE.MeshPhongMaterial({ color: colors.satColor, wireframe: true });
+            const satMesh = new THREE.Mesh(satGeo, satMat);
+            satGroup.add(satMesh);
+
+            // Add solar panels
+            const panelGeo = new THREE.PlaneGeometry(0.42, 0.1);
+            const panelMat = new THREE.MeshBasicMaterial({ color: colors.gridColor, side: THREE.DoubleSide });
+            const p1Mesh = new THREE.Mesh(panelGeo, panelMat);
+            p1Mesh.position.x = 0.32;
+            const p2Mesh = p1Mesh.clone();
+            p2Mesh.position.x = -0.32;
+            satGroup.add(p1Mesh);
+            satGroup.add(p2Mesh);
+
+            // Create translucent radar scanning cone mesh
+            const coneGeo = new THREE.ConeGeometry(0.5, 2.2, 16, 1, true);
+            coneGeo.translate(0, -1.1, 0); // translate pivot to tip
+            const coneMat = new THREE.MeshBasicMaterial({
+                color: colors.satColor,
+                transparent: true,
+                opacity: 0.18,
+                side: THREE.DoubleSide,
+                blending: THREE.AdditiveBlending
+            });
+            const scanCone = new THREE.Mesh(coneGeo, coneMat);
+            satGroup.add(scanCone);
+
+            // Add visible sat orbital track rings
+            const orbitGeo = new THREE.RingGeometry(4.35, 4.38, 64);
+            const orbitMat = new THREE.MeshBasicMaterial({
+                color: colors.satColor,
+                transparent: true,
+                opacity: 0.1,
+                side: THREE.DoubleSide
+            });
+            const orbitLine = new THREE.Mesh(orbitGeo, orbitMat);
+            orbitLine.rotation.x = Math.PI / 2;
+            scene.add(orbitLine);
+
+            // Add mouse click-drag interactive controls
+            let isDragging = false;
+            let prevMousePos = { x: 0, y: 0 };
+            let userInteractionTimeout = 0;
+            let targetXRot = 0.2; // default tilt
+            let targetYRot = 0;
+
+            container.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                prevMousePos = { x: e.clientX, y: e.clientY };
+                // Pause auto-focus loop for 8 seconds when user interacts
+                userInteractionTimeout = Date.now() + 8000;
+            });
+
+            container.addEventListener('mousemove', (e) => {
+                // Map mouse coordinates for subtle parallax movements
+                const rect = container.getBoundingClientRect();
+                const mouseX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                const mouseY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+                if (isDragging) {
+                    const deltaX = e.clientX - prevMousePos.x;
+                    const deltaY = e.clientY - prevMousePos.y;
+                    
+                    globeGroup.rotation.y += deltaX * 0.006;
+                    globeGroup.rotation.x += deltaY * 0.006;
+                    
+                    // Limit vertical rotation to prevent flipping upside down
+                    globeGroup.rotation.x = Math.max(-Math.PI/2.5, Math.min(Math.PI/2.5, globeGroup.rotation.x));
+                    
+                    prevMousePos = { x: e.clientX, y: e.clientY };
+                    userInteractionTimeout = Date.now() + 8000;
+                } else {
+                    // Move camera slightly for dynamic parallax look
+                    camera.position.x = mouseX * 0.4;
+                    camera.position.y = mouseY * 0.4;
+                    camera.lookAt(0, 0, 0);
+                }
+            });
+
+            window.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            // Sync 3D telemetry status to HTML panels
+            function syncHtmlDashboard() {
+                activeFarm = farms[activeFarmIndex];
+                
+                // Update active farm metrics and text
+                const fCard = document.getElementById('telemetry-farm-card');
+                const fTitle = document.getElementById('telemetry-farm-title');
+                const fYield = document.getElementById('telemetry-farm-yield');
+                const sIcon = document.getElementById('telemetry-status-icon');
+                const sTitle = document.getElementById('telemetry-status-title');
+                const sSub = document.getElementById('telemetry-status-sub');
+                const hudSat = document.getElementById('hud-sat-status');
+                const hudAnom = document.getElementById('hud-anomalies');
+
+                if (fCard) {
+                    // Flash card borders on active target changes
+                    fCard.style.borderColor = 'var(--emerald-green)';
+                    fCard.style.boxShadow = '0 0 15px rgba(46, 139, 87, 0.4)';
+                    setTimeout(() => {
+                        fCard.style.borderColor = 'rgba(46, 139, 87, 0.15)';
+                        fCard.style.boxShadow = 'var(--card-shadow)';
+                    }, 500);
+                }
+
+                if (fTitle) fTitle.textContent = activeFarm.name;
+                if (fYield) fYield.innerHTML = `<i class="fas fa-chart-bar"></i> ${activeFarm.yield} | <span style="color:var(--emerald-green);font-weight:700;">${activeFarm.moisture}</span>`;
+                if (sTitle) sTitle.textContent = activeFarm.country + " Uplink";
+                if (sSub) sSub.textContent = activeFarm.ping;
+                
+                if (sIcon) {
+                    sIcon.className = `fas ${activeFarm.icon} telemetry-icon-spin`;
+                }
+
+                if (hudSat) hudSat.innerHTML = `<i class="fas fa-satellite"></i> Sat Target: ${activeFarm.name.split(' ')[0]}`;
+                if (hudAnom) hudAnom.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ANOMALY INDEX: ${activeFarm.anomalies.split(': ')[1]}`;
+            }
+
+            // Update Three.js element colors to match site theme
+            function updateThreeTheme() {
+                colors = getThemeColors();
+                
+                // Smooth light transition based on theme setting
+                ambientLight.intensity = colors.isDark ? 0.4 : 0.85;
+                dotMat.color.setHex(colors.gridColor);
+                globeMat.color.setHex(colors.gridColor);
+                beamMat.color.setHex(colors.beaconColor);
+                ringMat.color.setHex(colors.beaconColor);
+                satMat.color.setHex(colors.satColor);
+                coneMat.color.setHex(colors.satColor);
+                orbitMat.color.setHex(colors.satColor);
+            }
+
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            if (themeToggleBtn) {
+                themeToggleBtn.addEventListener('click', () => {
+                    setTimeout(updateThreeTheme, 80);
+                });
+            }
+
+            // Main animation and frame render loop
+            let frameTime = 0;
+            function animate() {
+                requestAnimationFrame(animate);
+                frameTime += 0.015;
+
+                // Pulse and fade telemetry beacon rings
+                sonarRings.forEach((ring) => {
+                    ring.scale += ring.speed;
+                    ring.mesh.scale.setScalar(ring.scale);
+                    ring.mesh.material.opacity = 1 - (ring.scale / ring.maxScale);
+
+                    if (ring.scale >= ring.maxScale) {
+                        ring.scale = 0.8;
+                        ring.mesh.material.opacity = 0.8;
+                    }
+                });
+
+                // Rotate satellite and align scan cone tip to center
+                const satAngle = frameTime * 0.5;
+                satGroup.position.x = Math.cos(satAngle) * 4.35;
+                satGroup.position.z = Math.sin(satAngle) * 4.35;
+                satGroup.position.y = Math.sin(satAngle * 1.2) * 1.0;
+                // Aim scanner tip to center of earth
+                satGroup.lookAt(0, 0, 0);
+                satGroup.rotateX(Math.PI / 2);
+
+                // Scale scanning cone size dynamically
+                scanCone.scale.setScalar(1 + Math.sin(frameTime * 4.0) * 0.06);
+
+                // Auto-spin target focusing logic
+                const now = Date.now();
+                if (now > userInteractionTimeout) {
+                    // Cycle targeted farm periodically
+                    if (now - lastTargetTime > cycleInterval) {
+                        activeFarmIndex = (activeFarmIndex + 1) % farms.length;
+                        syncHtmlDashboard();
+                        lastTargetTime = now;
+                    }
+
+                    // Easing interpolation to center active farm node
+                    const targetYRot = -activeFarm.lon * Math.PI / 180;
+                    const targetXRot = activeFarm.lat * Math.PI / 180;
+
+                    globeGroup.rotation.y += (targetYRot - globeGroup.rotation.y) * 0.04;
+                    globeGroup.rotation.x += (targetXRot - globeGroup.rotation.x) * 0.04;
+                } else {
+                    // Slow continuous rotation after manual drag ends
+                    if (!isDragging) {
+                        globeGroup.rotation.y += 0.001;
+                    }
+                    lastTargetTime = now - (cycleInterval - 1000); // trigger cycle shortly after manual interaction ends
+                }
+
+                // Oscillate active laser beams dynamically
+                uplinkBeams.forEach((beam, idx) => {
+                    const pulse = 1.0 + Math.sin(frameTime * 3.0 + idx) * 0.15;
+                    beam.scale.set(pulse, 1.0, pulse);
+                });
+
+                renderer.render(scene, camera);
+            }
+
+            // Adjust rendering aspect ratio on window resize
+            function handleResize() {
+                if (!container || !renderer || !camera) return;
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+                renderer.setSize(width, height);
+            }
+
+            window.addEventListener('resize', handleResize);
+
+            // Start the 3D globe animation loop
+            syncHtmlDashboard();
+            animate();
+            setTimeout(handleResize, 200);
+        })();
     </script>
 </body>
 </html>
