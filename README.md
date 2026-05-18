@@ -18,13 +18,13 @@ Agri-Vision uses deep learning and computer vision techniques to:
 
 ## ✨ Features
 
-- 🌿 **Growth Phase Detection** (4 stages)  
-- 💚 **Health Assessment** (disease & damage detection)  
-- 🤖 **AI-Powered Analysis** using deep learning  
-- 🌐 **Web Interface** (Flask-based)  
-- 📊 **REST API Support** for programmatic access  
-- 🎯 **Smart Recommendations** for farmers  
-- ⚡ **Fast Processing** (< 2 seconds per image)  
+- 🌿 **Growth Phase Detection** (4 stages for cotton, 🍅 Tomato coming soon)
+- 💚 **Health Assessment** (disease & damage detection)
+- 🤖 **AI-Powered Analysis** using deep learning
+- 🌐 **Web Interface** (Flask-based)
+- 📊 **REST API Support** for programmatic access
+- 🎯 **Smart Recommendations** for farmers
+- ⚡ **Fast Processing** (< 2 seconds per image) 
 
 ---
 
@@ -49,6 +49,19 @@ Link to the dataset used for training growth stage prediction model- https://uni
 
 Link to the dataset used for training crop disease classification model- https://universe.roboflow.com/deep-learning-nygzt/cotton-crop-dieases/browse?queryText=&pageSize=50&startingIndex=0&browseQuery=true
 
+## 🔜 Upcoming: Tomato Crop Support
+
+We are actively working on expanding Agri-Vision to support **Tomato crop analysis**. Planned features include:
+
+- 🍅 Tomato disease detection (Early Blight, Late Blight, Septoria Leaf Spot, Tomato Mosaic Virus)
+- 🌱 Tomato growth stage identification (Seedling, Vegetative, Flowering, Fruit development)
+- 📊 Tomato-specific recommendations
+
+**Dataset references for contributors:**
+- [PlantVillage Tomato Dataset](https://www.kaggle.com/datasets/kaustubhb999/tomatoleaf)
+- [Tomato Disease Detection (Roboflow)](https://universe.roboflow.com/search?q=tomato)
+
+> 💡 **Contributors wanted!** If you're interested in helping build tomato crop models, check out issue [#73](https://github.com/neeru24/Agri-Vision/issues/73)
 
 ## Growth Phases Detected
 
@@ -283,11 +296,10 @@ curl -X POST -F "file=@cotton_image.jpg" http://localhost:5000/api/analyze
 
 - 📱 Mobile application support  
 - 🎥 Real-time video analysis  
-- 🌾 Multi-crop support  
+- 🌾 Multi-crop support (🍅 Tomato crop analysis - In Progress)
 - ☁️ Weather data integration  
 - 📊 Yield prediction system  
-- 🧠 Improved AI models  
-
+- 🧠 Improved AI models
 ---
 
 # 🤝 Contributing
