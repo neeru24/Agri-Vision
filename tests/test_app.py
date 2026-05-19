@@ -178,6 +178,28 @@ def test_get_analyze_route(client):
     assert resp.status_code == 200
     assert b"Upload" in resp.data or b"Image" in resp.data
 
+def test_get_comparison_route(client):
+    """GET /comparison should render the field comparison page."""
+    resp = client.get("/comparison")
+    assert resp.status_code == 200
+    assert b"Field Photo Comparison" in resp.data
+    assert b"Last Week Field Image" in resp.data
+
+def test_build_comparison_result_improved():
+    """Comparison helper should identify health score improvement."""
+    old_results = {
+        "disease": {"predicted_class": "Aphids", "confidence": 0.8, "health_score": 42.0},
+        "recommendations": ["Increase scouting frequency."]
+    }
+    new_results = {
+        "disease": {"predicted_class": "Healthy", "confidence": 0.9, "health_score": 68.0},
+        "recommendations": ["Continue general crop monitoring."]
+    }
+    result = app.build_comparison_result(old_results, new_results)
+    assert result["trend"]["status"] == "improved"
+    assert result["change_percentage"] == 26.0
+    assert any("Disease spread reduced" in item for item in result["summary"])
+
 # --- POST /analyze Route (Form Upload) ---
 
 def test_post_analyze_valid(client, valid_image):
@@ -188,6 +210,53 @@ def test_post_analyze_valid(client, valid_image):
     resp = client.post("/analyze", data=data, content_type="multipart/form-data")
     assert resp.status_code == 200
     assert b"Results" in resp.data or b"recommendations" in resp.data or b"analysis" in resp.data
+
+def test_post_comparison_valid(client, monkeypatch):
+    """POST /comparison with two valid images should render comparison results."""
+    def mock_analyze_image(_image):
+        return {
+            "disease": {
+                "predicted_class": "Healthy",
+                "predicted_class_idx": 5,
+                "confidence": 0.92,
+                "all_confidences": {},
+                "health_score": 82.0,
+                "raw": [],
+            },
+            "growth": {
+                "main_class": "Matured Cotton Boll",
+                "main_class_idx": 3,
+                "confidence": 0.8,
+                "boxes": [],
+                "raw": [],
+            },
+            "recommendations": ["Continue general crop monitoring."],
+        }
+
+    monkeypatch.setattr(app, "analyze_image", mock_analyze_image)
+
+    image_one = io.BytesIO()
+    Image.new('RGB', (80, 80), color='green').save(image_one, format='PNG')
+    image_one.seek(0)
+    image_two = io.BytesIO()
+    Image.new('RGB', (80, 80), color='darkgreen').save(image_two, format='PNG')
+    image_two.seek(0)
+
+    data = {
+        "last_week_image": (image_one, "last_week.png"),
+        "current_week_image": (image_two, "current_week.png"),
+    }
+    resp = client.post("/comparison", data=data, content_type="multipart/form-data")
+    assert resp.status_code == 200
+    assert b"AI RECOMMENDATION" in resp.data
+    assert b"Old Prediction" in resp.data
+    assert b"New Prediction" in resp.data
+
+def test_post_comparison_missing_file(client):
+    """POST /comparison with a missing image should redirect with validation error."""
+    resp = client.post("/comparison", data={}, content_type="multipart/form-data")
+    assert resp.status_code == 302
+    assert "/comparison" in resp.headers["Location"]
 
 def test_post_analyze_missing_file_key(client):
     """POST /analyze with no file key in payload should flash error and redirect."""

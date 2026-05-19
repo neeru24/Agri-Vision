@@ -21,6 +21,7 @@
     /* Theme specific */
     --nav-bg: rgba(255, 255, 255, 0.7);
     --nav-scrolled-bg: rgba(255, 255, 255, 0.95);
+    --footer-bg: #123524;
     
     /* Accent & Utility */
     --ai-blue: #4A90E2;
@@ -58,6 +59,7 @@
     
     --nav-bg: rgba(18, 18, 18, 0.7);
     --nav-scrolled-bg: rgba(18, 18, 18, 0.95);
+    --footer-bg: #061f16;
 
     --soft-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     --hover-shadow: 0 10px 30px rgba(60, 179, 113, 0.2);
@@ -581,7 +583,7 @@ body {
 
 /* Compact Footer */
 .footer {
-    background: var(--deep-forest);
+    background: var(--footer-bg);
     color: white;
     padding: 2.5rem 2rem 1.5rem; /* Significantly reduced padding */
 }
@@ -706,6 +708,469 @@ body {
     color: var(--emerald-green);
     margin-right: 1rem;
     flex-shrink: 0;
+}
+
+/* Field Photo Comparison */
+.comparison-page {
+    padding-bottom: 5rem;
+    background:
+        radial-gradient(circle at 15% 10%, rgba(76, 175, 80, 0.14), transparent 28%),
+        radial-gradient(circle at 85% 20%, rgba(74, 144, 226, 0.09), transparent 26%),
+        var(--bg-main);
+}
+
+.comparison-shell {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.comparison-hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    align-items: center;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--soft-shadow);
+    background:
+        linear-gradient(135deg, rgba(46, 139, 87, 0.15), rgba(255, 255, 255, 0.66)),
+        var(--glass-bg);
+}
+
+[data-theme="dark"] .comparison-hero {
+    background:
+        linear-gradient(135deg, rgba(60, 179, 113, 0.18), rgba(30, 30, 30, 0.72)),
+        var(--glass-bg);
+}
+
+.comparison-kicker {
+    display: inline-flex;
+    margin-bottom: 0.75rem;
+    color: var(--emerald-green);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+.comparison-hero h1 {
+    color: var(--deep-forest);
+    font-size: 2.45rem;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+}
+
+.comparison-hero p {
+    color: var(--text-muted);
+    max-width: 680px;
+    font-size: 1rem;
+}
+
+.comparison-hero-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.1rem;
+    border-radius: 16px;
+    background: var(--card-bg);
+    color: var(--deep-forest);
+    box-shadow: var(--soft-shadow);
+    min-width: 220px;
+}
+
+.comparison-hero-badge i {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    color: white;
+    background: linear-gradient(135deg, var(--emerald-green), var(--fresh-green));
+}
+
+.comparison-upload-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.comparison-upload-card,
+.ai-summary-card,
+.ai-recommendation-card,
+.comparison-summary-card {
+    padding: 1.5rem;
+    box-shadow: var(--soft-shadow);
+    transition: var(--transition-smooth);
+}
+
+.comparison-upload-card:hover,
+.ai-summary-card:hover,
+.ai-recommendation-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--hover-shadow);
+}
+
+.comparison-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.comparison-card-header h2 {
+    color: var(--deep-forest);
+    font-size: 1.15rem;
+    margin-bottom: 0.2rem;
+}
+
+.comparison-card-header p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.comparison-step {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--soft-mint);
+    color: var(--emerald-green);
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.comparison-dropzone {
+    min-height: 190px;
+    border: 1.5px dashed rgba(46, 139, 87, 0.45);
+    border-radius: 18px;
+    background: rgba(46, 139, 87, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 1.5rem;
+    cursor: pointer;
+    text-align: center;
+    transition: var(--transition-smooth);
+}
+
+.comparison-dropzone:hover {
+    border-color: var(--emerald-green);
+    background: rgba(46, 139, 87, 0.1);
+    transform: translateY(-2px);
+}
+
+.comparison-dropzone input {
+    display: none;
+}
+
+.comparison-upload-icon {
+    width: 58px;
+    height: 58px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--emerald-green), var(--fresh-green));
+    color: white;
+    font-size: 1.35rem;
+    box-shadow: 0 14px 28px rgba(46, 139, 87, 0.18);
+}
+
+.comparison-dropzone strong {
+    color: var(--deep-forest);
+    font-size: 1rem;
+}
+
+.comparison-dropzone small {
+    color: var(--text-muted);
+}
+
+.comparison-preview-frame {
+    margin-top: 1rem;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+}
+
+.comparison-preview-frame img {
+    display: none;
+    width: 100%;
+    height: 230px;
+    object-fit: cover;
+}
+
+.comparison-preview-frame img[src]:not([src=""]) {
+    display: block;
+}
+
+.comparison-preview-frame span {
+    display: block;
+    padding: 0.85rem 1rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
+}
+
+.comparison-submit-row {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+}
+
+.comparison-submit {
+    min-width: min(100%, 320px);
+    justify-content: center;
+}
+
+.comparison-results {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.comparison-summary-card {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    border-left: 5px solid var(--emerald-green);
+}
+
+.comparison-summary-card.trend-declined {
+    border-left-color: #dc3545;
+}
+
+.comparison-summary-card.trend-stable {
+    border-left-color: var(--ai-blue);
+}
+
+.comparison-summary-icon {
+    width: 68px;
+    height: 68px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--soft-mint);
+    color: var(--emerald-green);
+    font-size: 1.8rem;
+    flex-shrink: 0;
+}
+
+.trend-declined .comparison-summary-icon,
+.comparison-result-card.trend-declined i {
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.12);
+}
+
+.trend-stable .comparison-summary-icon,
+.comparison-result-card.trend-stable i {
+    color: var(--ai-blue);
+    background: rgba(74, 144, 226, 0.12);
+}
+
+.comparison-summary-card h2 {
+    color: var(--deep-forest);
+    margin-bottom: 0.35rem;
+}
+
+.comparison-summary-card p {
+    color: var(--text-muted);
+}
+
+.comparison-metrics-grid,
+.comparison-analysis-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+}
+
+.comparison-analysis-grid {
+    grid-template-columns: 1.4fr 1fr;
+}
+
+.comparison-analysis-grid.recommendation-only {
+    grid-template-columns: 1fr;
+}
+
+.comparison-result-card {
+    position: relative;
+    padding: 1.4rem;
+    border-radius: 18px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--soft-shadow);
+    overflow: hidden;
+}
+
+.comparison-result-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 4px;
+    background: linear-gradient(90deg, var(--emerald-green), var(--fresh-green));
+}
+
+.comparison-result-card > span {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+}
+
+.comparison-result-card h3 {
+    color: var(--deep-forest);
+    font-size: 1.45rem;
+    line-height: 1.15;
+    margin-bottom: 0.35rem;
+}
+
+.comparison-result-card p,
+.comparison-result-card strong {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+}
+
+.comparison-result-card strong {
+    display: block;
+    color: var(--deep-forest);
+    margin-top: 0.55rem;
+}
+
+.comparison-result-card.delta {
+    min-height: 190px;
+}
+
+.comparison-result-card.delta h3 {
+    font-size: 2rem;
+}
+
+.comparison-result-card.delta i {
+    position: absolute;
+    right: 1.2rem;
+    bottom: 1.1rem;
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--soft-mint);
+    color: var(--emerald-green);
+    font-size: 1.5rem;
+}
+
+.comparison-score-bar {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(46, 139, 87, 0.12);
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.comparison-score-bar span {
+    display: block;
+    height: 100%;
+    min-width: 3%;
+    max-width: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--emerald-green), var(--fresh-green));
+}
+
+.ai-summary-card ul {
+    list-style: none;
+    display: grid;
+    gap: 0.85rem;
+}
+
+.ai-summary-card li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    color: var(--deep-forest);
+    padding: 0.9rem;
+    border-radius: 14px;
+    background: rgba(46, 139, 87, 0.07);
+}
+
+.ai-summary-card li i {
+    color: var(--emerald-green);
+    margin-top: 0.2rem;
+}
+
+.ai-recommendation-card h2 {
+    color: var(--deep-forest);
+    margin-bottom: 0.75rem;
+}
+
+.ai-recommendation-card p {
+    color: var(--text-muted);
+}
+
+.comparison-mini-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: 1.5rem;
+}
+
+.comparison-mini-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 999px;
+    background: var(--soft-mint);
+    color: var(--emerald-green);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+@media (max-width: 900px) {
+    .comparison-hero,
+    .comparison-summary-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .comparison-upload-grid,
+    .comparison-metrics-grid,
+    .comparison-analysis-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 560px) {
+    .comparison-shell {
+        padding: 0 1rem;
+    }
+
+    .comparison-hero,
+    .comparison-upload-card,
+    .ai-summary-card,
+    .ai-recommendation-card,
+    .comparison-summary-card {
+        padding: 1.1rem;
+        border-radius: 16px;
+    }
+
+    .comparison-hero h1 {
+        font-size: 1.9rem;
+    }
+
+    .comparison-preview-frame img {
+        height: 190px;
+    }
 }
 
 .footer-bottom {

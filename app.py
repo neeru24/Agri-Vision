@@ -45,6 +45,8 @@ os.makedirs('static/uploads', exist_ok=True)
 os.makedirs('static/css', exist_ok=True)
 os.makedirs('models', exist_ok=True)
 
+ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
 # --- Class Names ---
 # --- Disease class list (from confusion matrix order) ---
 disease_classes = [
@@ -264,6 +266,77 @@ def encode_image_for_display(image):
     image_b64 = base64.b64encode(buffer).decode('utf-8')
     return image_b64
 
+def is_allowed_image(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
+
+def read_uploaded_image(file_storage):
+    safe_filename = secure_filename(file_storage.filename)
+    file_bytes = np.frombuffer(file_storage.read(), np.uint8)
+    image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+    if image is None:
+        raise ValueError("Error reading image file")
+    return safe_filename, image, cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+def build_comparison_result(old_results, new_results):
+    old_score = float(old_results["disease"].get("health_score", 0.0))
+    new_score = float(new_results["disease"].get("health_score", 0.0))
+    change = new_score - old_score
+    abs_change = abs(change)
+
+    if change > 1:
+        trend = {
+            "status": "improved",
+            "label": "Improved",
+            "icon": "fa-arrow-trend-up",
+            "direction": "up",
+        }
+        headline = f"Crop health improved by {abs_change:.1f}%"
+        recommendation = "Continue the current treatment plan, keep irrigation steady, and scout every few days to confirm the recovery trend."
+    elif change < -1:
+        trend = {
+            "status": "declined",
+            "label": "Declined",
+            "icon": "fa-arrow-trend-down",
+            "direction": "down",
+        }
+        headline = f"Crop health declined by {abs_change:.1f}%"
+        recommendation = "Increase field inspection frequency, isolate visibly affected plants, and consider expert guidance before the disease pressure spreads."
+    else:
+        trend = {
+            "status": "stable",
+            "label": "Stable",
+            "icon": "fa-arrows-left-right",
+            "direction": "flat",
+        }
+        headline = "Crop health remained stable"
+        recommendation = "Maintain the current crop care routine and compare again after the next treatment or irrigation cycle."
+
+    old_disease = old_results["disease"]["predicted_class"]
+    new_disease = new_results["disease"]["predicted_class"]
+    disease_reduced = old_disease != "Healthy" and new_disease == "Healthy"
+    disease_changed = old_disease != new_disease
+
+    summary = [
+        headline,
+        "Disease spread reduced" if disease_reduced else (
+            f"Disease signal shifted from {old_disease} to {new_disease}" if disease_changed else f"Disease signal remains {new_disease}"
+        ),
+        recommendation,
+    ]
+
+    if new_results.get("recommendations"):
+        summary.append(f"Model priority: {new_results['recommendations'][0]}")
+
+    return {
+        "old_score": old_score,
+        "new_score": new_score,
+        "change_percentage": change,
+        "abs_change_percentage": abs_change,
+        "trend": trend,
+        "recommendation": recommendation,
+        "summary": summary,
+    }
+
 @app.route("/")
 def index():
     lang = request.args.get("lang", "en")
@@ -283,19 +356,11 @@ def analyze():
         if file.filename == '':
             flash('No file selected', 'error')
             return redirect(request.url)
-        allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
-        if not '.' in file.filename or \
-           file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
+        if not is_allowed_image(file.filename):
             flash('Invalid file type. Please upload an image (PNG, JPG, JPEG, GIF)', 'error')
             return redirect(request.url)
         try:
-            safe_filename = secure_filename(file.filename)
-            file_bytes = np.frombuffer(file.read(), np.uint8)
-            image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-            if image is None:
-                flash('Error reading image file', 'error')
-                return redirect(request.url)
-            image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            safe_filename, image, image_rgb = read_uploaded_image(file)
             image_b64 = encode_image_for_display(image)
             results = analyze_image(image_rgb)
             # Render UI, pass bounding boxes for JS drawing, raw json, etc
@@ -313,6 +378,52 @@ def analyze():
             flash(f'Error during analysis: {str(e)}', 'error')
             return redirect(request.url)
     return render_template("upload.html")
+
+@app.route('/comparison', methods=['GET', 'POST'])
+def comparison():
+    if request.method == 'POST':
+        required_files = {
+            "last_week_image": "Last Week Field Image",
+            "current_week_image": "Current Week Field Image",
+        }
+
+        for field_name, label in required_files.items():
+            if field_name not in request.files:
+                flash(f'{label} is required', 'error')
+                return redirect(request.url)
+            uploaded_file = request.files[field_name]
+            if uploaded_file.filename == '':
+                flash(f'Please select a file for {label}', 'error')
+                return redirect(request.url)
+            if not is_allowed_image(uploaded_file.filename):
+                flash(f'Invalid file type for {label}. Please upload PNG, JPG, JPEG, or GIF.', 'error')
+                return redirect(request.url)
+
+        try:
+            old_filename, old_image, old_rgb = read_uploaded_image(request.files["last_week_image"])
+            new_filename, new_image, new_rgb = read_uploaded_image(request.files["current_week_image"])
+
+            old_results = analyze_image(old_rgb)
+            new_results = analyze_image(new_rgb)
+            comparison_result = build_comparison_result(old_results, new_results)
+
+            return render_template(
+                "comparison.html",
+                old_results=old_results,
+                new_results=new_results,
+                comparison=comparison_result,
+                old_filename=old_filename,
+                new_filename=new_filename,
+                old_image_b64=encode_image_for_display(old_image),
+                new_image_b64=encode_image_for_display(new_image),
+                timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            )
+        except Exception as e:
+            logger.error(f"Comparison analysis error: {e}")
+            flash(f'Error during field comparison: {str(e)}', 'error')
+            return redirect(request.url)
+
+    return render_template("comparison.html")
 
 @app.route("/demo")
 def demo():
@@ -414,6 +525,7 @@ if __name__ == '__main__':
     logger.info("Endpoints:")
     logger.info("/              - Home page")
     logger.info("/analyze       - Upload and analyze image")
+    logger.info("/comparison    - Compare two field images")
     logger.info("/demo          - View demo results")
     logger.info("/api/analyze   - API endpoint (POST)")
     logger.info("/health        - Health check")
