@@ -26,11 +26,127 @@
                                 <i class="fas fa-times"></i>
                             </div>
                         </div>
+
+                        <!-- Hidden lat/lon fields for GPS -->
+                        <input type="hidden" name="lat" id="lat-input">
+                        <input type="hidden" name="lon" id="lon-input">
+
+                        <button
+                            type="button"
+                            id="use-location-btn"
+                            onclick="useMyLocation()"
+                            style="
+                                padding: 0.5rem 1rem; background: #17a2b8; color: white;
+                                border: none; border-radius: 8px; cursor: pointer;
+                                font-size: 0.85rem; white-space: nowrap;
+                                transition: background 0.2s;
+                            "
+                            onmouseover="this.style.background='#138496'"
+                            onmouseout="this.style.background='#17a2b8'"
+                        >
+                            📍 Use My Location
+                        </button>
                     </div>
+
+                    <p id="geo-status" style="margin: 0.5rem 0 0; font-size: 0.8rem; color: #6c757d;"></p>
                 </div>
-                
-                <input type="file" id="fileInput" name="file" accept="image/*" class="file-input" style="display: none;" onchange="previewImage(this)">
-                
+
+<script>
+// Show green tick as soon as user types something in city box
+function onCityInput(input) {
+    const tick = document.getElementById('city-tick');
+    const status = document.getElementById('geo-status');
+    const latInput = document.getElementById('lat-input');
+    const lonInput = document.getElementById('lon-input');
+
+    if (input.value.trim().length > 1) {
+        // Show green tick and confirmation
+        tick.style.display = 'inline';
+        input.style.borderColor = '#28a745';
+        status.textContent = '✅ Location set: ' + input.value.trim();
+        status.style.color = '#28a745';
+        // Clear GPS coords so city name is used instead
+        latInput.value = '';
+        lonInput.value = '';
+    } else {
+        tick.style.display = 'none';
+        input.style.borderColor = '#ced4da';
+        status.textContent = '';
+    }
+}
+
+function useMyLocation() {
+    const btn = document.getElementById('use-location-btn');
+    const status = document.getElementById('geo-status');
+    const cityInput = document.getElementById('city-input');
+    const tick = document.getElementById('city-tick');
+
+    if (!navigator.geolocation) {
+        status.textContent = '⚠️ Geolocation not supported by your browser.';
+        status.style.color = '#dc3545';
+        return;
+    }
+
+    btn.textContent = '⏳ Detecting...';
+    btn.disabled = true;
+
+    navigator.geolocation.getCurrentPosition(
+        function(pos) {
+            const lat = pos.coords.latitude.toFixed(5);
+            const lon = pos.coords.longitude.toFixed(5);
+            document.getElementById('lat-input').value = lat;
+            document.getElementById('lon-input').value = lon;
+            cityInput.value = '';
+            tick.style.display = 'none';
+            cityInput.style.borderColor = '#ced4da';
+            status.textContent = '✅ GPS location detected: ' + lat + ', ' + lon;
+            status.style.color = '#28a745';
+            btn.textContent = '📍 Location Set';
+            btn.style.background = '#28a745';
+        },
+        function(err) {
+            status.textContent = '⚠️ Could not get GPS: ' + err.message + '. Try typing your city instead.';
+            status.style.color = '#dc3545';
+            btn.textContent = '📍 Use My Location';
+            btn.disabled = false;
+        },
+        { timeout: 8000 }
+    );
+}
+
+</script>
+                <!-- File Upload Area -->
+                <div class="upload-area" onclick="document.getElementById('fileInput').click()" style="
+                    border: 2px dashed var(--emerald-green);
+                    border-radius: 16px;
+                    padding: 2.5rem;
+                    text-align: center;
+                    cursor: pointer;
+                    background: rgba(46, 139, 87, 0.03);
+                    transition: all 0.3s ease;
+                    margin-top: 1.5rem;
+                ">
+                    <div id="previewContainer" style="display:none;">
+                        <img id="imagePreview" src="" alt="Preview" style="max-width:100%; max-height:300px; border-radius:10px;" />
+                        <br>
+                        <button type="button" onclick="event.stopPropagation(); resetUpload()" style="
+                            margin-top: 0.75rem; padding: 0.4rem 1rem;
+                            background: #dc3545; color: white; border: none;
+                            border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+                        ">✕ Remove Image</button>
+                    </div>
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 2.5rem; color: var(--emerald-green); margin-bottom: 1rem;"></i>
+                    <p style="font-size: 1rem; margin-bottom: 0.5rem;">Drag & drop your crop image here</p>
+                    <p style="font-size: 0.85rem; opacity: 0.6;">or click to browse — PNG, JPG, JPEG, GIF up to 10MB</p>
+                    <input
+                        type="file"
+                        id="fileInput"
+                        name="file"
+                        accept="image/*"
+                        style="display:none;"
+                        onchange="previewImage(this)"
+                    />
+                </div>
                 <div style="margin-top: 3rem;">
                     <button type="submit" class="btn btn-primary btn-lg w-full">
                         <i class="fas fa-magnifying-glass"></i> {{ t.start_analysis | default('Start AI Analysis') }}

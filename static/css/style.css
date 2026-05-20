@@ -1484,6 +1484,46 @@ body {
     margin-bottom: 1.25rem;
 }
 
+.comparison-error-card,
+.comparison-warning-card {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 165, 0, 0.15);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--light-text);
+    box-shadow: var(--soft-shadow);
+    margin-bottom: 1.5rem;
+}
+
+.comparison-error-card {
+    border-color: rgba(255, 85, 85, 0.25);
+}
+
+.comparison-warning-card {
+    border-color: rgba(255, 206, 0, 0.25);
+}
+
+.comparison-error-icon,
+.comparison-warning-icon {
+    width: 3rem;
+    height: 3rem;
+    display: grid;
+    place-items: center;
+    border-radius: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.comparison-error-icon i {
+    color: #ff6b6b;
+}
+
+.comparison-warning-icon i {
+    color: #ffd166;
+}
+
 .comparison-card-header h2 {
     color: var(--deep-forest);
     font-size: 1.15rem;

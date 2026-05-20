@@ -72,6 +72,42 @@
             </div>
         </form>
 
+        {% if error_message %}
+        <div class="comparison-error-card glass-card fade-in">
+            <div class="comparison-error-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div>
+                <h2>Unable to compare images</h2>
+                <p>{{ error_message }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if (old_results is defined and old_results.warnings) or (new_results is defined and new_results.warnings) %}
+        <div class="comparison-warning-card glass-card fade-in">
+            <div class="comparison-warning-icon">
+                <i class="fas fa-triangle-exclamation"></i>
+            </div>
+            <div>
+                <h2>Comparison may be less reliable</h2>
+                <p>Some images did not return a confirmed cotton growth stage. Disease analysis is still shown, but review the photo quality or try clearer field images.</p>
+                <ul>
+                    {% if old_results is defined and old_results.warnings %}
+                        {% for warning in old_results.warnings %}
+                            <li>Last week image: {{ warning }}</li>
+                        {% endfor %}
+                    {% endif %}
+                    {% if new_results is defined and new_results.warnings %}
+                        {% for warning in new_results.warnings %}
+                            <li>Current week image: {{ warning }}</li>
+                        {% endfor %}
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+
         {% if comparison %}
         <div class="comparison-results fade-in">
             <div class="comparison-summary-card glass-card trend-{{ comparison.trend.status }}">
