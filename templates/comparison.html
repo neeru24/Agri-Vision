@@ -6,7 +6,7 @@
         <div class="comparison-hero glass-card fade-in">
             <div>
                 <span class="comparison-kicker">AI FIELD MONITORING</span>
-                <h1>Field Photo Comparison</h1>
+                <h1>{{ t.field_comparison | default('Field Photo Comparison') }}</h1>
                 <p>Compare last week's cotton field photo with the current week using the same disease prediction model that powers Agri-Vision analysis.</p>
             </div>
             <div class="comparison-hero-badge">
@@ -27,7 +27,7 @@
                 <label class="comparison-dropzone" for="lastWeekInput">
                     <input type="file" id="lastWeekInput" name="last_week_image" accept="image/*" required data-preview-target="lastWeekPreview" data-file-label="lastWeekFile">
                     <span class="comparison-upload-icon"><i class="fas fa-cloud-arrow-up"></i></span>
-                    <strong>Upload last week photo</strong>
+                    <strong>{{ t.upload_last_week | default('Upload last week photo') }}</strong>
                     <small>PNG, JPG, JPEG, GIF up to 10MB</small>
                 </label>
                 <div class="comparison-preview-frame">
@@ -51,7 +51,7 @@
                 <label class="comparison-dropzone" for="currentWeekInput">
                     <input type="file" id="currentWeekInput" name="current_week_image" accept="image/*" required data-preview-target="currentWeekPreview" data-file-label="currentWeekFile">
                     <span class="comparison-upload-icon"><i class="fas fa-leaf"></i></span>
-                    <strong>Upload current week photo</strong>
+                    <strong>{{ t.upload_current_week | default('Upload current week photo') }}</strong>
                     <small>Use a similar angle for best comparison</small>
                 </label>
                 <div class="comparison-preview-frame">
@@ -67,7 +67,7 @@
             <div class="comparison-submit-row">
                 <button type="submit" class="btn btn-primary comparison-submit">
                     <i class="fas fa-chart-line"></i>
-                    Compare Field Health
+                    {{ t.compare_button | default('Compare Field Health') }}
                 </button>
             </div>
         </form>
