@@ -234,18 +234,62 @@ def generate_recommendations(disease_result, growth_result):
     if gmain in grow_map:
         recs.extend(grow_map[gmain])
     return recs[:5]
-
+def analyze_image(image):
+    disease = infer_disease(image)
+    growth = infer_growth_stage(image)
+    recs = generate_recommendations(disease, growth)
+    warnings = []
+    if yolo_model is None:
+        warnings.append("Growth stage model unavailable - using fallback detection")
+    return {
+        "disease": disease,
+        "growth": growth,
+        "recommendations": recs,
+        "warnings": warnings
+    }
+    
 def analyze_image(image):
     disease = infer_disease(image)
     growth = infer_growth_stage(image)
     recs = generate_recommendations(disease, growth)
     return {"disease": disease, "growth": growth, "recommendations": recs}
-
+def build_comparison_result(old_results, new_results):
+    """Build comparison result between two time periods"""
+    old_health = old_results["disease"]["health_score"]
+    new_health = new_results["disease"]["health_score"]
+    change = new_health - old_health
+    change_pct = (change / old_health * 100) if old_health != 0 else 0
+    
+    trend = "improved" if change > 0 else "declined" if change < 0 else "stable"
+    
+    summary = []
+    if change > 0:
+        summary.append(f"Disease spread reduced by {change_pct:.1f}%")
+    elif change < 0:
+        summary.append(f"Disease increased by {abs(change_pct):.1f}%")
+    else:
+        summary.append("No change in crop health detected")
+    
+    return {
+        "trend": {"status": trend, "change": change},
+        "change_percentage": change_pct,
+        "summary": summary,
+        "old_results": old_results,
+        "new_results": new_results,
+    }
+    
 def encode_image_for_display(image):
     import base64
     _, buffer = cv2.imencode('.jpg', image)
     return base64.b64encode(buffer).decode('utf-8')
+def datetimeformat_filter(dt_str):
+    """Format datetime for templates"""
+    if dt_str == "now":
+        return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    return dt_str
 
+# Register the filter
+app.jinja_env.filters['datetimeformat'] = datetimeformat_filter
 @app.after_request
 def add_no_cache_headers(response):
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
@@ -373,7 +417,84 @@ def stories():
 
 # ====================== OTHER ROUTES (kept as per your latest file) ======================
 # ... (your comparison route, weather, api, health etc. can be added here)
+@app.route("/comparison", methods=["GET", "POST"])
+def comparison():
+    lang = request.args.get("lang", "en")
+    if lang not in TRANSLATIONS:
+        lang = "en"
+    
+    if request.method == 'POST':
+        if 'last_week_image' not in request.files or 'current_week_image' not in request.files:
+            flash('Both images required', 'error')
+            return redirect(url_for('comparison', lang=lang))
+        
+        last_week = request.files['last_week_image']
+        current_week = request.files['current_week_image']
+        
+        if last_week.filename == '' or current_week.filename == '':
+            flash('Both files must be selected', 'error')
+            return redirect(url_for('comparison', lang=lang))
+        
+        try:
+            # Process images
+            old_image = cv2.imdecode(np.frombuffer(last_week.read(), np.uint8), cv2.IMREAD_COLOR)
+            new_image = cv2.imdecode(np.frombuffer(current_week.read(), np.uint8), cv2.IMREAD_COLOR)
+            
+            if old_image is None or new_image is None:
+                return render_template('comparison.html', error='Unable to verify cotton crop in both images. Please upload clearer field photos.', lang=lang, t=TRANSLATIONS[lang])
+            
+            old_results = analyze_image(cv2.cvtColor(old_image, cv2.COLOR_BGR2RGB))
+            new_results = analyze_image(cv2.cvtColor(new_image, cv2.COLOR_BGR2RGB))
+            
+            # Check for detection failures
+            if old_results.get("error") or new_results.get("error"):
+                return render_template('comparison.html', error='Unable to compare images - Unable to verify cotton crop in both images.', lang=lang, t=TRANSLATIONS[lang])
+            
+            if not old_results["growth"]["main_class"] and not new_results["growth"]["main_class"]:
+                return render_template('comparison.html', error='Unable to verify cotton crop in both images. Please upload clearer field photos.', lang=lang, t=TRANSLATIONS[lang])
+            
+            comparison_result = build_comparison_result(old_results, new_results)
+            
+            return render_template(
+                'comparison_results.html',
+                comparison=comparison_result,
+                lang=lang,
+                t=TRANSLATIONS[lang]
+            )
+        except Exception as e:
+            logger.error(f"Comparison error: {e}")
+            flash(f'Error during comparison: {str(e)}', 'error')
+            return redirect(url_for('comparison', lang=lang))
+    
+    return render_template('comparison.html', lang=lang, t=TRANSLATIONS[lang])
 
+@app.route("/api/analyze", methods=["POST"])
+def api_analyze():
+    if 'file' not in request.files:
+        return jsonify({"status": "error", "error": "No file uploaded"}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"status": "error", "error": "No file selected"}), 400
+    
+    try:
+        file_bytes = np.frombuffer(file.read(), np.uint8)
+        image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+        if image is None:
+            return jsonify({"status": "error", "error": "Invalid image file"}), 400
+        
+        image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        results = analyze_image(image_rgb)
+        
+        return jsonify({
+            "status": "success",
+            "results": results,
+            "timestamp": datetime.now().isoformat()
+        })
+    except Exception as e:
+        logger.error(f"API analysis error: {e}")
+        return jsonify({"status": "error", "error": str(e)}), 500
+        
 @app.route("/health")
 def health():
     model_loaded = resnet_model is not None and yolo_model is not None
