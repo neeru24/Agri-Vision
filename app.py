@@ -400,8 +400,35 @@ def stories():
 def set_language(lang):
     if lang not in TRANSLATIONS:
         lang = "en"
-    return redirect(url_for("index", lang=lang))
-
+    return redirect(url_for("index", _external=False, _anchor=None, lang=lang))
+def build_comparison_result(old_results, new_results):
+    """Compare old and new field analysis results."""
+    old_health = old_results["disease"]["health_score"]
+    new_health = new_results["disease"]["health_score"]
+    change = new_health - old_health
+    change_pct = round(change, 1)
+    
+    # Determine trend
+    if change > 5:
+        status = "improved"
+    elif change < -5:
+        status = "declined"
+    else:
+        status = "stable"
+    
+    summary = []
+    if old_results["disease"]["predicted_class"] != "Healthy" and new_results["disease"]["predicted_class"] == "Healthy":
+        summary.append("Disease spread reduced significantly")
+    elif old_health < new_health:
+        summary.append(f"Field health improved by {change_pct}%")
+    
+    return {
+        "trend": {"status": status},
+        "change_percentage": change_pct,
+        "summary": summary,
+        "old_results": old_results,
+        "new_results": new_results
+    }
 # ====================== REMAINING ORIGINAL ROUTES ======================
 @app.route("/api/analyze", methods=["POST"])
 def api_analyze():
