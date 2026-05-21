@@ -248,17 +248,13 @@ def analyze_image(image):
         "warnings": warnings
     }
     
-def analyze_image(image):
-    disease = infer_disease(image)
-    growth = infer_growth_stage(image)
-    recs = generate_recommendations(disease, growth)
-    return {"disease": disease, "growth": growth, "recommendations": recs}
+
 def build_comparison_result(old_results, new_results):
     """Build comparison result between two time periods"""
     old_health = old_results["disease"]["health_score"]
     new_health = new_results["disease"]["health_score"]
     change = new_health - old_health
-    change_pct = (change / old_health * 100) if old_health != 0 else 0
+    change_pct = (change / 100) if old_health != 0 else 0
     
     trend = "improved" if change > 0 else "declined" if change < 0 else "stable"
     
@@ -422,52 +418,62 @@ def comparison():
     lang = request.args.get("lang", "en")
     if lang not in TRANSLATIONS:
         lang = "en"
-    
+
     if request.method == 'POST':
         if 'last_week_image' not in request.files or 'current_week_image' not in request.files:
-            flash('Both images required', 'error')
-            return redirect(url_for('comparison', lang=lang))
-        
+            flash('Both images are required for comparison', 'error')
+            return render_template('comparison.html', lang=lang, t=TRANSLATIONS[lang])
+
         last_week = request.files['last_week_image']
         current_week = request.files['current_week_image']
-        
+
         if last_week.filename == '' or current_week.filename == '':
             flash('Both files must be selected', 'error')
-            return redirect(url_for('comparison', lang=lang))
-        
+            return render_template('comparison.html', lang=lang, t=TRANSLATIONS[lang])
+
         try:
-            # Process images
-            old_image = cv2.imdecode(np.frombuffer(last_week.read(), np.uint8), cv2.IMREAD_COLOR)
-            new_image = cv2.imdecode(np.frombuffer(current_week.read(), np.uint8), cv2.IMREAD_COLOR)
+            # Process last week image
+            old_bytes = np.frombuffer(last_week.read(), np.uint8)
+            old_image = cv2.imdecode(old_bytes, cv2.IMREAD_COLOR)
             
+            # Process current week image
+            new_bytes = np.frombuffer(current_week.read(), np.uint8)
+            new_image = cv2.imdecode(new_bytes, cv2.IMREAD_COLOR)
+
             if old_image is None or new_image is None:
-                return render_template('comparison.html', error='Unable to verify cotton crop in both images. Please upload clearer field photos.', lang=lang, t=TRANSLATIONS[lang])
-            
-            old_results = analyze_image(cv2.cvtColor(old_image, cv2.COLOR_BGR2RGB))
-            new_results = analyze_image(cv2.cvtColor(new_image, cv2.COLOR_BGR2RGB))
-            
-            # Check for detection failures
-            if old_results.get("error") or new_results.get("error"):
-                return render_template('comparison.html', error='Unable to compare images - Unable to verify cotton crop in both images.', lang=lang, t=TRANSLATIONS[lang])
-            
-            if not old_results["growth"]["main_class"] and not new_results["growth"]["main_class"]:
-                return render_template('comparison.html', error='Unable to verify cotton crop in both images. Please upload clearer field photos.', lang=lang, t=TRANSLATIONS[lang])
-            
+                flash('Unable to read one or both images. Please upload valid images.', 'error')
+                return render_template('comparison.html', lang=lang, t=TRANSLATIONS[lang])
+
+            old_rgb = cv2.cvtColor(old_image, cv2.COLOR_BGR2RGB)
+            new_rgb = cv2.cvtColor(new_image, cv2.COLOR_BGR2RGB)
+
+            old_results = analyze_image(old_rgb)
+            new_results = analyze_image(new_rgb)
+
             comparison_result = build_comparison_result(old_results, new_results)
-            
+
+            old_b64 = encode_image_for_display(old_image)
+            new_b64 = encode_image_for_display(new_image)
+
             return render_template(
-                'comparison_results.html',
+                "comparison.html",
                 comparison=comparison_result,
+                old_image_b64=old_b64,
+                new_image_b64=new_b64,
+                old_filename=last_week.filename,
+                new_filename=current_week.filename,
+                timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 lang=lang,
                 t=TRANSLATIONS[lang]
             )
+
         except Exception as e:
             logger.error(f"Comparison error: {e}")
             flash(f'Error during comparison: {str(e)}', 'error')
-            return redirect(url_for('comparison', lang=lang))
-    
-    return render_template('comparison.html', lang=lang, t=TRANSLATIONS[lang])
+            return render_template('comparison.html', lang=lang, t=TRANSLATIONS[lang])
 
+    # GET request - show empty form
+    return render_template('comparison.html', lang=lang, t=TRANSLATIONS[lang])
 @app.route("/api/analyze", methods=["POST"])
 def api_analyze():
     if 'file' not in request.files:
