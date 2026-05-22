@@ -565,24 +565,19 @@ uploadArea.addEventListener('drop', (e) => {
     }
 });
 
+let isAnalyzing = false;
 
-document.querySelector('form').addEventListener('submit', (event)=>{
-
-    document
-      .getElementById('loadingOverlay')
-      .classList.remove('hidden');
-
-    const submitButton=
-    document.querySelector('.action-btn');
-
-    submitButton.disabled=true;
-
-    submitButton.innerHTML=
-    '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
-
+function resetAnalyzeButton(submitBtn) {
+    submitBtn.style.display = '';
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="fas fa-magnifying-glass"></i> Try Again';
+    isAnalyzing = false;
+}
 
 document.querySelector('form').addEventListener('submit', async function(event) {
-    event.preventDefault();   // stop normal form submission
+    event.preventDefault();
+
+    if (isAnalyzing) return;
  
     const form        = event.target;
     const submitBtn   = document.querySelector('.action-btn');
@@ -594,14 +589,21 @@ document.querySelector('form').addEventListener('submit', async function(event) 
     // Validate file selected
     const fileInput = document.getElementById('fileInput');
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        alert('Please select a crop image first.');
+        showError('Please select a crop image first.');
         return;
     }
+
+    isAnalyzing = true;
+    hideError();
  
-    // Show progress panel, hide submit button
+    // Show progress panel and prevent duplicate submissions.
     panel.style.display = 'block';
+    submitBtn.disabled = true;
     submitBtn.style.display = 'none';
-    if (loadingOverlay) loadingOverlay.classList.add('hidden');
+    if (loadingOverlay) {
+        loadingOverlay.classList.remove('hidden');
+        loadingOverlay.setAttribute('aria-hidden', 'false');
+    }
  
     // Reset all steps
     document.querySelectorAll('.stream-step').forEach(el => {
@@ -609,7 +611,9 @@ document.querySelector('form').addEventListener('submit', async function(event) 
         el.textContent = '⬜ ' + el.dataset.label;
     });
     progressBar.style.width = '0%';
+    progressBar.style.background = 'linear-gradient(90deg, #80ffb2, #17a2b8)';
     statusMsg.textContent = '';
+    statusMsg.style.color = 'rgba(255,255,255,0.55)';
  
     // Build FormData from the form
     const formData = new FormData(form);
@@ -625,6 +629,15 @@ document.querySelector('form').addEventListener('submit', async function(event) 
  
         if (!response.ok) {
             throw new Error(`Server error: ${response.status}`);
+        }
+
+        if (!response.body) {
+            throw new Error('Streaming is unavailable in this browser.');
+        }
+
+        if (loadingOverlay) {
+            loadingOverlay.classList.add('hidden');
+            loadingOverlay.setAttribute('aria-hidden', 'true');
         }
  
         const reader  = response.body.getReader();
@@ -663,9 +676,11 @@ document.querySelector('form').addEventListener('submit', async function(event) 
                     });
                     statusMsg.style.color = '#ff6b6b';
                     progressBar.style.background = '#ff6b6b';
-                    submitBtn.style.display = '';
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-magnifying-glass"></i> Try Again';
+                    resetAnalyzeButton(submitBtn);
+                    if (loadingOverlay) {
+                        loadingOverlay.classList.add('hidden');
+                        loadingOverlay.setAttribute('aria-hidden', 'true');
+                    }
                     return;
                 }
  
@@ -720,9 +735,12 @@ document.querySelector('form').addEventListener('submit', async function(event) 
     } catch (err) {
         statusMsg.textContent = '❌ Connection error: ' + err.message;
         statusMsg.style.color = '#ff6b6b';
-        submitBtn.style.display = '';
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-magnifying-glass"></i> Try Again';
+        showError('Analysis failed. Please check your connection and try again.');
+        resetAnalyzeButton(submitBtn);
+        if (loadingOverlay) {
+            loadingOverlay.classList.add('hidden');
+            loadingOverlay.setAttribute('aria-hidden', 'true');
+        }
     }
 });
 </script>
