@@ -515,6 +515,40 @@ def generate_recommendations(
     return recs[:6]
 
 
+def build_leaf_comparison_guide(disease_result: Dict[str, Any]) -> Dict[str, Any]:
+    dclass = disease_result.get("predicted_class", "Unknown")
+    symptom_map = {
+        "Aphids": "Look for curled tender leaves, sticky honeydew, and small pest clusters under the leaf surface.",
+        "Army worm": "Watch for ragged chewing damage, missing leaf edges, and fresh dark droppings near feeding areas.",
+        "Bacterial blight": "Angular water-soaked spots can darken along veins and may dry into brittle brown patches.",
+        "Cotton Boll Rot": "Affected bolls often show dark, soft, water-soaked tissue and may develop fungal growth.",
+        "Green Cotton Boll": "The boll appears green and immature; monitor for insect scars, discoloration, or abnormal softening.",
+        "Healthy": "Healthy cotton leaves are evenly green, firm, and free from spot clusters, powdery growth, or chewing damage.",
+        "Powdery mildew": "White powdery patches usually appear on leaf surfaces and can spread into broad dusty growth.",
+        "Target Spot": "Round brown lesions with lighter centers or ring-like patterns often expand across older leaves.",
+    }
+    default_tips = [
+        "Compare the uploaded leaf with the healthy reference before applying any treatment.",
+        "Re-scan after a few days or consult a local agricultural expert if symptoms spread.",
+    ]
+    treatment_map = {
+        "Aphids": ["Inspect leaf undersides every 2-3 days.", "Use neem oil or a recommended insecticide when infestation is heavy."],
+        "Army worm": ["Remove heavily damaged leaves where practical.", "Apply biological control early before larvae mature."],
+        "Bacterial blight": ["Avoid overhead irrigation.", "Remove infected plant debris and sanitize tools."],
+        "Cotton Boll Rot": ["Improve drainage around affected plants.", "Remove rotten bolls to limit spread."],
+        "Green Cotton Boll": ["Maintain balanced nutrition.", "Continue pest scouting until bolls mature."],
+        "Healthy": ["Continue routine scouting.", "Maintain balanced irrigation and fertilizer schedules."],
+        "Powdery mildew": ["Remove infected residue.", "Apply a recommended fungicide if powdery growth spreads."],
+        "Target Spot": ["Reduce leaf wetness and improve airflow.", "Use a suitable fungicide for spreading lesions."],
+    }
+    return {
+        "detected_class": dclass,
+        "healthy_reference": "Even green cotton leaf with no lesions, mold, or pest injury.",
+        "symptom_summary": symptom_map.get(dclass, "Compare visible discoloration, spots, texture changes, and pest injury against the healthy reference."),
+        "tips": treatment_map.get(dclass, default_tips),
+    }
+
+
 def generate_farmer_insights(disease_result: Dict[str, Any], growth_result: Dict[str, Any]) -> list[str]:
     insights = []
     dclass = disease_result["predicted_class"]
@@ -628,6 +662,7 @@ def analyze_image(image: np.ndarray) -> Dict[str, Any]:
         "disease": disease,
         "growth": growth,
         "recommendations": recs,
+        "leaf_comparison": build_leaf_comparison_guide(disease),
         "grad_cam_image_b64": grad_cam_image_b64,
         "disease_severity": severity,
         "yield_prediction": y_pred,
@@ -971,6 +1006,7 @@ def demo():
         "disease": demo_disease,
         "growth": demo_growth,
         "recommendations": generate_recommendations(demo_disease, demo_growth),
+        "leaf_comparison": build_leaf_comparison_guide(demo_disease),
         "grad_cam_image_b64": grad_cam_image_b64,
     }
 
@@ -1192,6 +1228,7 @@ def api_analyze_stream():
                 "disease": disease,
                 "growth": growth,
                 "recommendations": generate_recommendations(disease, growth),
+                "leaf_comparison": build_leaf_comparison_guide(disease),
                 "error": None,
             }
 
@@ -1205,6 +1242,7 @@ def api_analyze_stream():
                     "disease": disease,
                     "growth": growth,
                     "recommendations": generate_recommendations(disease, growth),
+                    "leaf_comparison": build_leaf_comparison_guide(disease),
                     "error": None,
                 }
             yield event("recommendations", 90, "Recommendations generated.")

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" role="img" aria-labelledby="title desc">
+  <title id="title">Healthy cotton leaf reference</title>
+  <desc id="desc">A clean green cotton leaf reference illustration for comparison with an analyzed crop image.</desc>
+  <rect width="640" height="420" rx="28" fill="#eef8ef"/>
+  <circle cx="112" cy="92" r="62" fill="#d9f0dc"/>
+  <circle cx="522" cy="330" r="86" fill="#d9f0dc"/>
+  <path d="M319 335c-4-68-2-138 6-214" fill="none" stroke="#347a3d" stroke-width="12" stroke-linecap="round"/>
+  <path d="M319 166c-82-96-184-101-230-51 28 93 133 130 230 51z" fill="#4ea85a"/>
+  <path d="M326 162c33-116 124-156 194-126 14 99-70 165-194 126z" fill="#5bbd65"/>
+  <path d="M324 202c-72-61-156-50-195-3 43 72 130 88 195 3z" fill="#63bd69"/>
+  <path d="M327 201c71-71 159-70 203-24-31 78-123 108-203 24z" fill="#4fae59"/>
+  <path d="M322 252c-47-39-105-31-134 4 31 47 91 55 134-4z" fill="#70c878"/>
+  <path d="M328 250c58-52 123-49 154-14-28 55-96 72-154 14z" fill="#66c06d"/>
+  <path d="M318 167c-63-37-123-55-183-55" fill="none" stroke="#347a3d" stroke-width="6" stroke-linecap="round" opacity=".8"/>
+  <path d="M328 162c54-54 108-85 164-99" fill="none" stroke="#347a3d" stroke-width="6" stroke-linecap="round" opacity=".8"/>
+  <path d="M322 202c-59-20-110-21-153-4" fill="none" stroke="#347a3d" stroke-width="5" stroke-linecap="round" opacity=".7"/>
+  <path d="M327 201c57-29 109-36 156-23" fill="none" stroke="#347a3d" stroke-width="5" stroke-linecap="round" opacity=".7"/>
+  <path d="M322 252c-37-9-70-7-99 7" fill="none" stroke="#347a3d" stroke-width="4" stroke-linecap="round" opacity=".7"/>
+  <path d="M328 250c41-17 79-20 113-8" fill="none" stroke="#347a3d" stroke-width="4" stroke-linecap="round" opacity=".7"/>
+  <text x="320" y="386" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#245b2c">Healthy leaf reference</text>
+</svg>
