@@ -756,6 +756,127 @@ growth_boxes = growth.boxes|default([]) %}
       </div>
       {% endif %}
 
+      <!-- =========================================================
+           Healthy vs Diseased Leaf Comparison Section (Issue #225)
+           Displays a side-by-side reference panel helping users
+           understand visual differences between a healthy cotton
+           leaf and the detected disease condition.
+      ========================================================= -->
+      {% if results.disease_comparison_info %}
+      {% set cinfo = results.disease_comparison_info %}
+      {% set dclass = results.disease.predicted_class|default("Unknown") %}
+      {% set is_healthy = (dclass == "Healthy") %}
+
+      <div class="result-card leaf-comparison-card reveal reveal-fade-up"
+           style="margin-top: 2rem; border-top: 3px solid {{ cinfo.severity_color }};">
+
+        <h2 class="results-section-title">
+          <i class="fas {{ cinfo.icon }}"></i>
+          Healthy vs Diseased Leaf Comparison
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+          Visual reference to help you understand what a healthy leaf looks like compared to the
+          <strong style="color: {{ cinfo.severity_color }};">{{ dclass }}</strong> condition detected.
+        </p>
+
+        <!-- Side-by-side image panel -->
+        <div class="leaf-compare-grid">
+
+          <!-- Healthy reference -->
+          <div class="leaf-compare-panel healthy-panel">
+            <div class="leaf-compare-badge healthy-badge">
+              <i class="fas fa-check-circle"></i> Healthy Leaf
+            </div>
+            <div class="leaf-compare-img-wrap">
+              <img
+                src="{{ cinfo.healthy_ref_url }}"
+                alt="Healthy cotton leaf reference"
+                class="leaf-compare-img"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+              />
+              <div class="leaf-img-placeholder" style="display:none;">
+                <i class="fas fa-leaf" style="font-size:3rem; color:var(--emerald-green);"></i>
+                <span>Healthy Reference</span>
+              </div>
+            </div>
+            <p class="leaf-compare-desc">{{ cinfo.healthy_description }}</p>
+          </div>
+
+          <!-- VS divider -->
+          <div class="leaf-compare-vs">
+            <div class="vs-circle">VS</div>
+            <div class="vs-line"></div>
+          </div>
+
+          <!-- Detected disease / uploaded image -->
+          <div class="leaf-compare-panel disease-panel"
+               style="--panel-accent: {{ cinfo.severity_color }};">
+            <div class="leaf-compare-badge disease-badge"
+                 style="background: {{ cinfo.severity_color }}20; color: {{ cinfo.severity_color }}; border-color: {{ cinfo.severity_color }}40;">
+              <i class="fas {{ cinfo.icon }}"></i>
+              {% if is_healthy %}Healthy – Your Leaf{% else %}{{ dclass }} – Your Leaf{% endif %}
+            </div>
+            <div class="leaf-compare-img-wrap">
+              {% if image_b64 %}
+              <img
+                src="data:image/jpeg;base64,{{ image_b64 }}"
+                alt="Uploaded crop leaf"
+                class="leaf-compare-img"
+              />
+              {% else %}
+              <div class="leaf-img-placeholder">
+                <i class="fas fa-image" style="font-size:3rem; color:var(--text-muted);"></i>
+                <span>Uploaded Image</span>
+              </div>
+              {% endif %}
+            </div>
+            <p class="leaf-compare-desc">
+              {% if is_healthy %}
+                Your crop appears healthy with no visible disease signs. Keep monitoring.
+              {% else %}
+                The model detected <strong>{{ dclass }}</strong> on your uploaded leaf image.
+              {% endif %}
+            </p>
+          </div>
+
+        </div><!-- /leaf-compare-grid -->
+
+        <!-- Visible Symptoms -->
+        {% if not is_healthy %}
+        <div class="leaf-info-block symptoms-block" style="border-left: 4px solid {{ cinfo.severity_color }};">
+          <h3 class="leaf-info-title" style="color: {{ cinfo.severity_color }};">
+            <i class="fas fa-magnifying-glass"></i> Visible Symptoms of {{ dclass }}
+          </h3>
+          <ul class="leaf-info-list">
+            {% for symptom in cinfo.disease_symptoms %}
+            <li class="reveal reveal-slide-left">
+              <i class="fas fa-circle-dot" style="color: {{ cinfo.severity_color }}; font-size: 0.6rem; margin-right: 0.5rem;"></i>
+              {{ symptom }}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        <!-- Prevention & Treatment Tips -->
+        <div class="leaf-info-block tips-block" style="border-left: 4px solid var(--emerald-green);">
+          <h3 class="leaf-info-title" style="color: var(--emerald-green);">
+            <i class="fas fa-shield-halved"></i>
+            {% if is_healthy %}Maintenance Tips{% else %}Prevention & Treatment Tips{% endif %}
+          </h3>
+          <ul class="leaf-info-list">
+            {% for tip in cinfo.prevention_tips %}
+            <li class="reveal reveal-slide-left">
+              <i class="fas fa-check" style="color: var(--emerald-green); font-size: 0.75rem; margin-right: 0.5rem;"></i>
+              {{ tip }}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+
+      </div><!-- /leaf-comparison-card -->
+      {% endif %}
+
       <!-- Footer -->
       <div
         style="
