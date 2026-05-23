@@ -97,6 +97,156 @@ growth_stage_classes = [
 UNCERTAINTY_THRESHOLD = 0.45
 AMBIGUITY_MARGIN = 0.08
 
+# ---------------------------------------------------------------------------
+# Disease comparison reference data (Issue #225)
+# Each entry provides visual/educational info shown alongside prediction results
+# ---------------------------------------------------------------------------
+DISEASE_INFO: Dict[str, Dict[str, Any]] = {
+    "Aphids": {
+        "healthy_ref_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Cotton_leaf_healthy.jpg/480px-Cotton_leaf_healthy.jpg",
+        "healthy_description": "A healthy cotton leaf is vibrant green, smooth-surfaced, with no visible spots, curling, or pest clusters. Veins are clearly defined and the leaf lies flat.",
+        "disease_symptoms": [
+            "Clusters of tiny soft-bodied insects on leaf undersides",
+            "Leaf curling, puckering, or yellowing",
+            "Sticky honeydew residue on leaves and stems",
+            "Sooty mould growth on honeydew deposits",
+        ],
+        "prevention_tips": [
+            "Introduce natural predators like ladybirds or lacewings",
+            "Apply neem oil spray (5 ml/L) every 7–10 days",
+            "Avoid excess nitrogen fertilisation which promotes aphid-friendly soft growth",
+            "Use yellow sticky traps to monitor population levels",
+        ],
+        "severity_color": "#f59e0b",
+        "icon": "fa-bug",
+    },
+    "Army worm": {
+        "healthy_ref_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Cotton_leaf_healthy.jpg/480px-Cotton_leaf_healthy.jpg",
+        "healthy_description": "Healthy cotton foliage is dense and uniformly green, with no ragged edges, skeletonisation, or large chewing holes.",
+        "disease_symptoms": [
+            "Ragged, irregular holes chewed through leaf blades",
+            "Leaf skeletonisation (only veins remaining)",
+            "Visible caterpillars or droppings on leaves",
+            "Rapid defoliation, especially in dense crop areas",
+        ],
+        "prevention_tips": [
+            "Scout fields early morning when larvae are most active",
+            "Apply Bacillus thuringiensis (Bt) biological pesticide",
+            "Use pheromone traps to monitor adult moth population",
+            "Remove crop debris that provides overwintering habitat",
+        ],
+        "severity_color": "#ef4444",
+        "icon": "fa-worm",
+    },
+    "Bacterial blight": {
+        "healthy_ref_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Cotton_leaf_healthy.jpg/480px-Cotton_leaf_healthy.jpg",
+        "healthy_description": "Healthy cotton leaves are uniform dark-green with no water-soaked lesions, angular spots, or blackening along the vein network.",
+        "disease_symptoms": [
+            "Angular, water-soaked spots that turn brown or black",
+            "Dark brown lesions with yellow halos",
+            "Black discolouration of stems (black arm)",
+            "Wilting of young seedlings in wet conditions",
+        ],
+        "prevention_tips": [
+            "Use certified disease-free seeds and resistant varieties",
+            "Avoid overhead irrigation; use drip irrigation where possible",
+            "Apply copper-based bactericides as a preventive spray",
+            "Remove and destroy infected plant material promptly",
+        ],
+        "severity_color": "#7c3aed",
+        "icon": "fa-biohazard",
+    },
+    "Cotton Boll Rot": {
+        "healthy_ref_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Cotton_leaf_healthy.jpg/480px-Cotton_leaf_healthy.jpg",
+        "healthy_description": "Healthy bolls are firm, compact, and free from discolouration or foul odour. The boll surface is smooth and uniformly coloured.",
+        "disease_symptoms": [
+            "Dark water-soaked lesions on boll surface",
+            "Soft, mushy boll texture with foul smell",
+            "Brown or black fungal growth inside opened bolls",
+            "Premature boll opening and lint staining",
+        ],
+        "prevention_tips": [
+            "Improve field drainage to prevent waterlogging",
+            "Reduce canopy density for better air circulation",
+            "Apply preventive fungicide during wet periods",
+            "Harvest promptly when bolls reach maturity",
+        ],
+        "severity_color": "#92400e",
+        "icon": "fa-circle-xmark",
+    },
+    "Green Cotton Boll": {
+        "healthy_ref_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Cotton_leaf_healthy.jpg/480px-Cotton_leaf_healthy.jpg",
+        "healthy_description": "Immature green bolls at this stage should be uniformly green and firm. Visible damage indicates pest or disease pressure.",
+        "disease_symptoms": [
+            "Puncture marks or feeding holes on boll surface",
+            "Early browning or premature splitting",
+            "Internal lint discolouration from insect feeding",
+            "Boll shedding before maturity",
+        ],
+        "prevention_tips": [
+            "Monitor bolls twice weekly for insect damage",
+            "Apply targeted boll-worm management if needed",
+            "Maintain balanced nutrition to support boll retention",
+            "Avoid excessive moisture stress during boll development",
+        ],
+        "severity_color": "#16a34a",
+        "icon": "fa-circle-dot",
+    },
+    "Healthy": {
+        "healthy_ref_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Cotton_leaf_healthy.jpg/480px-Cotton_leaf_healthy.jpg",
+        "healthy_description": "The crop shows no signs of disease or pest stress. Leaves are vibrant green and the plant structure is robust.",
+        "disease_symptoms": [
+            "No disease symptoms detected",
+            "Uniform leaf colour with no spots or lesions",
+            "Normal leaf structure and plant architecture",
+        ],
+        "prevention_tips": [
+            "Continue regular crop monitoring every 5–7 days",
+            "Maintain balanced NPK fertilisation schedule",
+            "Keep field irrigation consistent and avoid waterlogging",
+            "Record observations to detect any early changes",
+        ],
+        "severity_color": "#16a34a",
+        "icon": "fa-heart-pulse",
+    },
+    "Powdery mildew": {
+        "healthy_ref_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Cotton_leaf_healthy.jpg/480px-Cotton_leaf_healthy.jpg",
+        "healthy_description": "A healthy leaf surface is clean, smooth, and free from any white or grey powdery coating or dusty residue.",
+        "disease_symptoms": [
+            "White or grey powdery coating on leaf surface",
+            "Infected leaves turn yellow and drop prematurely",
+            "Distorted or stunted new growth",
+            "Severely affected leaves may dry out completely",
+        ],
+        "prevention_tips": [
+            "Apply sulphur-based fungicide or potassium bicarbonate",
+            "Improve air circulation by reducing plant density",
+            "Avoid late evening irrigation which raises humidity",
+            "Remove and dispose of infected leaves away from the field",
+        ],
+        "severity_color": "#6b7280",
+        "icon": "fa-snowflake",
+    },
+    "Target Spot": {
+        "healthy_ref_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Cotton_leaf_healthy.jpg/480px-Cotton_leaf_healthy.jpg",
+        "healthy_description": "Healthy cotton leaves have no concentric ring lesions. The surface is evenly coloured without darkened circular or target-like patterns.",
+        "disease_symptoms": [
+            "Brown circular lesions with concentric ring pattern (target-like appearance)",
+            "Yellow halo surrounding the lesion",
+            "Lesions coalesce under high humidity, causing large blighted areas",
+            "Premature defoliation in severe cases",
+        ],
+        "prevention_tips": [
+            "Apply recommended fungicide (azoxystrobin or tebuconazole) at first sign",
+            "Rotate crops to reduce fungal soil inoculum",
+            "Avoid excessive canopy moisture by managing irrigation",
+            "Scout lower canopy leaves where infection typically starts",
+        ],
+        "severity_color": "#b45309",
+        "icon": "fa-circle-radiation",
+    },
+}
+
 resnet_model = None
 yolo_model = None
 _models_loaded = False
@@ -624,6 +774,10 @@ def analyze_image(image: np.ndarray) -> Dict[str, Any]:
     adv_recs = generate_advanced_recommendations(disease, growth)
     insights = generate_farmer_insights(disease, growth)
 
+    # Attach reference comparison data for the Healthy vs Diseased section (#225)
+    predicted_class = disease.get("predicted_class", "Healthy")
+    disease_comparison_info = DISEASE_INFO.get(predicted_class, DISEASE_INFO["Healthy"])
+
     result = {
         "disease": disease,
         "growth": growth,
@@ -633,6 +787,7 @@ def analyze_image(image: np.ndarray) -> Dict[str, Any]:
         "yield_prediction": y_pred,
         "advanced_recommendations": adv_recs,
         "farmer_insights": insights,
+        "disease_comparison_info": disease_comparison_info,
     }
 
     if growth["main_class"] is None:
