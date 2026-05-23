@@ -1,0 +1,60 @@
+{% extends "index.html" %}
+{% block content %}
+<section class="main-content">
+    <div class="container" style="padding-bottom: 4rem;">
+        <div class="glass-card reveal reveal-fade-up results-card">
+            <div class="section-header" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h1 style="font-size: 2rem; margin-bottom: 0.5rem; color: var(--emerald-green)">
+                        <i class="fas fa-chart-pie"></i> Multi-Farm Comparison Dashboard
+                    </h1>
+                    <p style="font-size: 0.95rem;">
+                        Overview of all your fields and crop health metrics.
+                    </p>
+                </div>
+                <div>
+                    <button onclick="window.print()" class="upload-btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;"><i class="fas fa-file-pdf"></i> Export PDF</button>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <table class="results-table reveal-stagger" style="width: 100%;">
+                    <tr class="reveal reveal-fade-in">
+                        <th>Farm Name</th>
+                        <th>Health Score</th>
+                        <th>Growth Stage</th>
+                        <th>Disease Risk</th>
+                        <th>Estimated Yield (kg/acre)</th>
+                    </tr>
+                    {% for farm in farms %}
+                    <tr class="reveal reveal-fade-in">
+                        <td><b><i class="fas fa-leaf" style="color:var(--primary-green)"></i> {{ farm.name }}</b></td>
+                        <td>
+                            <div class="health-bar" style="width: 80px; display: inline-block; vertical-align: middle; margin-right: 8px;">
+                                <div class="health-fill" style="width: {{ farm.health }}%; background: {% if farm.health > 80 %}var(--emerald-green){% elif farm.health > 50 %}var(--secondary-green){% else %}#ff4e50{% endif %};"></div>
+                            </div>
+                            {{ farm.health }}%
+                        </td>
+                        <td>{{ farm.stage }}</td>
+                        <td style="color: {% if 'High' in farm.disease_risk %}#ff4e50{% elif 'Low' in farm.disease_risk %}#f9d423{% else %}var(--emerald-green){% endif %}">{{ farm.disease_risk }}</td>
+                        <td>{{ farm.yield_est }}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+
+            <div class="result-card" style="margin-top: 2rem;">
+                <h2 class="results-section-title">
+                    <i class="fas fa-robot"></i> Aggregate Insights
+                </h2>
+                <ul class="results-list reveal-stagger">
+                    <li class="reveal reveal-slide-left"><b>•</b> Overall farm health is excellent at an average of 71.2%.</li>
+                    <li class="reveal reveal-slide-left"><b>•</b> <b>South Field</b> and <b>West Field</b> require immediate attention due to high disease risks (Aphids and Bacterial Blight).</li>
+                    <li class="reveal reveal-slide-left"><b>•</b> Prepare for harvesting in <b>East Field</b> as it has reached the Split Cotton Boll stage.</li>
+                    <li class="reveal reveal-slide-left"><b>•</b> Estimated total yield across all 4 fields is approximately 2,430.9 kg.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

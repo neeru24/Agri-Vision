@@ -1,0 +1,3719 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root {
+    /* Primary Colors */
+    --emerald-green: #2E8B57;
+    --fresh-green: #4CAF50;
+    --soft-mint: #DFF5E1;
+    
+    /* Secondary Colors */
+    --deep-forest: #1B4332;
+    --warm-earth: #8D6E63;
+    --cotton-white: #FAFAFA;
+    
+    /* Base & Elements */
+    --bg-main: var(--cotton-white);
+    --text-main: var(--deep-forest);
+    --text-muted: var(--warm-earth);
+    /* Generic text color used by inline templates (fallbacks referenced --text-color) */
+    --text-color: var(--text-main);
+    --card-bg: #FFFFFF;
+    --card-border: rgba(0, 0, 0, 0.03);
+    
+    /* Theme specific */
+    --nav-bg: rgba(255, 255, 255, 0.7);
+    --nav-scrolled-bg: rgba(255, 255, 255, 0.95);
+    --footer-bg: #123524;
+    
+    /* Accent & Utility */
+    --ai-blue: #4A90E2;
+    --success-bg: rgba(46, 139, 87, 0.1);
+    --success-text: #1b4332;
+    --success-border: rgba(46, 139, 87, 0.2);
+    --error-bg: rgba(220, 53, 69, 0.1);
+    --error-text: #721c24;
+    --error-border: rgba(220, 53, 69, 0.2);
+    --info-bg: rgba(74, 144, 226, 0.1);
+    --info-text: #0c5460;
+    --info-border: rgba(74, 144, 226, 0.2);
+    --glass-bg: rgba(255, 255, 255, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+    --glass-blur: 12px;
+    --table-header-bg: rgba(46, 139, 87, 0.1);
+    --table-cell-bg: rgba(255, 255, 255, 0.5);
+    --soft-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    --hover-shadow: 0 10px 30px rgba(46, 139, 87, 0.1);
+    
+    /* Dashboard Tokens */
+    --dashboard-bg: #f8faf9;
+    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    --card-hover-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+    --depth-layer: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+    
+    /* Footer Specific (fixes dark-mode theme leak) */
+    --footer-bg: var(--deep-forest);
+    --footer-text: #FFFFFF;
+    --footer-muted: rgba(255, 255, 255, 0.7);
+
+    /* Transitions */
+    --transition-smooth: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+[data-theme="dark"] {
+    --cotton-white: #121212;
+    --deep-forest: #E0E0E0;
+    --bg-main: #121212;
+    --text-main: #E0E0E0;
+    --text-muted: #A0A0A0;
+    --card-bg: #161B21;
+    --card-border: rgba(255, 255, 255, 0.08);
+
+    --emerald-green: #5cd18b;
+    --fresh-green: #6ddc90;
+    --soft-mint: rgba(60, 179, 113, 0.15);
+
+    --ai-blue: #64B5F6;
+    --glass-bg: rgba(22, 27, 33, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    --glass-blur: 12px;
+    --table-header-bg: rgba(60, 179, 113, 0.2);
+    --table-cell-bg: rgba(22, 27, 33, 0.5);
+    
+    --nav-bg: rgba(18, 18, 18, 0.8);
+    --nav-scrolled-bg: rgba(18, 18, 18, 0.95);
+    --footer-bg: #061f16;
+
+    --soft-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    --hover-shadow: 0 10px 30px rgba(60, 179, 113, 0.2);
+    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    --card-hover-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    
+    /* Ensure templates using --text-color inherit readable color in dark mode */
+    --text-color: var(--text-main);
+    --dashboard-bg: #1A1A1A;
+
+    /* Theme override fixes */
+    --warm-earth: #BCAAA4; /* High contrast warm-sand instead of dark-brown */
+    --success-bg: rgba(92, 209, 139, 0.15);
+    --success-text: #80ffb2;
+    --success-border: rgba(92, 209, 139, 0.3);
+    --error-bg: rgba(255, 107, 107, 0.15);
+    --error-text: #ff8e8e;
+    --error-border: rgba(255, 107, 107, 0.3);
+    --info-bg: rgba(100, 181, 246, 0.15);
+    --info-text: #90caf9;
+    --info-border: rgba(100, 181, 246, 0.3);
+      /* High contrast deep-green-black */
+    --footer-text: #E0EAE2;
+    --footer-muted: rgba(224, 234, 226, 0.6);
+}
+
+[data-theme="dark"] .btn-primary:hover,
+[data-theme="dark"] .btn-primary:hover *,
+[data-theme="dark"] .nav-menu .btn-primary:hover {
+    color: #000000 !important;
+    opacity: 1 !important;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--cotton-white);
+    color: var(--deep-forest);
+    line-height: 1.5;
+    overflow-x: hidden;
+    font-size: 15px;
+    transition: background-color 0.4s ease, color 0.4s ease;
+}
+/* Keep default cursor */
+body {
+    cursor: default;
+}
+
+/* Trail dots */
+.trail-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    pointer-events: none;
+    z-index: 99999;
+
+    background: #4ade80;
+
+    box-shadow:
+        0 0 10px #4ade80,
+        0 0 20px #4ade80,
+        0 0 40px rgba(74, 222, 128, 0.7);
+
+    transform: translate(-50%, -50%);
+
+    opacity: 0.8;
+}
+.text-center {
+    text-align: center;
+}
+
+.text-muted {
+    color: var(--text-muted);
+}
+
+.mb-5 {
+    margin-bottom: 3rem !important;
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem !important;
+}
+
+.mb-3 {
+    margin-bottom: 1rem !important;
+}
+
+.mb-2 {
+    margin-bottom: 0.5rem !important;
+}
+
+.mb-0 {
+    margin-bottom: 0 !important;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    width: 100%;
+}
+
+.main-content {
+    padding-top: 120px; /* Space for the floating navbar */
+}
+
+/* Glassmorphism Utility */
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: var(--glass-shadow);
+    transition: var(--transition-smooth);
+}
+
+/* Story Cards & Grid Helpers */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -0.75rem;
+}
+
+.row.g-4 {
+    gap: 1.5rem;
+}
+
+.row > [class*="col-"] {
+    padding: 0 0.75rem;
+    margin-bottom: 1.5rem;
+    min-width: 0;
+}
+
+.col-md-6 {
+    flex: 0 0 100%;
+    max-width: 100%;
+}
+
+.col-lg-4 {
+    flex: 0 0 100%;
+    max-width: 100%;
+}
+
+@media (min-width: 768px) {
+    .col-md-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+@media (min-width: 992px) {
+    .col-lg-4 {
+        flex: 0 0 30%;
+        max-width: 30%;
+    }
+}
+.typewriter {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    line-height: 1.1;
+}
+
+.typewriter span {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 3px solid #67e8f9;
+}
+
+/* First Line */
+.typewriter .line1 {
+    width: 0;
+    animation:
+        typing1 2s steps(14) forwards,
+        blink .7s infinite;
+    font-size: 4rem;
+    font-weight: 800;
+    color: #f5f5f5;
+}
+
+/* Second Line */
+.typewriter .line2 {
+    width: 0;
+    animation:
+        typing2 3s steps(25) forwards 2.1s,
+        blink .7s infinite;
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, #4ade80, #67e8f9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Typing animations */
+@keyframes typing1 {
+    from { width: 0 }
+    to { width: 8ch }
+}
+
+@keyframes typing2 {
+    from { width: 0 }
+    to { width: 16ch }
+}
+
+/* Cursor blink */
+@keyframes blink {
+    50% {
+        border-color: transparent;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .typewriter .line1,
+    .typewriter .line2 {
+        font-size: 2.5rem;
+    }
+}
+.card {
+    background: var(--card-bg);
+    color: var(--text-main);
+    border-radius: 20px;
+    border: 1px solid var(--card-border);
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    transition: var(--transition-smooth);
+
+    width: 100%;
+    min-height: 320px;
+    max-width: 100%;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--card-hover-shadow);
+}
+
+.card-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.card .lead-text {
+    color: var(--text-muted);
+    opacity: 0.85;
+}
+
+.card .stat-label {
+    color: var(--emerald-green);
+}
+
+.card .stat-value {
+    color: var(--deep-forest);
+    font-size: 1.2rem;
+    margin-left: 0.5rem;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+    100% { transform: translateY(0px); }
+}
+
+.fade-in {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+/* Navigation */
+.navbar {
+    position: fixed;
+    top: 1rem; /* Floating from top */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    max-width: 1100px;
+    z-index: 1000;
+    padding: 0.6rem 1.5rem;
+    transition: var(--transition-smooth);
+    background: var(--nav-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 50px; /* Pill shape */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.navbar.scrolled {
+    top: 0.5rem;
+    background: var(--nav-scrolled-bg);
+    padding: 0.4rem 1.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    width: 92%;
+}
+
+.nav-container {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-brand {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--emerald-green);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    letter-spacing: -0.5px;
+}
+
+.nav-brand i {
+    font-size: 1.4rem;
+    background: linear-gradient(135deg, var(--emerald-green), var(--fresh-green));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.nav-menu {
+    display: flex;
+    list-style: none;
+    gap: 1.8rem;
+    align-items: center;
+}
+
+/* Premium Dashboard System */
+.dashboard-container {
+    max-width: 1250px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    width: 100%;
+}
+
+.print-page {
+    width: 100%;
+}
+
+.print-content {
+    width: 100%;
+}
+
+.dashboard-card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--card-border);
+    transition: var(--transition-smooth);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--card-hover-shadow);
+    border-color: rgba(46, 139, 87, 0.1);
+}
+
+.dashboard-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+    .dashboard-metrics-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* Dashboard Specific Components */
+.dashboard-status-bar {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--card-border);
+    animation: fadeInUp 0.5s ease;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    padding-bottom: 1rem;
+}
+
+.dashboard-title h1 {
+    font-size: 1.8rem;
+    color: var(--deep-forest);
+    margin-bottom: 0.2rem;
+}
+
+.dashboard-title p {
+    color: var(--warm-earth);
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.health-status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.health-good { background-color: var(--emerald-green); box-shadow: 0 0 10px rgba(46, 139, 87, 0.3); }
+.health-warning { background-color: #ffc107; box-shadow: 0 0 10px rgba(255, 193, 7, 0.3); }
+.health-danger { background-color: #dc3545; box-shadow: 0 0 10px rgba(220, 53, 69, 0.3); }
+.nav-menu a {
+    color: var(--deep-forest);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: var(--transition-smooth);
+    opacity: 0.8;
+}
+
+.nav-menu a:hover {
+    color: var(--emerald-green);
+    opacity: 1;
+    transform: translateY(-1px);
+}
+
+.nav-menu .btn-primary:hover {
+    color: #000000 !important;
+}
+
+.nav-menu .btn-primary {
+    padding: 0.5rem 1.2rem;
+    font-size: 0.85rem;
+    border-radius: 50px;
+    box-shadow: 0 4px 12px rgba(46, 139, 87, 0.2);
+
+    color: white !important;
+    opacity: 1 !important;
+}
+
+.nav-menu .btn-primary:hover {
+    color: black !important;
+    opacity: 1 !important;
+}
+/* Hero Section Redesign & Upgrades */
+.hero {
+    position: relative;
+    min-height: 90vh;
+    display: flex;
+    align-items: center;
+    padding: 8rem 2rem 5rem;
+    background: var(--bg-main);
+    overflow: hidden;
+    transition: background-color 0.4s ease;
+}
+
+/* Animated Ambient Blobs in Background */
+.hero-bg-blobs {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.16;
+    animation: floatBlob 20s infinite alternate ease-in-out;
+    transition: opacity 0.4s ease;
+}
+
+[data-theme="dark"] .blob {
+    opacity: 0.22;
+    filter: blur(120px);
+}
+
+.blob-1 {
+    width: 450px;
+    height: 450px;
+    background: linear-gradient(135deg, var(--emerald-green), var(--fresh-green));
+    top: -10%;
+    right: 5%;
+    animation-duration: 25s;
+}
+
+.blob-2 {
+    width: 350px;
+    height: 350px;
+    background: linear-gradient(135deg, var(--ai-blue), #2196F3);
+    bottom: -5%;
+    left: 5%;
+    animation-duration: 20s;
+    animation-delay: -5s;
+}
+
+.blob-3 {
+    width: 250px;
+    height: 250px;
+    background: linear-gradient(135deg, #FFEB3B, var(--fresh-green));
+    top: 40%;
+    right: 35%;
+    opacity: 0.08;
+    animation-duration: 18s;
+    animation-delay: -2s;
+}
+
+@keyframes floatBlob {
+    0% { transform: translate(0px, 0px) scale(1); }
+    50% { transform: translate(30px, -40px) scale(1.1); }
+    100% { transform: translate(-20px, 20px) scale(0.9); }
+}
+
+/* CSS Technology Grid Pattern */
+.hero-grid-overlay {
+    position: absolute;
+    inset: 0;
+    background-image: 
+        linear-gradient(to right, rgba(46, 139, 87, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(46, 139, 87, 0.04) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+[data-theme="dark"] .hero-grid-overlay {
+    background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}
+
+.hero-container {
+    position: relative;
+    max-width: 1100px;
+    /* margin: 0 auto; */
+    margin-left: 270px;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 4rem;
+    align-items: center;
+    z-index: 3;
+    width: 100%;
+}
+
+.hero-content {
+    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Premium Badge styling */
+.hero-badge-wrapper {
+    margin-bottom: 1.5rem;
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.5rem 1.2rem;
+    background: rgba(46, 139, 87, 0.07);
+    color: var(--emerald-green);
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    border: 1px solid rgba(46, 139, 87, 0.15);
+    box-shadow: 0 4px 15px rgba(46, 139, 87, 0.03);
+    transition: var(--transition-smooth);
+}
+
+[data-theme="dark"] .hero-badge {
+    background: rgba(60, 179, 113, 0.12);
+    border-color: rgba(60, 179, 113, 0.25);
+    color: var(--emerald-green);
+}
+
+.badge-dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--fresh-green);
+    border-radius: 50%;
+    position: relative;
+    display: inline-block;
+}
+
+.badge-dot::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid var(--fresh-green);
+    animation: pulseGlow 1.8s infinite;
+}
+
+@keyframes pulseGlow {
+    0% { transform: scale(0.8); opacity: 1; }
+    100% { transform: scale(2.2); opacity: 0; }
+}
+
+.hero-content h1 {
+    font-size: 3.2rem;
+    line-height: 1.15;
+    color: var(--deep-forest);
+    margin-bottom: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+.hero-content h1 span {
+    display: block;
+    background: linear-gradient(135deg, var(--emerald-green), var(--ai-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 10px rgba(74, 144, 226, 0.1));
+}
+
+.hero-content p {
+    font-size: 1.15rem;
+    color: var(--warm-earth);
+    margin-bottom: 2.5rem;
+    max-width: 550px;
+    line-height: 1.6;
+    font-weight: 400;
+}
+
+.hero-cta {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+/* Premium Buttons */
+.btn {
+    padding: 0.9rem 2.2rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: var(--transition-smooth);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--emerald-green), var(--fresh-green));
+    color: white;
+    box-shadow: 0 8px 25px rgba(46, 139, 87, 0.2);
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+    transition: all 0.6s ease;
+    z-index: -1;
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(46, 139, 87, 0.35);
+    color: #000000 !important;
+}
+
+.btn-primary:hover::before {
+    left: 100%;
+}
+
+.btn-primary i {
+    transition: transform 0.3s ease;
+}
+
+.btn-primary:hover i {
+    transform: rotate(15deg) scale(1.1);
+}
+
+.btn-secondary {
+    background: var(--card-bg);
+    color: var(--emerald-green);
+    border: 1px solid rgba(46, 139, 87, 0.15);
+    box-shadow: var(--soft-shadow);
+}
+
+.btn-secondary:hover {
+    background: var(--soft-mint);
+    border-color: var(--emerald-green);
+    transform: translateY(-3px);
+    box-shadow: var(--hover-shadow);
+}
+
+.btn-secondary i {
+    transition: transform 0.3s ease;
+}
+
+.btn-secondary:hover i {
+    transform: translateX(3px);
+}
+
+/* AI Crop Vision Interactive Graphic */
+.hero-image {
+    position: relative;
+    animation: slideInRight 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    width: 100%;
+}
+
+.scanner-container {
+    position: relative;
+    border-radius: 24px;
+    overflow: visible;
+    background: var(--card-bg);
+    padding: 8px;
+    border: 1px solid var(--card-border);
+    box-shadow: var(--card-shadow);
+    transition: var(--transition-smooth);
+    height:350px;
+    width:500px;
+}
+
+.scanner-container:hover {
+    box-shadow: var(--card-hover-shadow);
+}
+
+.image-wrapper {
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    aspect-ratio: 4/3;
+}
+
+/* Three.js 3D WebGL Canvas Wrapper Styles */
+.canvas-3d-wrapper {
+    position: relative;
+    overflow: hidden;
+    background: radial-gradient(circle at center, #1b2e23, #09120d);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    border-radius: 18px;
+    aspect-ratio: 4/3;
+    border: 1px solid rgba(46, 139, 87, 0.15);
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+    transition: background 0.4s ease, border-color 0.4s ease;
+    /* margin-right: 50px; */
+}
+
+[data-theme="dark"] .canvas-3d-wrapper {
+    background: radial-gradient(circle at center, #0e1d13, #050a06);
+    border-color: rgba(60, 179, 113, 0.25);
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.95);
+}
+
+.canvas-3d-wrapper canvas {
+    position: absolute;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+    outline: none;
+    z-index: 4;
+}
+
+.image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: var(--transition-smooth);
+}
+
+.scanner-container:hover .image-wrapper img {
+    transform: scale(1.03);
+}
+
+.image-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(27, 67, 50, 0.25), transparent);
+    z-index: 5;
+    pointer-events: none;
+}
+
+/* High Tech Crosshair Corner Brackets */
+.scanner-bracket {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--emerald-green);
+    z-index: 10;
+    pointer-events: none;
+    transition: var(--transition-smooth);
+}
+
+.scanner-container:hover .scanner-bracket {
+    border-color: var(--ai-blue);
+    width: 28px;
+    height: 28px;
+}
+
+.scanner-bracket.top-left {
+    top: 18px;
+    left: 18px;
+    border-right: none;
+    border-bottom: none;
+    border-top-left-radius: 8px;
+}
+
+.scanner-bracket.top-right {
+    top: 18px;
+    right: 18px;
+    border-left: none;
+    border-bottom: none;
+    border-top-right-radius: 8px;
+}
+
+.scanner-bracket.bottom-left {
+    bottom: 18px;
+    left: 18px;
+    border-right: none;
+    border-top: none;
+    border-bottom-left-radius: 8px;
+}
+
+.scanner-bracket.bottom-right {
+    bottom: 18px;
+    right: 18px;
+    border-left: none;
+    border-top: none;
+    border-bottom-right-radius: 8px;
+}
+
+/* Horizontal Scanning Laser Line */
+.scanner-laser {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, var(--emerald-green), var(--fresh-green), var(--emerald-green), transparent);
+    z-index: 8;
+    pointer-events: none;
+    box-shadow: 0 0 15px var(--fresh-green);
+    animation: laserScan 4s infinite linear;
+    opacity: 0.85;
+}
+
+[data-theme="dark"] .scanner-laser {
+    background: linear-gradient(90deg, transparent, var(--ai-blue), #00E5FF, var(--ai-blue), transparent);
+    box-shadow: 0 0 15px #00E5FF;
+}
+
+@keyframes laserScan {
+    0% { top: 8px; opacity: 0; }
+    10% { opacity: 0.95; }
+    90% { opacity: 0.95; }
+    100% { top: calc(100% - 12px); opacity: 0; }
+}
+
+/* Mock YOLOv8 Bounding Boxes (Simulated Intelligence) */
+.mock-bbox {
+    position: absolute;
+    border: 2px dashed rgba(229, 29, 34, 0.4);
+    background: rgba(229, 29, 34, 0.05);
+    z-index: 7;
+    pointer-events: none;
+    transition: var(--transition-smooth);
+    opacity: 0.3;
+}
+
+.scanner-container:hover .mock-bbox {
+    opacity: 1;
+    border-style: solid;
+}
+
+.mock-bbox.bbox-1 {
+    top: 25%;
+    left: 20%;
+    width: 32%;
+    height: 38%;
+    border-color: #ffc107; /* warning yellow */
+    background: rgba(255, 193, 7, 0.03);
+}
+
+.scanner-container:hover .mock-bbox.bbox-1 {
+    border-color: #ffc107;
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.4);
+}
+
+.mock-bbox.bbox-2 {
+    top: 45%;
+    left: 58%;
+    width: 28%;
+    height: 34%;
+    border-color: var(--fresh-green);
+    background: rgba(76, 175, 80, 0.03);
+}
+
+.scanner-container:hover .mock-bbox.bbox-2 {
+    border-color: var(--fresh-green);
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
+}
+
+.bbox-label {
+    position: absolute;
+    top: -20px;
+    left: -2px;
+    background: #ffc107;
+    color: #111;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(5px);
+    transition: var(--transition-smooth);
+}
+
+.mock-bbox.bbox-2 .bbox-label {
+    background: var(--fresh-green);
+    color: white;
+}
+
+.scanner-container:hover .bbox-label {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Floating Telemetry & Metric Cards */
+.floating-telemetry-1 {
+    position: absolute;
+    bottom: -20px;
+    left: -25px;
+    background: var(--card-bg);
+    padding: 1rem 1.4rem;
+    border-radius: 20px;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--card-border);
+    animation: floatTele 5s ease-in-out infinite;
+    z-index: 12;
+    transition: var(--transition-smooth);
+}
+
+.floating-telemetry-1:hover {
+    transform: scale(1.05) translateY(-5px);
+    box-shadow: var(--card-hover-shadow);
+    border-color: rgba(74, 144, 226, 0.2);
+}
+
+.telemetry-pulse {
+    width: 10px;
+    height: 10px;
+    background-color: var(--ai-blue);
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+}
+
+.telemetry-pulse::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border: 2px solid var(--ai-blue);
+    border-radius: 50%;
+    animation: pulseGlow 1.5s infinite;
+}
+
+.floating-telemetry-2 {
+    position: absolute;
+    top: -25px;
+    right: 150px;
+    background: var(--card-bg);
+    padding: 0.8rem 1.2rem;
+    border-radius: 16px;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--card-border);
+    animation: floatTele 6s ease-in-out infinite;
+    animation-delay: -2s;
+    z-index: 12;
+    transition: var(--transition-smooth);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.floating-telemetry-2:hover {
+    transform: scale(1.05) translateY(-5px);
+    box-shadow: var(--card-hover-shadow);
+    border-color: rgba(46, 139, 87, 0.2);
+}
+
+.telemetry-icon-spin {
+    color: var(--emerald-green);
+    font-size: 1.2rem;
+    animation: spinIcon 8s infinite linear;
+}
+
+@keyframes spinIcon {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes floatTele {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+/* Responsiveness */
+@media (max-width: 991px) {
+    .hero-container {
+        grid-template-columns: 1fr;
+        gap: 4rem;
+        text-align: center;
+    }
+    
+    .hero-content h1 {
+        font-size: 2.6rem;
+    }
+    
+    .hero-content p {
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .hero-cta {
+        justify-content: center;
+    }
+    
+    .floating-telemetry-1 {
+        left: 20px;
+        bottom: -15px;
+    }
+    
+    .floating-telemetry-2 {
+        right: 20px;
+        top: -15px;
+    }
+}
+
+/* Features Section */
+.features-section {
+    padding: 5rem 2rem; /* Reduced vertical padding */
+    background: var(--bg-main);
+}
+
+.section-header {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto 3.5rem;
+}
+
+.section-header h2 {
+    font-size: 2.2rem; /* Reduced from 2.8rem */
+    color: var(--deep-forest);
+    margin-bottom: 0.8rem;
+}
+
+.section-header p {
+    font-size: 1.05rem;
+    opacity: 0.8;
+}
+
+.features-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.8rem;
+}
+
+.feature-card {
+    padding: 2rem 1.5rem; /* Reduced padding */
+    background: var(--cotton-white);
+    border-radius: 20px;
+    transition: var(--transition-smooth);
+    border: 1px solid rgba(0, 0, 0, 0.03);
+    position: relative;
+    overflow: hidden;
+    min-height: 220px; /* More compact */
+}
+
+/* =========================================================
+   Enhanced Interactive Hover Animation
+   Creates stronger depth, floating motion,
+   glowing borders, and immersive UI feedback.
+========================================================= */
+
+.feature-card:hover {
+    transform:
+        translateY(-18px)
+        scale(1.04);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(20, 35, 28, 0.96),
+            rgba(10, 18, 14, 0.98)
+        );
+
+    border-color:
+        rgba(76, 255, 153, 0.35);
+
+    box-shadow:
+        0 25px 60px rgba(0,0,0,0.35),
+        0 0 30px rgba(76,255,153,0.18),
+        0 0 60px rgba(76,255,153,0.08);
+
+    cursor: pointer;
+}
+
+
+
+.feature-icon-wrapper {
+    width: 55px; /* Reduced from 70px */
+    height: 55px;
+    background: var(--soft-mint);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--emerald-green);
+    margin-bottom: 1.5rem;
+    transition: var(--transition-smooth);
+}
+/* =========================================================
+   Floating Icon Hover Animation
+========================================================= */
+
+.feature-card:hover .feature-icon-wrapper {
+    transform:
+        scale(1.15)
+        rotate(6deg);
+
+    box-shadow:
+        0 0 18px rgba(76,255,153,0.25);
+
+    background:
+        rgba(76,255,153,0.12);
+}
+
+/* =========================================================
+   UI Enhancement Module:
+   Precision Farming Interactive Feature Cards
+
+   Purpose:
+   This styling enhancement modernizes the homepage
+   feature-card system by introducing smoother
+   animations, hover transitions, visual elevation,
+   glowing accents, and interactive feedback.
+
+   Improvements Included:
+   - Smooth hover animations
+   - Dynamic elevation effects
+   - Neon accent glow
+   - Animated top border sweep
+   - Icon interaction animations
+   - Better visual hierarchy
+   - Improved futuristic UI consistency
+   - Enhanced user engagement
+
+   These changes improve the overall user experience
+   while maintaining the Agri-Vision futuristic
+   design language.
+========================================================= */
+
+.feature-card {
+    position: relative;
+    overflow: hidden;
+
+    transition:
+        transform 0.4s ease,
+        box-shadow 0.4s ease,
+        border-color 0.4s ease,
+        background 0.4s ease;
+
+    will-change: transform;
+}
+
+/* =========================================================
+   Interactive Hover Effects
+========================================================= */
+
+.feature-card:hover {
+    transform: translateY(-12px) scale(1.02);
+
+    box-shadow:
+        0 20px 45px rgba(0,0,0,0.28),
+        0 0 25px rgba(76,255,153,0.12);
+}
+
+/* =========================================================
+   Animated Accent Border Effect
+========================================================= */
+
+.feature-card::before {
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    left: -100%;
+
+    width: 100%;
+    height: 4px;
+
+    background: linear-gradient(
+        90deg,
+        transparent,
+        #4cff99,
+        transparent
+    );
+
+    transition: 0.6s ease;
+}
+
+.feature-card:hover::before {
+    left: 100%;
+}
+
+/* =========================================================
+   Feature Icon Animation Effects
+========================================================= */
+
+.feature-card i {
+    transition:
+        transform 0.4s ease,
+        color 0.4s ease;
+}
+
+.feature-card:hover i {
+    transform: scale(1.18) rotate(4deg);
+
+    color: #4cff99;
+}
+
+/* =========================================================
+   Typography Hover Improvements
+========================================================= */
+
+.feature-card h3 {
+    transition: color 0.3s ease;
+}
+
+.feature-card:hover h3 {
+    color: #4cff99;
+}
+
+.feature-card:hover .feature-icon-wrapper {
+    background: var(--emerald-green);
+    color: white;
+}
+
+.feature-card h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.8rem;
+    color: var(--deep-forest);
+}
+
+.feature-card p {
+    color: var(--warm-earth);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* Results / Dashboard Layout */
+.results-container {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem; /* Slightly more gap for better breathing room */
+}
+
+.result-card {
+    padding: 1.5rem;
+    background: var(--card-bg);
+    border-radius: 16px;
+    border: 1px solid var(--card-border);
+    border-left: 4px solid var(--emerald-green);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: var(--transition-smooth);
+    box-shadow: var(--soft-shadow);
+}
+
+.result-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--hover-shadow);
+}
+
+.result-card h3 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--warm-earth);
+    margin-bottom: 0.5rem;
+}
+
+.result-card h2 {
+    font-size: 1.8rem;
+    margin-bottom: 0.25rem;
+    line-height: 1.2;
+}
+
+.result-card p {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--deep-forest);
+}
+
+
+/* =========================================================
+   Enhanced Results Page Spacing & Visual Hierarchy
+   Improves readability, section separation, and layout flow
+========================================================= */
+
+.results-card {
+    padding: 2.5rem;
+    gap: 2rem;
+}
+
+.result-card {
+    margin-top: 2rem;
+    padding: 2rem;
+    border-radius: 24px;
+}
+
+.results-section-title {
+    margin-bottom: 1.4rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.results-list li {
+    margin-bottom: 1rem;
+    line-height: 1.8;
+}
+
+.results-table {
+    margin-top: 1.5rem;
+    overflow: hidden;
+    border-radius: 18px;
+}
+
+.results-table th,
+.results-table td {
+    padding: 1rem 1.2rem;
+}
+
+.results-footer {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.results-details {
+    margin-top: 2rem;
+}
+
+.results-pre {
+    padding: 1.5rem;
+    border-radius: 16px;
+    line-height: 1.6;
+}
+
+/* Better spacing for mobile devices */
+@media (max-width: 768px) {
+
+    .results-card {
+        padding: 1.4rem;
+    }
+
+    .result-card {
+        padding: 1.4rem;
+    }
+
+    .results-section-title {
+        font-size: 1.1rem;
+    }
+}
+
+/* Compact Footer */
+.footer {
+    background: var(--footer-bg);
+    color: white;
+    /* Dark forest green footer */
+    background: #184b34;
+    color: #ffffff;
+    padding: 2.5rem 2rem 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+/*
+|--------------------------------------------------------------------------
+| Theme Management System
+|--------------------------------------------------------------------------
+| This section handles dynamic theme switching functionality across
+| the entire application. It ensures that user preferences are saved
+| locally and automatically restored when the user revisits the site.
+|
+| Features Included:
+| - Dark mode toggle
+| - Theme persistence using localStorage
+| - Smooth UI transitions
+| - Accessibility-friendly color updates
+| - Dynamic icon switching
+|--------------------------------------------------------------------------
+*/
+[data-theme="dark"] .footer {
+    background: #131313;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--footer-text);
+    padding: 2.5rem 2rem 1.5rem; /* Significantly reduced padding */
+    transition: var(--transition-smooth);
+}
+
+.footer-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.footer-brand h2 {
+    font-size: 1.3rem;
+    color: #ffffff;
+    color: var(--footer-text);
+    margin: 0;
+}
+
+.footer-links-compact {
+    display: flex;
+    gap: 2rem;
+}
+
+.footer-links-compact a {
+    color: rgba(255,255,255,0.95);
+    color: var(--footer-text);
+    text-decoration: none;
+    font-size: 0.9rem;
+    opacity: 0.95;
+    transition: var(--transition-smooth);
+    font-weight: 600;
+}
+
+.footer-links-compact a:hover {
+    opacity: 1;
+    color: rgba(255,255,255,0.95);
+    text-decoration: underline;
+}
+
+.footer-bottom {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--footer-muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    opacity: 0.9;
+    opacity: 0.8;
+    color: var(--footer-text);
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.9);
+}
+
+.footer-social {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.footer-social a {
+    color: rgba(255,255,255,0.95);
+    color: var(--footer-text);
+    font-size: 1.1rem;
+    transition: var(--transition-smooth);
+}
+
+.footer-social a:hover {
+    color: rgba(255,255,255,1);
+    transform: translateY(-3px);
+}
+/*
+|--------------------------------------------------------------------------
+| Responsive Navigation Handling
+|--------------------------------------------------------------------------
+| Handles all navbar interactions including:
+| - Mobile menu toggle
+| - Smooth scrolling navigation
+| - Active section highlighting
+| - Dynamic navbar background updates
+| - Accessibility improvements for keyboard users
+|
+| The goal is to provide a seamless navigation experience across
+| desktop, tablet, and mobile devices.
+|--------------------------------------------------------------------------
+*/
+
+@media (max-width: 768px) {
+    .footer-container {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.5rem;
+    }
+    
+    .footer-links-compact {
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .footer-bottom {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+}
+
+.probabilities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+}
+
+@media (max-width: 850px) {
+    .probabilities-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.recommendation-card {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+    transition: var(--transition-smooth);
+}
+
+.recommendation-card:hover {
+    transform: translateX(5px);
+    border-color: var(--emerald-green);
+}
+
+.recommendation-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--soft-mint);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--emerald-green);
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   Demo Analysis Visual Hierarchy Enhancement System
+   ---------------------------------------------------------
+   This module focuses on improving the readability and
+   visual organization of AI-generated crop analysis data.
+
+   Goals:
+   - Improve user attention flow
+   - Create better spacing rhythm
+   - Enhance card distinction
+   - Improve mobile readability
+   - Modernize analytics presentation
+   - Maintain accessibility standards
+
+   Designed specifically for:
+   - Disease prediction cards
+   - Confidence tables
+   - Recommendation sections
+   - Crop growth analysis panels
+   ========================================================= */
+
+/* =========================================================
+   Enhanced Demo Analysis Result Card UI Improvements
+   =========================================================
+
+   This styling enhancement improves the visual hierarchy,
+   spacing, readability, and modern appearance of the
+   analysis result cards shown in the Demo page.
+
+   Improvements Included:
+   - Better card spacing
+   - Improved section separation
+   - Softer shadows and hover effects
+   - Enhanced typography readability
+   - Better responsive behavior
+   - Cleaner visual hierarchy
+   - Modern glassmorphism-inspired UI polish
+   - Improved table spacing and structure
+   - Smoother transition animations
+
+   These updates improve user engagement while maintaining
+   the existing Agri-Vision design system consistency.
+   ========================================================= */
+
+.result-card,
+.analysis-card,
+.demo-card {
+    border-radius: 24px;
+    padding: 2rem;
+    transition: all 0.35s ease;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(93, 211, 139, 0.12);
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.18);
+}
+
+.result-card:hover,
+.analysis-card:hover,
+.demo-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 45px rgba(93, 211, 139, 0.18);
+}
+
+.result-card h2,
+.analysis-card h2,
+.demo-card h2 {
+    margin-bottom: 1rem;
+    letter-spacing: 0.3px;
+}
+
+.result-card p,
+.analysis-card p,
+.demo-card p {
+    line-height: 1.8;
+    opacity: 0.95;
+}
+
+.result-card table,
+.analysis-card table {
+    margin-top: 1.2rem;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.result-card tr,
+.analysis-card tr {
+    transition: background 0.2s ease;
+}
+
+.result-card tr:hover,
+.analysis-card tr:hover {
+    background: rgba(93, 211, 139, 0.05);
+}
+
+/* =========================================================
+   Mobile Responsiveness Enhancements
+   ========================================================= */
+
+@media (max-width: 768px) {
+    .result-card,
+    .analysis-card,
+    .demo-card {
+        padding: 1.4rem;
+        border-radius: 18px;
+    }
+
+    .result-card h2,
+    .analysis-card h2,
+    .demo-card h2 {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .result-card,
+    .analysis-card,
+    .demo-card {
+        padding: 1rem;
+    }
+
+    .result-card table,
+    .analysis-card table {
+        font-size: 0.9rem;
+    }
+}
+
+/* Field Photo Comparison */
+.comparison-page {
+    padding-bottom: 5rem;
+    background:
+        radial-gradient(circle at 15% 10%, rgba(76, 175, 80, 0.14), transparent 28%),
+        radial-gradient(circle at 85% 20%, rgba(74, 144, 226, 0.09), transparent 26%),
+        var(--bg-main);
+}
+
+.comparison-shell {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.comparison-hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    align-items: center;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--soft-shadow);
+    background:
+        linear-gradient(135deg, rgba(46, 139, 87, 0.15), rgba(255, 255, 255, 0.66)),
+        var(--glass-bg);
+}
+
+[data-theme="dark"] .comparison-hero {
+    background:
+        linear-gradient(135deg, rgba(60, 179, 113, 0.18), rgba(30, 30, 30, 0.72)),
+        var(--glass-bg);
+}
+
+.comparison-kicker {
+    display: inline-flex;
+    margin-bottom: 0.75rem;
+    color: var(--emerald-green);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+.comparison-hero h1 {
+    color: var(--deep-forest);
+    font-size: 2.45rem;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+}
+
+.comparison-hero p {
+    color: var(--text-muted);
+    max-width: 680px;
+    font-size: 1rem;
+}
+
+.comparison-hero-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.1rem;
+    border-radius: 16px;
+    background: var(--card-bg);
+    color: var(--deep-forest);
+    box-shadow: var(--soft-shadow);
+    min-width: 220px;
+}
+
+.comparison-hero-badge i {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    color: white;
+    background: linear-gradient(135deg, var(--emerald-green), var(--fresh-green));
+}
+
+.comparison-upload-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.comparison-upload-card,
+.ai-summary-card,
+.ai-recommendation-card,
+.comparison-summary-card {
+    padding: 1.5rem;
+    box-shadow: var(--soft-shadow);
+    transition: var(--transition-smooth);
+}
+
+.comparison-upload-card:hover,
+.ai-summary-card:hover,
+.ai-recommendation-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--hover-shadow);
+}
+
+.comparison-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.comparison-error-card,
+.comparison-warning-card {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 165, 0, 0.15);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--light-text);
+    box-shadow: var(--soft-shadow);
+    margin-bottom: 1.5rem;
+}
+
+.comparison-error-card {
+    border-color: rgba(255, 85, 85, 0.25);
+}
+
+.comparison-warning-card {
+    border-color: rgba(255, 206, 0, 0.25);
+}
+
+.comparison-error-icon,
+.comparison-warning-icon {
+    width: 3rem;
+    height: 3rem;
+    display: grid;
+    place-items: center;
+    border-radius: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.comparison-error-icon i {
+    color: #ff6b6b;
+}
+
+.comparison-warning-icon i {
+    color: #ffd166;
+}
+
+.comparison-card-header h2 {
+    color: var(--deep-forest);
+    font-size: 1.15rem;
+    margin-bottom: 0.2rem;
+}
+
+.comparison-card-header p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.comparison-step {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--soft-mint);
+    color: var(--emerald-green);
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.comparison-dropzone {
+    min-height: 190px;
+    border: 1.5px dashed rgba(46, 139, 87, 0.45);
+    border-radius: 18px;
+    background: rgba(46, 139, 87, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 1.5rem;
+    cursor: pointer;
+    text-align: center;
+    transition: var(--transition-smooth);
+}
+
+.comparison-dropzone:hover {
+    border-color: var(--emerald-green);
+    background: rgba(46, 139, 87, 0.1);
+    transform: translateY(-2px);
+}
+
+.comparison-dropzone input {
+    display: none;
+}
+
+.comparison-upload-icon {
+    width: 58px;
+    height: 58px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--emerald-green), var(--fresh-green));
+    color: white;
+    font-size: 1.35rem;
+    box-shadow: 0 14px 28px rgba(46, 139, 87, 0.18);
+}
+
+.comparison-dropzone strong {
+    color: var(--deep-forest);
+    font-size: 1rem;
+}
+
+.comparison-dropzone small {
+    color: var(--text-muted);
+}
+
+.comparison-preview-frame {
+    margin-top: 1rem;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+}
+
+.comparison-preview-frame img {
+    display: none;
+    width: 100%;
+    height: 230px;
+    object-fit: cover;
+}
+
+.comparison-preview-frame img[src]:not([src=""]) {
+    display: block;
+}
+
+.comparison-preview-frame span {
+    display: block;
+    padding: 0.85rem 1rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
+}
+
+.comparison-submit-row {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+}
+
+.comparison-submit {
+    min-width: min(100%, 320px);
+    justify-content: center;
+}
+
+.comparison-results {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.comparison-summary-card {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    border-left: 5px solid var(--emerald-green);
+}
+
+.comparison-summary-card.trend-declined {
+    border-left-color: #dc3545;
+}
+
+.comparison-summary-card.trend-stable {
+    border-left-color: var(--ai-blue);
+}
+
+.comparison-summary-icon {
+    width: 68px;
+    height: 68px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--soft-mint);
+    color: var(--emerald-green);
+    font-size: 1.8rem;
+    flex-shrink: 0;
+}
+
+.trend-declined .comparison-summary-icon,
+.comparison-result-card.trend-declined i {
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.12);
+}
+
+.trend-stable .comparison-summary-icon,
+.comparison-result-card.trend-stable i {
+    color: var(--ai-blue);
+    background: rgba(74, 144, 226, 0.12);
+}
+
+.comparison-summary-card h2 {
+    color: var(--deep-forest);
+    margin-bottom: 0.35rem;
+}
+
+.comparison-summary-card p {
+    color: var(--text-muted);
+}
+
+.comparison-metrics-grid,
+.comparison-analysis-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+}
+
+.comparison-analysis-grid {
+    grid-template-columns: 1.4fr 1fr;
+}
+
+.comparison-analysis-grid.recommendation-only {
+    grid-template-columns: 1fr;
+}
+
+.comparison-result-card {
+    position: relative;
+    padding: 1.4rem;
+    border-radius: 18px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--soft-shadow);
+    overflow: hidden;
+}
+
+.comparison-result-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 4px;
+    background: linear-gradient(90deg, var(--emerald-green), var(--fresh-green));
+}
+
+.comparison-result-card > span {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+}
+
+.comparison-result-card h3 {
+    color: var(--deep-forest);
+    font-size: 1.45rem;
+    line-height: 1.15;
+    margin-bottom: 0.35rem;
+}
+
+.comparison-result-card p,
+.comparison-result-card strong {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+}
+
+.comparison-result-card strong {
+    display: block;
+    color: var(--deep-forest);
+    margin-top: 0.55rem;
+}
+
+.comparison-result-card.delta {
+    min-height: 190px;
+}
+
+.comparison-result-card.delta h3 {
+    font-size: 2rem;
+}
+
+.comparison-result-card.delta i {
+    position: absolute;
+    right: 1.2rem;
+    bottom: 1.1rem;
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--soft-mint);
+    color: var(--emerald-green);
+    font-size: 1.5rem;
+}
+
+.comparison-score-bar {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(46, 139, 87, 0.12);
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.comparison-score-bar span {
+    display: block;
+    height: 100%;
+    min-width: 3%;
+    max-width: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--emerald-green), var(--fresh-green));
+}
+
+.ai-summary-card ul {
+    list-style: none;
+    display: grid;
+    gap: 0.85rem;
+}
+
+.ai-summary-card li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    color: var(--deep-forest);
+    padding: 0.9rem;
+    border-radius: 14px;
+    background: rgba(46, 139, 87, 0.07);
+}
+
+.ai-summary-card li i {
+    color: var(--emerald-green);
+    margin-top: 0.2rem;
+}
+
+.ai-recommendation-card h2 {
+    color: var(--deep-forest);
+    margin-bottom: 0.75rem;
+}
+
+.ai-recommendation-card p {
+    color: var(--text-muted);
+}
+
+.comparison-mini-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: 1.5rem;
+}
+
+.comparison-mini-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 999px;
+    background: var(--soft-mint);
+    color: var(--emerald-green);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+@media (max-width: 900px) {
+    .comparison-hero,
+    .comparison-summary-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .comparison-upload-grid,
+    .comparison-metrics-grid,
+    .comparison-analysis-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 560px) {
+    .comparison-shell {
+        padding: 0 1rem;
+    }
+
+    .comparison-hero,
+    .comparison-upload-card,
+    .ai-summary-card,
+    .ai-recommendation-card,
+    .comparison-summary-card {
+        padding: 1.1rem;
+        border-radius: 16px;
+    }
+
+    .comparison-hero h1 {
+        font-size: 1.9rem;
+    }
+
+    .comparison-preview-frame img {
+        height: 190px;
+    }
+}
+
+.footer-bottom {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    opacity: 0.6;
+    font-size: 0.9rem;
+}
+
+
+/* Alerts */
+.alert-container {
+    max-width: 800px;
+    margin: 0 auto 1.5rem;
+}
+
+.alert {
+    padding: 0.8rem 1.25rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: fadeInUp 0.5s ease;
+    border: 1px solid transparent;
+}
+
+.alert-success {
+    background: var(--success-bg);
+    color: var(--success-text);
+    border-color: var(--success-border);
+}
+
+.alert-error, .alert-danger {
+    background: var(--error-bg);
+    color: var(--error-text);
+    border-color: var(--error-border);
+}
+
+.alert-info {
+    background: var(--info-bg);
+    color: var(--info-text);
+    border-color: var(--info-border);
+}
+
+.success-text {
+    font-size: 1rem;
+}
+
+/* Glassmorphism System Components */
+.upload-card {
+    padding: 2.5rem;
+    max-width: 750px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.upload-zone {
+    border: 2px dashed var(--emerald-green);
+    background: rgba(46, 139, 87, 0.03);
+    padding: 2.5rem;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    position: relative;
+    overflow: hidden;
+}
+
+.upload-zone:hover {
+    background: rgba(46, 139, 87, 0.08);
+    border-color: var(--ai-blue);
+    transform: scale(1.01);
+}
+
+.upload-icon {
+    font-size: 2.5rem;
+    color: var(--emerald-green);
+    margin-bottom: 1rem;
+    animation: float 3s ease-in-out infinite;
+}
+
+.preview-container {
+    display: none;
+    margin-top: 2rem;
+    animation: fadeInUp 0.5s ease;
+}
+
+.preview-img-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.preview-img {
+    max-width: 100%;
+    border-radius: 15px;
+    box-shadow: var(--soft-shadow);
+}
+
+.close-btn {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: var(--emerald-green);
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    z-index: 10;
+}
+
+.close-btn:hover {
+    transform: scale(1.1);
+    background: var(--fresh-green);
+}
+
+.action-btn {
+    width: 100%;
+    justify-content: center;
+    box-shadow: 0 10px 30px rgba(74, 144, 226, 0.2);
+}
+
+.info-grid {
+    margin-top: 4rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    text-align: left;
+}
+
+@media (max-width: 768px) {
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tip-card {
+    padding: 1.5rem;
+    background: var(--success-bg);
+}
+
+.help-card {
+    padding: 1.5rem;
+    background: var(--info-bg);
+}
+
+/* Results Styles */
+.results-card {
+    padding: 2.5rem;
+    max-width: 750px;
+    margin: 0 auto;
+}
+
+.result-img-container {
+    position: relative;
+    width: 410px;
+    margin: 0 auto 2rem auto;
+}
+
+.result-img {
+    border-radius: 13px;
+    box-shadow: var(--soft-shadow);
+    width: 410px;
+    border: 2px solid var(--success-border);
+}
+
+.result-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 410px;
+    height: auto;
+    pointer-events: none;
+    border-radius: 13px;
+}
+
+.results-table th {
+    background: var(--table-header-bg);
+    padding: 12px;
+    text-align: left;
+}
+
+.results-table td {
+    background: var(--table-cell-bg);
+    padding: 12px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .results-table td {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.theme-toggle-btn {
+    background: transparent;
+    border: none;
+    color: var(--deep-forest);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 5px;
+    transition: color 0.3s ease;
+}
+
+.telemetry-content {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.telemetry-title {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.telemetry-sub {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.telemetry-icon {
+    color: var(--emerald-green);
+    font-size: 1.1rem;
+    transition: color 0.3s ease;
+}
+
+.footer-title {
+    margin-bottom: 0.5rem;
+}
+
+.footer-subtitle {
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+.tip-list {
+    list-style: none;
+    font-size: 0.95rem;
+    opacity: 0.8;
+    color: var(--text-main);
+    padding: 0;
+}
+
+.tip-list li {
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.results-section-title {
+    color: var(--emerald-green);
+    font-size: 1.2rem;
+    margin-top: 1.2rem;
+    margin-bottom: 0.7rem;
+}
+
+.results-list {
+    font-size: 1.05rem;
+    margin-bottom: 1.3rem;
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.results-list li {
+    margin-bottom: 0.5rem;
+}
+
+.results-footer {
+    margin-top: 18px;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+.results-details {
+    margin: 20px 0 0 0;
+}
+
+.results-summary {
+    cursor: pointer;
+    color: var(--emerald-green);
+    font-weight: bold;
+}
+
+.results-pre {
+    background: var(--card-bg);
+    border: 1px solid var(--success-border);
+    padding: 10px;
+    font-size: 12px;
+    max-height: 220px;
+    overflow: auto;
+    border-radius: 8px;
+}
+
+/* Print Styles & Professional Frame */
+@media print {
+    @page {
+        margin: 0;
+        size: A4 portrait;
+    }
+
+    body {
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .navbar, .footer, .no-print, .btn, .json-section, .success-alert-container {
+        display: none !important;
+    }
+
+    .main-content {
+        padding: 0 !important;
+        margin: 0 !important;
+        background: white !important;
+    }
+
+    .dashboard-container {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Each Page Border & Layout */
+    .print-page {
+        margin: 10mm !important; /* Uniform 10mm margin on all four sides */
+        padding: 0 !important;
+        border: 1.5pt solid black !important;
+        width: 190mm !important; /* A4 width (210) minus 20mm */
+        min-height: 277mm !important; /* A4 height (297) minus 20mm */
+        page-break-after: always;
+        background: white !important;
+        box-sizing: border-box;
+        overflow: hidden;
+        display: flex !important;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .print-content {
+        padding: 10mm !important; /* Reduced internal padding */
+        width: 100% !important;
+        flex: 1; /* Fill the page */
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .dashboard-card {
+        box-shadow: none !important;
+        border: none !important; /* Removed border from content */
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        margin-bottom: 20px !important;
+        padding: 10px 0 !important; /* Reduced internal padding for print */
+        background: white !important;
+    }
+
+    .dashboard-metrics-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 25px !important;
+    }
+
+    .dashboard-status-bar {
+        border: none !important; /* Removed border from status bar */
+        border-bottom: 1px solid #eee !important; /* Added subtle separator instead */
+        box-shadow: none !important;
+        padding: 10px 0 !important;
+        margin-bottom: 30px !important;
+    }
+
+    h1, h2, h3, h4, p, span, div, strong, li {
+        color: black !important;
+        opacity: 1 !important;
+        page-break-after: avoid;
+    }
+
+    .dashboard-card h3, 
+    .dashboard-card div, 
+    .dashboard-card span,
+    .analysis-footer {
+        color: #000000 !important;
+    }
+
+    .fade-in {
+        opacity: 1 !important;
+        transform: none !important;
+        color: black !important;
+    }
+}
+
+/* Utility Classes */
+.no-print { display: block; }
+@media print { .no-print { display: none !important; } }
+
+/* Mobile Adjustments */
+@media (max-width: 1024px) {
+    .hero-container {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 2.5rem;
+    }
+    
+    .hero-content h1 {
+        font-size: 2.4rem;
+    }
+    
+    .hero-cta {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-menu {
+        display: none;
+    }
+    
+    .hero-content h1 {
+        font-size: 2rem;
+    }
+    
+    .section-header h2 {
+        font-size: 1.8rem;
+    }
+}
+
+fix-stories-card-alignment
+
+/* ==========================================================
+   Stories Page Card Alignment & Layout Improvements
+
+   This styling enhancement improves the Stories page
+   card structure by creating better spacing balance,
+   responsive alignment, equal-height behavior, and
+   smoother visual consistency across all story cards.
+
+   Main Improvements:
+   - Equal height story cards
+   - Improved card responsiveness
+   - Better spacing consistency
+   - Reduced unnecessary empty space
+   - Modern hover interaction effects
+   - Cleaner layout alignment
+========================================================== */
+
+.stories-grid .card {
+    height: 100%;
+    border-radius: 24px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.stories-grid .card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 35px rgba(93, 211, 139, 0.15);
+}
+
+.stories-grid .card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+@media (max-width: 768px) {
+    .stories-grid {
+        gap: 1.5rem;
+    }
+}
+
+
+/* Smooth interaction animation improvements */
+
+.stories-grid .card {
+    will-change: transform;
+}
+
+.stories-grid .card:hover {
+    cursor: pointer;
+}
+
+/* Responsive container spacing improvements */
+
+.stories-header {
+    max-width: 720px;
+    margin-inline: auto;
+}
+
+.stories-grid {
+    row-gap: 2rem;
+}
+
+.stories-grid .card {
+    width: 100%;
+
+
+    /* =========================================================
+   Advanced Stories Page Responsiveness Improvements
+
+   This enhancement improves:
+   - Card alignment consistency
+   - Responsive grid spacing
+   - Mobile readability
+   - Hover interaction smoothness
+   - Layout adaptability for smaller screens
+   - Visual balance across device sizes
+
+   The goal is to create a cleaner,
+   more modern, and responsive stories page
+   experience while preserving the Agri-Vision
+   futuristic UI design language.
+========================================================= */
+
+/* Smooth interaction animation improvements */
+
+.stories-grid .card {
+    will-change: transform;
+
+    width: 100%;
+}
+
+/* Improved hover interaction */
+
+.stories-grid .card:hover {
+    transform:
+        translateY(-10px)
+        scale(1.02);
+
+    box-shadow:
+        0 18px 40px rgba(0,0,0,0.28),
+        0 0 20px rgba(76,255,153,0.10);
+
+    cursor: pointer;
+}
+
+/* Responsive container spacing improvements */
+
+.stories-header {
+    max-width: 720px;
+
+    margin-inline: auto;
+}
+
+.stories-grid {
+    row-gap: 2rem;
+}
+
+/* =========================================================
+   Tablet Responsive Optimization
+========================================================= */
+
+@media (max-width: 992px) {
+
+    .stories-grid {
+        gap: 1.8rem;
+    }
+
+    .stories-grid .card {
+        min-height: 100%;
+    }
+}
+
+/* =========================================================
+   Mobile Responsive Optimization
+========================================================= */
+
+@media (max-width: 768px) {
+
+    .stories-grid {
+        grid-template-columns: 1fr;
+
+        gap: 1.5rem;
+    }
+
+    .stories-grid .card {
+        border-radius: 20px;
+
+        padding: 1.5rem;
+    }
+
+    .stories-grid .card-body {
+        gap: 1rem;
+    }
+}
+
+/* =========================================================
+   Small Device Readability Improvements
+========================================================= */
+
+@media (max-width: 480px) {
+
+    .stories-grid .card h3 {
+        font-size: 1.2rem;
+    }
+
+    .stories-grid .card p {
+        line-height: 1.7;
+    }
+
+    .stories-grid {
+        gap: 1.2rem;
+    }
+}
+
+/* ==========================================================
+   Enhanced Demo Results Page UI/UX Styling
+   ----------------------------------------------------------
+   This styling block modernizes the Results page by
+   introducing glassmorphism-inspired containers,
+   smoother hover interactions, cleaner spacing,
+   improved section hierarchy, and enhanced visual
+   consistency across all result components.
+
+   Main Improvements:
+   - Modern reusable result cards
+   - Animated hover elevation effects
+   - Improved table interactions
+   - Better spacing and readability
+   - Responsive-friendly structure
+   - Enhanced dark mode appearance
+   - Dynamic health score visualization
+========================================================== */
+
+/* Enhanced Results UI */
+}
+.result-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 22px;
+    padding: 1.8rem;
+    margin-top: 1.8rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(12px);
+}
+
+.result-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(93, 211, 139, 0.12);
+}
+
+/* ==========================================================
+   Interactive Results Table Styling
+
+   Improved the prediction results table to make
+   disease probability data easier to scan and
+   visually interpret for end users.
+
+   Improvements Added:
+   - Rounded table container
+   - Better row spacing
+   - Smooth hover highlighting
+   - Enhanced readability in dark mode
+   - Improved visual feedback during interaction
+========================================================== */
+.results-table {
+    border-radius: 16px;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.results-table tr:hover {
+    background: rgba(93, 211, 139, 0.06);
+    transition: 0.3s ease;
+}
+
+/* ==========================================================
+   Results Section Heading Styling
+
+   Enhanced typography and spacing for section
+   titles to create stronger visual hierarchy
+   between disease analysis, growth prediction,
+   and recommendation blocks.
+
+   Enhancements:
+   - Better spacing consistency
+   - Improved readability
+   - Cleaner dashboard appearance
+   - More professional UI structure
+========================================================== */
+.results-section-title {
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+    letter-spacing: -0.4px;
+}
+
+.results-list li {
+    margin-bottom: 0.8rem;
+    line-height: 1.7;
+}
+
+.results-footer {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    color: var(--text-muted);
+}
+
+.health-bar {
+    width: 100%;
+    height: 12px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 0.7rem 0;
+}
+
+.health-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(
+        90deg,
+        #5dd18b,
+        #6ddc90
+    );
+    box-shadow: 0 0 15px rgba(93,211,139,0.45);
+ add-active-navbar-highlight-effect
+ main
+}
+
+/* =========================================================
+   Active Navbar Highlight Styling
+   Improves navigation clarity and user orientation
+   across Agri-Vision pages
+========================================================= */
+
+.nav-link {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+/* Active page highlight */
+.active-nav {
+    color: #57e389 !important;
+    font-weight: 700;
+}
+
+/* Animated underline effect */
+.active-nav::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 100%;
+    height: 2px;
+    background: #57e389;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(87, 227, 137, 0.6);
+}
+
+/* Hover improvement for navbar links */
+.nav-link:hover {
+    color: #57e389;
+}
+
+/* =========================================================
+   ADVANCED NAVIGATION EXPERIENCE ENHANCEMENT
+   =========================================================
+   This styling block was added to improve the overall
+   user navigation experience inside the Agri-Vision
+   platform interface.
+
+   The previous navbar implementation worked correctly,
+   but lacked visual indication for the currently active
+   page. This could create confusion for users navigating
+   between different agricultural analysis modules.
+
+   Improvements introduced in this enhancement:
+
+   ✔ Active page highlighting
+   ✔ Smooth hover transitions
+   ✔ Modern glowing underline animation
+   ✔ Better visual hierarchy
+   ✔ Improved accessibility and orientation
+   ✔ Consistent futuristic UI appearance
+   ✔ Enhanced dark-theme compatibility
+   ✔ Better responsiveness for different screen sizes
+   ✔ Improved readability for navbar interactions
+   ✔ More professional production-style navigation feel
+
+   Design Goals:
+   ---------------------------------------------------------
+   - Maintain Agri-Vision cyber/agri aesthetic
+   - Keep navbar lightweight and responsive
+   - Improve navigation clarity for users
+   - Add subtle animation without distraction
+   - Match green AI-inspired visual identity
+
+   Technical Notes:
+   ---------------------------------------------------------
+   The active navbar system uses:
+   - pseudo-elements (::after)
+   - transition animations
+   - glow shadows
+   - custom highlight coloring
+   - reusable nav-link utility classes
+
+   Future Expansion Possibilities:
+   ---------------------------------------------------------
+   - Dynamic active page detection using Flask/Jinja
+   - Animated page transition indicators
+   - Gradient underline effects
+   - Mobile navigation active states
+   - Scroll-aware navbar highlighting
+   - Breadcrumb integration
+   - Multi-theme compatibility
+
+   This enhancement contributes toward improving
+   the professional frontend experience of the
+   Agri-Vision AI-powered agricultural platform.
+========================================================= */
+=======
+}
+
+/*  MOBILE RESPONSIVENESS */
+
+@media (max-width: 768px) {
+
+    body {
+        overflow-x: hidden;
+    }
+
+    .container {
+        padding: 1rem;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    p {
+        font-size: 0.95rem;
+    }
+
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+}
+/* MOBILE NAVBAR FIX */
+
+@media (max-width:768px){
+
+    .navbar{
+        position: fixed;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+
+        width: 92%;
+        z-index: 9999;
+
+        padding: 12px 16px;
+        border-radius: 18px;
+
+        background: rgba(255,255,255,.92);
+        backdrop-filter: blur(10px);
+
+        box-shadow: 0 8px 20px rgba(0,0,0,.08);
+
+        overflow: visible;
+    }
+
+    .nav-container{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+
+        flex-wrap:nowrap !important;
+        flex-direction:row !important;
+
+        padding:0 !important;
+    }
+
+    .nav-brand{
+        display:flex;
+        align-items:center;
+        gap:8px;
+
+        min-width:0;
+        overflow:visible;
+    }
+
+    .nav-brand img,
+    .nav-logo{
+        width:28px;
+        height:28px;
+        flex-shrink:0;
+    }
+
+    .nav-brand h1,
+    .nav-brand span{
+        font-size:1.2rem !important;
+        white-space:nowrap;
+        margin:0;
+    }
+
+    .nav-menu{
+        display:none;
+    }
+ /* page spacing under fixed navbar */
+    body{
+        padding-top:85px;
+    }
+
+}
+/* MOBILE UPLOAD AREA FIX*/
+
+@media (max-width: 768px) {
+
+    .upload-area {
+        padding: 1rem !important;
+        min-height: auto;
+    }
+
+    .upload-area i {
+        font-size: 2rem !important;
+    }
+
+    .upload-area p {
+        line-height: 1.4;
+    }
+
+    .glass-card {
+        padding: 1rem !important;
+    }
+
+    .section-header h1 {
+        font-size: 1.8rem !important;
+    }
+
+    .section-header p {
+        font-size: 0.9rem !important;
+    }
+}
+.results-main-title{
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--emerald-green);
+}
+.results-subtitle{
+    font-size: 0.95rem;
+}
+.result-card{
+    margin-top: 2rem;
+    padding: 1.5rem;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(14px);
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.result-card:hover{
+    transform: translateY(-4px);
+    border-color: rgba(46,139,87,0.35);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+.results-table{
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    overflow: hidden;
+    border-radius: 12px;
+    table-layout: fixed;
+}
+
+.results-table th{
+    background: rgba(46,139,87,0.12);
+    padding: 14px;
+    text-align: left;
+}
+
+.results-table td{
+    padding: 12px 14px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.results-table tr:hover{
+    background: rgba(255,255,255,0.03);
+}
+.health-bar{
+    width: 100%;
+    height: 14px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 0.7rem 0;
+}
+
+.health-fill{
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg,#00c853,#69f0ae);
+    box-shadow: 0 0 18px rgba(0,200,83,0.45);
+    transition: width 0.6s ease;
+}
+.result-img{
+    width: 100%;
+    border-radius: 18px;
+    border: 2px solid rgba(46,139,87,0.2);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.18);
+}
+.results-list li{
+    line-height: 1.8;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.container{
+    width: 100%;
+    max-width: 1200px;
+    margin: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    box-sizing: border-box;
+}
+ .results-list{
+    padding-left: 1.2rem;
+    word-break: break-word;
+}
+.bbox-cell{
+    font-size: 0.9rem;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+/* Smooth Global Transitions */
+* {
+    transition:
+        background-color 0.3s ease,
+        color 0.3s ease,
+        border-color 0.3s ease;
+}
+
+/* Better Mobile Spacing */
+@media (max-width: 768px) {
+
+    section {
+        padding: 3rem 1rem !important;
+    }
+
+    .container,
+    .dashboard-container,
+    .results-container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+    .dashboard-card,
+    .result-card,
+    .glass-card,
+    .feature-card {
+        padding: 1rem !important;
+        border-radius: 16px !important;
+    }
+
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .dashboard-status-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .hero {
+        min-height: auto;
+        padding-top: 7rem;
+    }
+
+    .hero-content h1 {
+        font-size: 1.8rem !important;
+        line-height: 1.3;
+    }
+
+    .hero-content p {
+        font-size: 0.95rem;
+    }
+
+    .hero-cta {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .hero-cta .btn-primary,
+    .hero-cta .btn-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Better Responsive Grids */
+@media (max-width: 600px) {
+
+    .results-grid,
+    .dashboard-metrics-grid,
+    .probabilities-grid,
+    .stories-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .feature-card,
+    .result-card,
+    .dashboard-card {
+        min-width: 100%;
+    }
+}
+
+/* Responsive Tables */
+.results-table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent Long Text Overflow */
+h1, h2, h3, h4, p, span, a, li {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Prevent Image Overflow */
+img,
+canvas,
+video {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Mobile Floating Elements Fix */
+@media (max-width: 768px) {
+
+    .floating-telemetry-1,
+    .floating-telemetry-2 {
+        position: static;
+        margin-top: 1rem;
+        width: 100%;
+        animation: none;
+    }
+
+    .scanner-container {
+        overflow: hidden;
+    }
+}
+
+/* Skeleton Loading Animation */
+.skeleton {
+    position: relative;
+    overflow: hidden;
+    background: rgba(255,255,255,0.08);
+    border-radius: 12px;
+}
+
+.skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,0.18),
+        transparent
+    );
+    animation: skeleton-loading 1.2s infinite;
+}
+
+@keyframes skeleton-loading {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Spinner Loader */
+.loader {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255,255,255,0.15);
+    border-top-color: var(--emerald-green);
+    border-radius: 50%;
+    animation: spinLoader 0.8s linear infinite;
+    margin: 2rem auto;
+}
+
+@keyframes spinLoader {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Fade Loading Transition */
+.fade-loading {
+    animation: fadeContent 0.4s ease;
+}
+
+@keyframes fadeContent {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Better Touch Interaction */
+button,
+a,
+.card,
+.btn-primary,
+.btn-secondary {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile Typography Scaling */
+html {
+    font-size: clamp(14px, 1vw, 16px);
+}
+
+/* Reduce Heavy Animations on Mobile */
+@media (max-width: 768px) {
+
+    .blob,
+    .scanner-laser,
+    .mock-bbox,
+    .feature-card:hover,
+    .result-card:hover,
+    .dashboard-card:hover {
+        animation: none !important;
+        transform: none !important;
+    }
+}
+ main
+ improve-footer-responsiveness
+}
+
+/* =========================================================
+   Footer Responsiveness & Spacing Improvements
+   =========================================================
+   This styling enhancement improves the footer layout
+   across tablets, mobile devices, and smaller screens.
+
+   Key improvements included:
+   ---------------------------------------------------------
+   ✔ Better footer spacing
+   ✔ Improved mobile responsiveness
+   ✔ Cleaner stacked layout
+   ✔ Better text readability
+   ✔ Reduced overcrowding
+   ✔ Flexible wrapping behavior
+   ✔ Improved alignment consistency
+   ✔ Enhanced small-screen usability
+   ✔ Better footer navigation visibility
+   ✔ Modern responsive spacing structure
+
+   The previous footer layout appeared slightly compressed
+   on smaller screens and required better spacing behavior
+   for improved readability and accessibility.
+
+   This enhancement ensures the footer maintains
+   Agri-Vision's modern futuristic design language
+   while adapting smoothly across multiple resolutions.
+========================================================= */
+
+/* Footer responsive layout improvements */
+.footer-container {
+    gap: 2rem;
+}
+
+/* Footer links spacing enhancement */
+.footer-links-compact {
+    gap: 1.2rem;
+    flex-wrap: wrap;
+}
+
+/* Better footer bottom alignment */
+.footer-bottom {
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Responsive adjustments for tablets */
+@media (max-width: 768px) {
+
+    .footer-container {
+        padding: 2rem 1.5rem;
+        text-align: center;
+    }
+
+    .footer-links-compact {
+        justify-content: center;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .footer-social {
+        justify-content: center;
+    }
+}
+
+/* Mobile screen optimization */
+@media (max-width: 480px) {
+
+    .footer-container {
+        padding: 1.5rem 1rem;
+    }
+
+    .footer-links-compact {
+        gap: 0.8rem;
+        font-size: 0.92rem;
+    }
+
+    .footer-title {
+        font-size: 1.4rem;
+    }
+
+    .footer-subtitle {
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    .footer-bottom {
+        gap: 0.7rem;
+    }
+
+    .footer-social {
+        gap: 0.8rem;
+    }
+}
+
+/* =========================================================
+   Additional Footer UI Enhancement Notes
+   =========================================================
+   Future footer improvements may include:
+
+   - Animated footer reveal transitions
+   - Dynamic copyright year logic
+   - Accessibility contrast improvements
+   - Social icon hover glow animations
+   - Multi-column responsive footer grids
+   - Better keyboard navigation visibility
+   - Progressive mobile layout optimization
+   - Advanced glassmorphism footer styling
+   - Sticky responsive footer behavior
+   - Dynamic quick-link organization
+
+   This enhancement contributes toward creating
+   a more production-ready responsive experience
+   for Agri-Vision users across modern devices.
+
+   The footer now behaves more consistently
+   across different viewport dimensions while
+   preserving readability and navigation clarity.
+========================================================= */
+=======
+ main

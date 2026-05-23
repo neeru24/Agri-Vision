@@ -1,0 +1,24 @@
+========== TEST PERFORMANCE ==========
+
+Accuracy  : 0.9983
+Precision : 0.9983
+Recall    : 0.9983
+F1 Score  : 0.9983
+ROC AUC   : 0.9998
+
+========== CLASSIFICATION REPORT ==========
+
+                   precision    recall  f1-score   support
+
+           Aphids       1.00      1.00      1.00        73
+        Army worm       0.99      1.00      0.99        75
+ Bacterial blight       1.00      0.98      0.99        59
+  Cotton Boll Rot       1.00      1.00      1.00        74
+Green Cotton Boll       1.00      1.00      1.00        78
+          Healthy       1.00      1.00      1.00        69
+   Powdery mildew       1.00      1.00      1.00        76
+      Target spot       1.00      1.00      1.00        71
+
+         accuracy                           1.00       575
+        macro avg       1.00      1.00      1.00       575
+     weighted avg       1.00      1.00      1.00       575

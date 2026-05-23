@@ -1,0 +1,282 @@
+{% extends "index.html" %}
+
+{% block content %}
+
+<!-- =========================================================
+     Agri-Vision Support Center
+     Modern Responsive Support Page
+========================================================= -->
+
+<style>
+    .support-section {
+        margin-top: 140px;
+        margin-bottom: 100px;
+        padding: 0 6%;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* ===============================
+       Support Header
+    =============================== */
+    .support-header {
+        text-align: center;
+        margin-bottom: 70px;
+    }
+
+    .support-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+
+        padding: 12px 24px;
+        margin-bottom: 25px;
+
+        border-radius: 999px;
+
+        background: rgba(74, 222, 128, 0.08);
+        border: 1px solid rgba(74, 222, 128, 0.25);
+
+        color: #4ade80;
+        font-size: 0.95rem;
+        font-weight: 600;
+
+        backdrop-filter: blur(12px);
+    }
+
+    .support-badge span {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #4ade80;
+
+        box-shadow:
+            0 0 10px #4ade80,
+            0 0 20px rgba(74, 222, 128, 0.7);
+    }
+
+    .support-title {
+        font-size: clamp(3rem, 7vw, 5rem);
+        line-height: 1.1;
+        font-weight: 800;
+
+        margin-bottom: 22px;
+
+        background: linear-gradient(
+            90deg,
+            #4ade80,
+            #67e8f9
+        );
+
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .support-description {
+        max-width: 850px;
+        margin: auto;
+
+        line-height: 1.9;
+        font-size: 1.05rem;
+
+        color: rgba(255,255,255,0.75);
+    }
+
+    /* ===============================
+       Support Cards
+    =============================== */
+    .support-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 35px;
+    }
+
+    .support-card {
+        position: relative;
+
+        padding: 35px;
+        border-radius: 28px;
+
+        background: rgba(255,255,255,0.05);
+
+        border: 1px solid rgba(255,255,255,0.08);
+
+        backdrop-filter: blur(14px);
+
+        overflow: hidden;
+
+        transition:
+            transform 0.35s ease,
+            border 0.35s ease,
+            box-shadow 0.35s ease;
+    }
+
+    .support-card:hover {
+        transform: translateY(-8px);
+
+        border-color: rgba(74, 222, 128, 0.4);
+
+        box-shadow:
+            0 10px 35px rgba(0,0,0,0.25),
+            0 0 25px rgba(74, 222, 128, 0.12);
+    }
+
+    .support-card::before {
+        content: "";
+
+        position: absolute;
+        inset: 0;
+
+        background:
+            linear-gradient(
+                135deg,
+                rgba(74, 222, 128, 0.08),
+                transparent,
+                rgba(103, 232, 249, 0.05)
+            );
+
+        opacity: 0;
+        transition: opacity 0.35s ease;
+    }
+
+    .support-card:hover::before {
+        opacity: 1;
+    }
+
+    .support-icon {
+        width: 65px;
+        height: 65px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 18px;
+
+        margin-bottom: 25px;
+
+        background: rgba(74, 222, 128, 0.12);
+
+        color: #4ade80;
+
+        font-size: 1.5rem;
+
+        box-shadow:
+            0 0 20px rgba(74, 222, 128, 0.15);
+    }
+
+    .support-card h2 {
+        font-size: 1.5rem;
+        margin-bottom: 18px;
+        font-weight: 700;
+    }
+
+    .support-card p {
+        line-height: 1.9;
+        color: rgba(255,255,255,0.72);
+    }
+
+    /* ===============================
+       Responsive
+    =============================== */
+    @media (max-width: 768px) {
+
+        .support-section {
+            margin-top: 120px;
+        }
+
+        .support-grid {
+            gap: 24px;
+        }
+
+        .support-card {
+            padding: 28px;
+        }
+    }
+</style>
+
+<section class="support-section">
+
+    <!-- Header -->
+    <div class="support-header">
+
+        <div class="support-badge">
+            <span></span>
+            AI-POWERED SUPPORT CENTER
+        </div>
+
+        <h1 class="support-title">
+            Smart Farming Support & Assistance
+        </h1>
+
+        <p class="support-description">
+            Access intelligent guidance, troubleshooting resources,
+            AI-powered crop analysis assistance, educational farming
+            support, and platform-related help designed to enhance
+            productivity and improve the Agri-Vision experience.
+        </p>
+
+    </div>
+
+    <!-- Support Cards -->
+    <div class="support-grid">
+
+        <!-- FAQ -->
+        <div class="support-card">
+
+            <div class="support-icon">
+                <i class="fas fa-circle-question"></i>
+            </div>
+
+            <h2>Frequently Asked Questions</h2>
+
+            <p>
+                Explore commonly asked questions related to crop
+                image uploads, AI prediction accuracy, confidence
+                score interpretation, and platform navigation to
+                better understand the Agri-Vision ecosystem.
+            </p>
+
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="support-card">
+
+            <div class="support-icon">
+                <i class="fas fa-screwdriver-wrench"></i>
+            </div>
+
+            <h2>Troubleshooting Guidance</h2>
+
+            <p>
+                Resolve common technical issues including image
+                processing errors, unsupported file formats,
+                slow prediction responses, and mobile compatibility
+                concerns across different devices and browsers.
+            </p>
+
+        </div>
+
+        <!-- Contact -->
+        <div class="support-card">
+
+            <div class="support-icon">
+                <i class="fas fa-headset"></i>
+            </div>
+
+            <h2>Contact & Assistance</h2>
+
+            <p>
+                Connect with the Agri-Vision support ecosystem for
+                platform-related inquiries, educational farming
+                resources, collaboration opportunities, and future
+                AI agriculture assistance initiatives.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

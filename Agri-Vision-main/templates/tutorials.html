@@ -1,0 +1,392 @@
+{% extends "index.html" %}
+
+{% block content %}
+
+<!-- =========================================================
+     Agri-Vision Educational Tutorials Page
+
+     This page provides users with agriculture-focused
+     educational video tutorials designed to improve
+     awareness about crop disease detection, sustainable
+     farming methods, irrigation management, pest control,
+     and AI-assisted agricultural practices.
+
+     The tutorials section is designed to help farmers,
+     students, researchers, and agriculture enthusiasts
+     access curated learning resources directly inside
+     the Agri-Vision platform without requiring external
+     navigation.
+
+     UI/UX Improvements:
+     - Responsive tutorial card layout
+     - Improved visual spacing
+     - Better content organization
+     - Consistent dark theme styling
+     - Enhanced readability and user engagement
+========================================================= -->
+
+<div style="
+    margin-top: 140px;
+    margin-bottom: 80px;
+    padding: 0 20px;
+">
+
+    <!-- =========================================================
+         Tutorials Page Header Section
+
+         This section introduces the educational farming
+         tutorials available within the Agri-Vision platform.
+         Improved spacing and centered alignment help create
+         a cleaner visual hierarchy and better readability
+         for users exploring agricultural learning resources.
+    ========================================================== -->
+
+    <!-- Heading -->
+    <div style="
+        text-align: center;
+        margin-bottom: 55px;
+    ">
+        <h1 style="
+            font-weight: 700;
+            margin-bottom: 15px;
+        ">
+            Farming Video Tutorials
+        </h1>
+
+        <p style="
+            color: var(--text-color, #b0b0b0);
+            max-width: 700px;
+            margin: auto;
+            line-height: 1.7;
+        ">
+            Learn crop disease detection, prevention methods, and smart farming techniques through curated tutorials.
+        </p>
+    </div>
+
+    <!-- =========================================================
+         Enhanced Tutorials Grid Layout
+
+         Improved tutorial card distribution and spacing
+         for a cleaner and more visually balanced UI.
+
+         Enhancements Include:
+         - Better card alignment
+         - Responsive layout improvements
+         - Cleaner spacing consistency
+         - More educational content visibility
+         - Improved overall user engagement
+    ========================================================== -->
+
+    <!-- =========================================================
+     Responsive Tutorial Cards Container
+
+     This flex-based container organizes educational
+     tutorial cards into a responsive multi-row layout
+     while maintaining equal spacing and visual balance
+     across desktop, tablet, and mobile screen sizes.
+
+     Layout Enhancements:
+     - Flexible wrapping behavior
+     - Balanced spacing distribution
+     - Cleaner content organization
+     - Better visual hierarchy
+     - Responsive alignment support
+========================================================= -->
+
+    <!-- Cards Container -->
+    <div style="
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 35px;
+    ">
+
+        <!-- =========================================================
+             Tutorial Card 1
+             Tomato Disease Detection Educational Video
+        ========================================================== -->
+
+        <!-- Card 1 -->
+        <div style="
+            width: 350px;
+            border-radius: 22px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            transition: 0.3s ease;
+        ">
+
+            <iframe
+                width="100%"
+                height="220"
+                src="https://www.youtube.com/embed/gjMIh19zH7k"
+                title="Tomato Disease Tutorial"
+                frameborder="0"
+                allowfullscreen>
+            </iframe>
+
+            <div style="padding: 24px;">
+
+                <h3 style="
+                    margin-bottom: 14px;
+                    font-weight: 600;
+                ">
+                    Tomato Leaf Disease Detection
+                </h3>
+
+                <p style="
+                    color: var(--text-color, #cfcfcf);
+                    line-height: 1.7;
+                    margin-bottom: 0;
+                ">
+                    Learn how to identify tomato leaf diseases early and protect crops effectively.
+                </p>
+
+            </div>
+        </div>
+
+        <!-- =========================================================
+             Tutorial Card 2
+             Rice Blast Disease Management Educational Video
+        ========================================================== -->
+
+        <!-- Card 2 -->
+        <div style="
+            width: 350px;
+            border-radius: 22px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            transition: 0.3s ease;
+        ">
+
+            <iframe
+                width="100%"
+                height="220"
+                src="https://www.youtube.com/embed/SZcB2nHkjk4"
+                title="Rice Disease Tutorial"
+                frameborder="0"
+                allowfullscreen>
+            </iframe>
+
+            <div style="padding: 24px;">
+
+                <h3 style="
+                    margin-bottom: 14px;
+                    font-weight: 600;
+                ">
+                    Rice Blast Disease Management
+                </h3>
+
+                <p style="
+                    color: var(--text-color, #cfcfcf);
+                    line-height: 1.7;
+                    margin-bottom: 0;
+                ">
+                    Understand symptoms, prevention methods, and modern crop management techniques.
+                </p>
+
+            </div>
+        </div>
+
+        <!-- =========================================================
+             Tutorial Card 3
+             Organic Farming Educational Video
+        ========================================================== -->
+
+        <!-- Card 3 -->
+        <div style="
+            width: 350px;
+            border-radius: 22px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            transition: 0.3s ease;
+        ">
+
+            <iframe
+                width="100%"
+                height="220"
+                src="https://www.youtube.com/embed/mkEsLdNKlPM"
+                title="Organic Farming Tutorial"
+                frameborder="0"
+                allowfullscreen>
+            </iframe>
+
+            <div style="padding: 24px;">
+
+                <h3 style="
+                    margin-bottom: 14px;
+                    font-weight: 600;
+                ">
+                    Organic Farming Tips
+                </h3>
+
+                <p style="
+                    color: var(--text-color, #cfcfcf);
+                    line-height: 1.7;
+                    margin-bottom: 0;
+                ">
+                    Explore sustainable farming practices and improve long-term soil health naturally.
+                </p>
+
+            </div>
+        </div>
+
+        <!-- =========================================================
+             Additional Educational Farming Tutorials
+
+             These newly added tutorial cards expand the
+             educational resources available inside the
+             Agri-Vision platform and improve the visual
+             balance of the Tutorials page.
+
+             Topics Added:
+             - Smart irrigation techniques
+             - Cotton farming guidance
+             - Pest management techniques
+        ========================================================== -->
+
+        <!-- Card 4 -->
+        <div style="
+            width: 350px;
+            border-radius: 22px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            transition: 0.3s ease;
+        ">
+
+            <iframe
+                width="100%"
+                height="220"
+                src="https://www.youtube.com/embed/6xgQb8V6x7M"
+                title="Smart Irrigation Tutorial"
+                frameborder="0"
+                allowfullscreen>
+            </iframe>
+
+            <div style="padding: 24px;">
+
+                <h3 style="
+                    margin-bottom: 14px;
+                    font-weight: 600;
+                ">
+                    Smart Irrigation Techniques
+                </h3>
+
+                <p style="
+                    color: var(--text-color, #cfcfcf);
+                    line-height: 1.7;
+                    margin-bottom: 0;
+                ">
+                    Learn efficient irrigation methods and smart water management techniques for sustainable farming.
+                </p>
+
+            </div>
+        </div>
+
+        <!-- Card 5 -->
+        <div style="
+            width: 350px;
+            border-radius: 22px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            transition: 0.3s ease;
+        ">
+
+            <iframe
+                width="100%"
+                height="220"
+                src="https://www.youtube.com/embed/X8MZWCGgIb8"
+                title="Cotton Farming Guide"
+                frameborder="0"
+                allowfullscreen>
+            </iframe>
+
+            <div style="padding: 24px;">
+
+                <h3 style="
+                    margin-bottom: 14px;
+                    font-weight: 600;
+                ">
+                    Cotton Farming Guide
+                </h3>
+
+                <p style="
+                    color: var(--text-color, #cfcfcf);
+                    line-height: 1.7;
+                    margin-bottom: 0;
+                ">
+                    Understand cotton crop management, harvesting, disease prevention, and productivity improvement.
+                </p>
+
+            </div>
+        </div>
+
+        <!-- Card 6 -->
+        <div style="
+            width: 350px;
+            border-radius: 22px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            transition: 0.3s ease;
+        ">
+
+            <iframe
+                width="100%"
+                height="220"
+                src="https://www.youtube.com/embed/3zYJ3M1nRk4"
+                title="Pest Management Tutorial"
+                frameborder="0"
+                allowfullscreen>
+            </iframe>
+
+            <div style="padding: 24px;">
+
+                <h3 style="
+                    margin-bottom: 14px;
+                    font-weight: 600;
+                ">
+                    Pest Management in Farming
+                </h3>
+
+                <p style="
+                    color: var(--text-color, #cfcfcf);
+                    line-height: 1.7;
+                    margin-bottom: 0;
+                ">
+                    Explore modern pest detection and crop protection techniques for healthier agricultural production.
+                </p>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- =========================================================
+     End of Tutorials Page Content
+
+     Additional tutorial cards were added to improve:
+     - Educational content richness
+     - Visual page balance
+     - User engagement
+     - Learning resource accessibility
+     - Overall platform usefulness
+
+     The final layout maintains consistency with the
+     Agri-Vision futuristic UI design system while
+     improving the completeness of the Tutorials page.
+========================================================= -->
+
+{% endblock %}
