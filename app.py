@@ -69,11 +69,13 @@ LANG = {
 os.makedirs("static/uploads", exist_ok=True)
 os.makedirs("static/css", exist_ok=True)
 os.makedirs("models", exist_ok=True)
+os.makedirs("data", exist_ok=True)
 
 ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 MAX_INFERENCE_DIMENSION = 1024
 DISPLAY_IMAGE_MAX_DIMENSION = 1200
 DISPLAY_JPEG_QUALITY = 80
+STORY_SUBMISSIONS_FILE = os.path.join("data", "story_submissions.json")
 
 
 disease_classes = [
@@ -754,9 +756,67 @@ def support():
     return render_template("support.html")
 
 
-@app.route("/stories")
+def load_story_submissions() -> list[Dict[str, Any]]:
+    if not os.path.exists(STORY_SUBMISSIONS_FILE):
+        return []
+
+    try:
+        with open(STORY_SUBMISSIONS_FILE, "r", encoding="utf-8") as file:
+            submissions = json.load(file)
+    except (OSError, json.JSONDecodeError):
+        logger.warning("Unable to read story submissions file", exc_info=True)
+        return []
+
+    if not isinstance(submissions, list):
+        return []
+
+    return [item for item in submissions if isinstance(item, dict)]
+
+
+def save_story_submission(story: Dict[str, Any]) -> None:
+    submissions = load_story_submissions()
+    submissions.append(story)
+
+    with open(STORY_SUBMISSIONS_FILE, "w", encoding="utf-8") as file:
+        json.dump(submissions, file, indent=2, ensure_ascii=False)
+
+
+@app.route("/stories", methods=["GET", "POST"])
 def stories():
-    return render_template("stories.html")
+    if request.method == "POST":
+        farmer_name = request.form.get("farmer_name", "").strip()
+        location = request.form.get("location", "").strip()
+        story_text = request.form.get("story", "").strip()
+        crop = request.form.get("crop", "").strip()
+        image_url = request.form.get("image_url", "").strip()
+
+        if not farmer_name or not location or not story_text:
+            flash("Please add your name, location, and story before submitting.", "error")
+            return redirect(url_for("stories"))
+
+        save_story_submission(
+            {
+                "farmer_name": farmer_name[:80],
+                "location": location[:120],
+                "crop": crop[:80],
+                "story": story_text[:600],
+                "image_url": image_url[:300],
+                "approved": False,
+                "submitted_at": datetime.now().isoformat(timespec="seconds"),
+            }
+        )
+        flash("Thanks for sharing your story. It will appear after review.", "success")
+        return redirect(url_for("stories"))
+
+    submissions = load_story_submissions()
+    approved_submissions = [story for story in submissions if story.get("approved") is True]
+    pending_count = len(submissions) - len(approved_submissions)
+
+    return render_template(
+        "stories.html",
+        approved_story_submissions=approved_submissions,
+        pending_story_count=pending_count,
+    )
 
 
 @app.route("/health")

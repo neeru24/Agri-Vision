@@ -56,6 +56,68 @@
         </p>
     </div>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="row justify-content-center mb-4">
+        <div class="col-lg-8">
+            {% for category, message in messages %}
+            <div class="alert {% if category == 'success' %}alert-success{% else %}alert-warning{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="card story-submit-card mb-5">
+        <div class="card-body">
+            <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-4">
+                <div>
+                    <h2 class="fw-bold mb-2" style="color: var(--deep-forest);">
+                        Share Your Success Story
+                    </h2>
+                    <p class="text-muted mb-0">
+                        Farmers can submit crop experiences, improvements, and optional image links for review.
+                    </p>
+                </div>
+                {% if pending_story_count %}
+                <span class="story-review-pill align-self-start">
+                    {{ pending_story_count }} awaiting review
+                </span>
+                {% endif %}
+            </div>
+
+            <form action="{{ url_for('stories') }}" method="post" class="row g-3">
+                <div class="col-md-6">
+                    <label for="farmer_name" class="form-label fw-semibold">Farmer Name</label>
+                    <input id="farmer_name" name="farmer_name" class="form-control" maxlength="80" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="location" class="form-label fw-semibold">Location</label>
+                    <input id="location" name="location" class="form-control" maxlength="120" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="crop" class="form-label fw-semibold">Crop / Focus Area</label>
+                    <input id="crop" name="crop" class="form-control" maxlength="80" placeholder="Cotton, tomato, irrigation...">
+                </div>
+                <div class="col-md-6">
+                    <label for="image_url" class="form-label fw-semibold">Optional Image URL</label>
+                    <input id="image_url" name="image_url" class="form-control" maxlength="300" placeholder="https://...">
+                </div>
+                <div class="col-12">
+                    <label for="story" class="form-label fw-semibold">Story</label>
+                    <textarea id="story" name="story" class="form-control" rows="4" maxlength="600" required placeholder="Describe how Agri-Vision helped with crop monitoring, disease detection, or farm planning."></textarea>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-success px-4">
+                        Submit Story for Review
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <div class="row g-4 justify-content-center align-items-stretch stories-grid">
         <div class="col-lg-4 col-md-6 d-flex">
@@ -209,9 +271,41 @@
                 </div>
             </div>
         </div>
-        
-
     </div>
+
+    {% if approved_story_submissions %}
+    <div class="text-center mt-5 mb-4">
+        <h2 class="fw-bold" style="color: var(--deep-forest);">Community Submitted Stories</h2>
+        <p class="text-muted mb-0">Reviewed stories shared by Agri-Vision users.</p>
+    </div>
+
+    <div class="row g-4 justify-content-center align-items-stretch stories-grid">
+        {% for story in approved_story_submissions %}
+        <div class="col-lg-4 col-md-6 d-flex">
+            <div class="card h-100 community-story-card">
+                {% if story.image_url %}
+                <img src="{{ story.image_url }}" class="card-img-top story-image" alt="Submitted farm story image">
+                {% endif %}
+                <div class="card-body">
+                    <h3 class="fw-bold mb-2" style="color: var(--deep-forest);">
+                        {{ story.farmer_name }}
+                    </h3>
+                    <p class="mb-2 lead-text">{{ story.location }}</p>
+                    {% if story.crop %}
+                    <div class="mb-3">
+                        <span class="fw-semibold stat-label">Focus:</span>
+                        <span class="fw-bold stat-value">{{ story.crop }}</span>
+                    </div>
+                    {% endif %}
+                    <p class="mb-0" style="color: var(--deep-forest);">
+                        "{{ story.story }}"
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 </div>
 
 {% endblock %}
