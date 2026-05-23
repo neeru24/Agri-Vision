@@ -3062,8 +3062,6 @@ fix-stories-card-alignment
         #6ddc90
     );
     box-shadow: 0 0 15px rgba(93,211,139,0.45);
- add-active-navbar-highlight-effect
- main
 }
 
 /* =========================================================
@@ -3157,7 +3155,6 @@ fix-stories-card-alignment
    the professional frontend experience of the
    Agri-Vision AI-powered agricultural platform.
 ========================================================= */
-=======
 }
 
 /*  MOBILE RESPONSIVENESS */
@@ -3590,9 +3587,6 @@ html {
         transform: none !important;
     }
 }
- main
- improve-footer-responsiveness
-}
 
 /* =========================================================
    Footer Responsiveness & Spacing Improvements
@@ -3715,5 +3709,3 @@ html {
    across different viewport dimensions while
    preserving readability and navigation clarity.
 ========================================================= */
-=======
- main
