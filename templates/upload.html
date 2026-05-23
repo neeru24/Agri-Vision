@@ -245,6 +245,20 @@ function useMyLocation() {
                     <p>Analyzing image, please wait...</p>
                 </div>
             </div>
+
+            <div class="glass-card scan-history-card reveal reveal-fade-up" id="scanHistoryCard">
+                <div class="scan-history-header">
+                    <div>
+                        <h3>Recent Analyses</h3>
+                        <p>Review previous crop scans stored locally on this device.</p>
+                    </div>
+                    <span id="scanHistoryCount" class="scan-history-count">0 saved</span>
+                </div>
+                <div id="scanHistoryEmpty" class="scan-history-empty">
+                    Completed analyses will appear here after your first scan.
+                </div>
+                <div id="scanHistoryList" class="scan-history-list"></div>
+            </div>
             
             <div class="info-grid reveal-stagger">
                 <div class="glass-card reveal reveal-slide-right tip-card">
@@ -301,6 +315,88 @@ function useMyLocation() {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+.scan-history-card {
+    margin: 2rem 0;
+    padding: 1.5rem;
+}
+
+.scan-history-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.scan-history-header h3 {
+    margin: 0 0 0.35rem;
+    color: var(--emerald-green);
+}
+
+.scan-history-header p,
+.scan-history-empty {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.scan-history-count {
+    border: 1px solid rgba(46, 139, 87, 0.22);
+    border-radius: 999px;
+    color: var(--emerald-green);
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.35rem 0.7rem;
+    white-space: nowrap;
+}
+
+.scan-history-list {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.scan-history-item {
+    display: grid;
+    grid-template-columns: 74px 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 0.8rem;
+    background: rgba(255,255,255,0.04);
+}
+
+.scan-history-thumb {
+    width: 74px;
+    height: 58px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid rgba(46, 139, 87, 0.18);
+}
+
+.scan-history-title {
+    margin: 0 0 0.25rem;
+    font-weight: 700;
+}
+
+.scan-history-meta {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+}
+
+.scan-history-remove {
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    border-radius: 999px;
+    background: rgba(220, 53, 69, 0.08);
+    color: #ff6b6b;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.45rem 0.8rem;
+}
+
 /* MOBILE RESPONSIVE FIXES */
 
 @media (max-width: 768px) {
@@ -340,12 +436,110 @@ function useMyLocation() {
     .action-btn {
         width: 100%;
     }
+
+    .scan-history-header,
+    .scan-history-item {
+        grid-template-columns: 1fr;
+    }
+
+    .scan-history-header {
+        display: grid;
+    }
+
+    .scan-history-thumb {
+        width: 100%;
+        height: 140px;
+    }
 }
 </style>
 
 <script>
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB for images
 const MAX_PDF_SIZE = 10 * 1024 * 1024;  // 10MB for PDFs
+const SCAN_HISTORY_KEY = 'agriVisionScanHistory';
+const SCAN_HISTORY_LIMIT = 8;
+
+function readScanHistory() {
+    try {
+        const parsed = JSON.parse(localStorage.getItem(SCAN_HISTORY_KEY) || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+}
+
+function writeScanHistory(entries) {
+    localStorage.setItem(SCAN_HISTORY_KEY, JSON.stringify(entries.slice(0, SCAN_HISTORY_LIMIT)));
+}
+
+function saveScanHistory(payload) {
+    const disease = payload?.results?.disease || {};
+    const entry = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        filename: payload?.filename || 'Crop scan',
+        image_b64: payload?.image_b64 || '',
+        predicted_class: disease.predicted_class || 'Unknown',
+        confidence: Number(disease.confidence || 0),
+        timestamp: payload?.timestamp || new Date().toLocaleString(),
+    };
+
+    const nextEntries = [
+        entry,
+        ...readScanHistory().filter((item) => item.id !== entry.id),
+    ];
+    writeScanHistory(nextEntries);
+    renderScanHistory();
+}
+
+function removeScanHistoryEntry(id) {
+    writeScanHistory(readScanHistory().filter((item) => item.id !== id));
+    renderScanHistory();
+}
+
+function renderScanHistory() {
+    const list = document.getElementById('scanHistoryList');
+    const empty = document.getElementById('scanHistoryEmpty');
+    const count = document.getElementById('scanHistoryCount');
+    if (!list || !empty || !count) return;
+
+    const entries = readScanHistory();
+    count.textContent = `${entries.length} saved`;
+    empty.style.display = entries.length ? 'none' : 'block';
+    list.innerHTML = '';
+
+    entries.forEach((entry) => {
+        const item = document.createElement('article');
+        item.className = 'scan-history-item';
+
+        const image = document.createElement('img');
+        image.className = 'scan-history-thumb';
+        image.alt = `Previous scan for ${entry.filename || 'crop image'}`;
+        image.src = entry.image_b64
+            ? `data:image/jpeg;base64,${entry.image_b64}`
+            : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+
+        const details = document.createElement('div');
+        const title = document.createElement('p');
+        title.className = 'scan-history-title';
+        title.textContent = entry.predicted_class || 'Unknown result';
+        const confidence = Math.round(Number(entry.confidence || 0) * 1000) / 10;
+        const meta = document.createElement('p');
+        meta.className = 'scan-history-meta';
+        meta.textContent = `${entry.filename || 'Crop scan'} - ${confidence}% confidence - ${entry.timestamp || 'Recently'}`;
+        details.append(title, meta);
+
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'scan-history-remove';
+        removeButton.textContent = 'Remove';
+        removeButton.addEventListener('click', () => removeScanHistoryEntry(entry.id));
+
+        item.append(image, details, removeButton);
+        list.appendChild(item);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', renderScanHistory);
 
 function showError(message) {
     const errorDiv = document.getElementById('validation-error');
@@ -566,21 +760,6 @@ uploadArea.addEventListener('drop', (e) => {
 });
 
 
-document.querySelector('form').addEventListener('submit', (event)=>{
-
-    document
-      .getElementById('loadingOverlay')
-      .classList.remove('hidden');
-
-    const submitButton=
-    document.querySelector('.action-btn');
-
-    submitButton.disabled=true;
-
-    submitButton.innerHTML=
-    '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
-
-
 document.querySelector('form').addEventListener('submit', async function(event) {
     event.preventDefault();   // stop normal form submission
  
@@ -686,6 +865,7 @@ document.querySelector('form').addEventListener('submit', async function(event) 
                 // On complete — store payload and redirect via hidden form
                 if (step === 'complete' && data) {
                     finalPayload = data;
+                    saveScanHistory(finalPayload);
  
                     // Mark complete step as done
                     if (stepEl) {
