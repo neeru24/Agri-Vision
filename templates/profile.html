@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Agri-Vision</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .profile-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .profile-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+        
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+        }
+        
+        .profile-info h1 {
+            margin: 0 0 10px 0;
+            font-size: 32px;
+        }
+        
+        .profile-info p {
+            margin: 5px 0;
+            opacity: 0.9;
+        }
+        
+        .profile-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .settings-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .settings-section h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .settings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 10px;
+        }
+        
+        .settings-item-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .settings-item-info i {
+            font-size: 24px;
+            color: #667eea;
+        }
+        
+        .settings-item-info div {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .settings-item-info strong {
+            color: #333;
+        }
+        
+        .settings-item-info span {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .recent-activity {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .recent-activity h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            background: #dbeafe;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2563eb;
+        }
+        
+        .activity-info {
+            flex: 1;
+        }
+        
+        .activity-info strong {
+            color: #333;
+            display: block;
+        }
+        
+        .activity-info span {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .activity-time {
+            color: #999;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">
+                <i class="fas fa-leaf"></i>
+                <span>Agri-Vision</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="/">Home</a></li>
+                <li><a href="/analyze">Analyze</a></li>
+                <li><a href="/batch">Batch</a></li>
+                <li><a href="/history">History</a></li>
+                <li><a href="/profile" class="active">Profile</a></li>
+                <li><a href="/logout" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="profile-container">
+        <div class="profile-header">
+            <div class="profile-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="profile-info">
+                <h1>{{ current_user.full_name }}</h1>
+                <p><i class="fas fa-envelope"></i> {{ current_user.email }}</p>
+                <p><i class="fas fa-calendar"></i> Member since: {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
+                <div class="profile-badge">
+                    <i class="fas fa-user-tag"></i> {{ current_user.role|capitalize }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ current_user.analyses|length }}</div>
+                <div class="stat-label">Total Analyses</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ current_user.analyses|selectattr('health_score')|list|length }}</div>
+                <div class="stat-label">Health Scores</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ current_user.analyses|length }}</div>
+                <div class="stat-label">Images Processed</div>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h2><i class="fas fa-cog"></i> Account Settings</h2>
+            <div class="settings-list">
+                <div class="settings-item">
+                    <div class="settings-item-info">
+                        <i class="fas fa-key"></i>
+                        <div>
+                            <strong>Change Password</strong>
+                            <span>Update your password for security</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="changePassword()">Change</button>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-item-info">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <strong>Update Email</strong>
+                            <span>Change your email address</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="updateEmail()">Update</button>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-item-info">
+                        <i class="fas fa-trash"></i>
+                        <div>
+                            <strong>Delete Account</strong>
+                            <span>Permanently delete your account</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-danger" onclick="deleteAccount()">Delete</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="recent-activity">
+            <h2><i class="fas fa-history"></i> Recent Activity</h2>
+            {% if current_user.analyses %}
+                {% for analysis in current_user.analyses[-5:]|reverse %}
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <div class="activity-info">
+                        <strong>Image Analysis</strong>
+                        <span>
+                            {% if analysis.disease_result %}
+                                Disease: {{ analysis.disease_result.get('predicted_class', 'N/A') }}
+                            {% else %}
+                                Analysis completed
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="activity-time">
+                        {{ analysis.created_at.strftime('%b %d, %Y %H:%M') }}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="color: #666; text-align: center; padding: 20px;">No recent activity</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function changePassword() {
+            alert('Password change feature coming soon!');
+        }
+        
+        function updateEmail() {
+            alert('Email update feature coming soon!');
+        }
+        
+        function deleteAccount() {
+            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                alert('Account deletion feature coming soon!');
+            }
+        }
+    </script>
+</body>
+</html>

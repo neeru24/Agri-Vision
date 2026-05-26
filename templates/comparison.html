@@ -15,7 +15,12 @@
             </div>
         </div>
 
-        <form class="comparison-upload-grid" action="/comparison" method="POST" enctype="multipart/form-data">
+        <form class="comparison-upload-grid" id="comparisonForm" action="/comparison" method="POST" enctype="multipart/form-data">
+            <div id="validation-error" class="alert alert-error" style="display:none; grid-column: 1 / -1; margin-bottom: 1.5rem;" role="alert">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="error-message"></span>
+            </div>
+
             <div class="comparison-upload-card glass-card" data-upload-card>
                 <div class="comparison-card-header">
                     <span class="comparison-step">01</span>
@@ -38,6 +43,27 @@
                     {% endif %}
                     <span id="lastWeekFile" data-i18n="comp_no_file">No image selected</span>
                 </div>
+                <label class="comparison-dropzone" for="lastWeekInput" id="dropzone-lastWeek">
+                  <input type="file" id="lastWeekInput" name="last_week_image" accept="*/*" required data-preview-target="lastWeekPreview" data-file-label="lastWeekFile">
+                    <div class="upload-placeholder">
+                        <span class="comparison-upload-icon">
+                            <i class="fas fa-cloud-arrow-up"></i>
+                        </span>
+                        <strong>Upload last week photo</strong>
+                    
+                        <small>All formats supported (Max 5MB)</small>
+                    </div>
+                    <img id="lastWeekPreview"
+                         src=""
+                         style="display:none; width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                                    
+                    <button type="button"
+                            class="remove-image-btn"
+                            onclick="removeImage('lastWeekInput','lastWeekPreview','lastWeekFile', this)">
+                            <i class="fas fa-times"></i>
+                    </button>
+                    <span id="lastWeekFile">No image selected</span>
+                </label>
             </div>
 
             <div class="comparison-upload-card glass-card" data-upload-card>
@@ -62,6 +88,40 @@
                     {% endif %}
                     <span id="currentWeekFile" data-i18n="comp_no_file">No image selected</span>
                 </div>
+                <label class="comparison-dropzone" for="currentWeekInput" id="dropzone-currentWeek">
+                
+                    <input type="file"
+                           id="currentWeekInput"
+                           name="current_week_image"
+                           accept="*/*"
+                           required
+                           data-preview-target="currentWeekPreview"
+                           data-file-label="currentWeekFile">
+                
+                    <div class="upload-placeholder">
+                        <span class="comparison-upload-icon">
+                            <i class="fas fa-leaf"></i>
+                        </span>
+                
+                        <strong>Upload current week photo</strong>
+                
+                        <small>All formats supported (Max 5MB)</small>
+                    </div>
+                
+                    <img id="currentWeekPreview"
+                         src=""
+                         style="display:none; width:100%; height:100%; object-fit:cover; border-radius:12px;">
+                    <button type="button"
+                            class="remove-image-btn"
+                            onclick="removeImage('currentWeekInput','currentWeekPreview','currentWeekFile', this)">
+                            <i class="fas fa-times"></i>
+                    </button>
+                    <span id="currentWeekFile">No image selected</span>
+                
+              </label>
+                <div id="duplicate-warning" style="display:none; color: #ff6b6b; font-size: 0.85rem; margin-top: 0.75rem; text-align: center; font-weight: 500;">
+                    <i class="fas fa-exclamation-circle"></i> Please upload a different image for comparison.
+              </div>
             </div>
 
             <div class="comparison-submit-row">
@@ -175,24 +235,148 @@
 </section>
 
 <script>
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB for images
+
+function showError(message, inputId) {
+    const errorDiv = document.getElementById('validation-error');
+    const errorMsg = document.getElementById('error-message');
+    const dropzone = document.getElementById('dropzone-' + inputId.replace('Input', ''));
+    const duplicateWarning = document.getElementById('duplicate-warning');
+    
+    if (errorMsg) errorMsg.textContent = message;
+    if (errorDiv) {
+        errorDiv.className = 'alert alert-error';
+        errorDiv.style.display = 'flex';
+    }
+    if (dropzone) {
+        dropzone.style.borderColor = '#dc3545';
+        dropzone.style.background = 'rgba(220, 53, 69, 0.03)';
+    }
+
+    if (inputId === 'currentWeekInput' && message.includes('Duplicate')) {
+        if (duplicateWarning) duplicateWarning.style.display = 'block';
+    }
+}
+
+
+function removeImage(inputId, previewId, labelId, button) {
+
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    const label = document.getElementById(labelId);
+
+    input.value = "";
+
+    preview.src = "";
+    preview.style.display = "none";
+
+    label.textContent = "No image selected";
+
+    const dropzone = input.closest(".comparison-dropzone");
+
+    const placeholder = dropzone.querySelector(".upload-placeholder");
+
+    if (placeholder) {
+        placeholder.style.display = "block";
+    }
+
+    button.style.display = "none";
+}
+
+function hideError() {
+    const errorDiv = document.getElementById('validation-error');
+    const duplicateWarning = document.getElementById('duplicate-warning');
+    
+    if (errorDiv) errorDiv.style.display = 'none';
+    if (duplicateWarning) duplicateWarning.style.display = 'none';
+    
+    document.querySelectorAll(".comparison-dropzone").forEach(dz => {
+        dz.style.borderColor = 'rgba(46, 139, 87, 0.45)';
+        dz.style.background = 'rgba(46, 139, 87, 0.05)';
+    });
+}
+
+function checkDuplicateImages() {
+    const lastWeekInput = document.getElementById('lastWeekInput');
+    const currentWeekInput = document.getElementById('currentWeekInput');
+    
+    if (lastWeekInput.files.length > 0 && currentWeekInput.files.length > 0) {
+        const file1 = lastWeekInput.files[0];
+        const file2 = currentWeekInput.files[0];
+        
+        if (file1.name === file2.name && file1.size === file2.size && file1.type === file2.type) {
+            showError('Duplicate field images detected. Please upload two different images for meaningful comparison analysis.', 'currentWeekInput');
+            return true;
+        }
+    }
+    return false;
+}
+
 document.addEventListener("DOMContentLoaded", function() {
+    const comparisonForm = document.getElementById('comparisonForm');
+    
+    if (comparisonForm) {
+        comparisonForm.addEventListener('submit', function(e) {
+            if (checkDuplicateImages()) {
+                e.preventDefault();
+            }
+        });
+    }
+
     document.querySelectorAll(".comparison-dropzone input[type='file']").forEach(function(input) {
         input.addEventListener("change", function() {
             var preview = document.getElementById(input.dataset.previewTarget);
             var label = document.getElementById(input.dataset.fileLabel);
-            var file = input.files && input.files[0];
+            
+            hideError();
 
-            if (!file) {
-                preview.removeAttribute("src");
-                label.textContent = "No image selected";
+            if (!input.files || !input.files[0]) {
+                if (preview) preview.removeAttribute("src");
+                if (label) label.textContent = "No image selected";
                 return;
             }
 
-            label.textContent = file.name;
+            let file = input.files[0];
+
+            // 1. Validate Size
+            if (file.size > MAX_IMAGE_SIZE) {
+                showError('Image is too large. Maximum allowed size is 5MB.', input.id);
+                input.value = ''; return;
+            }
+
+            // 2. Check for Duplicates early
+            if (checkDuplicateImages()) {
+                input.value = ''; 
+                if (preview) preview.removeAttribute("src");
+                if (label) label.textContent = "No image selected";
+                return;
+            }
+
+            // 3. Final Image validation & preview
+            if (label) label.textContent = file.name;
             var reader = new FileReader();
             reader.onload = function(event) {
-                preview.src = event.target.result;
-                preview.closest(".comparison-preview-frame").classList.add("has-image");
+                const img = new Image();
+                img.onload = function() {
+                    if (preview) {
+                        preview.src = event.target.result;
+                        preview.style.display = "block";
+                        const removeBtn = preview.nextElementSibling;
+
+                    if (removeBtn) {
+                        removeBtn.style.display = "flex";
+                    }
+                        const placeholder = input.closest(".comparison-dropzone")
+                                                 .querySelector(".upload-placeholder");
+
+                        placeholder.style.display = "none";
+                    }
+                };
+                img.onerror = function() {
+                    showError('This file format is not supported for AI analysis. Please upload a photo.', input.id);
+                    input.value = '';
+                };
+                img.src = event.target.result;
             };
             reader.readAsDataURL(file);
         });

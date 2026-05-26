@@ -4,10 +4,10 @@ on:
   pull_request_target:
     types: [opened]
 
-permissions:
-  pull-requests: write
+permissions: 
+  contents: write 
+  pull-requests: write 
   issues: write
-  contents: read
 
 jobs:
   add-label:

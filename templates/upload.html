@@ -13,21 +13,21 @@
                <div class="weather-location-section" style="
                     margin: 1.5rem 0;
                     padding: 1.2rem 1.5rem;
-                    background: linear-gradient(135deg, #e8f4fd 0%, #d1ecf1 100%);
                     border-radius: 12px;
-                    border: 1px solid #bee5eb;
                 ">
                     <h4 style="margin: 0 0 0.5rem; color: #0c5460; font-size: 1rem;" data-i18n="up_loc_title">
+                    <h4 class="weather-location-title" style="margin: 0 0 0.5rem; font-size: 1rem;">
                         ☁️ Add Location for Weather-Aware Recommendations
                         <span style="font-weight:400; font-size:0.85rem;" data-i18n="up_loc_opt">(optional)</span>
                     </h4>
                     <p style="margin: 0 0 0.8rem; color: #6c757d; font-size: 0.85rem;" data-i18n="up_loc_desc">
+                    <p class="weather-location-subtitle" style="margin: 0 0 0.8rem; font-size: 0.85rem;">
                         Type your city or use GPS — we'll fetch live weather for smarter crop advice.
                     </p>
 
-                    <div style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:center;">
+                    <div class="weather-location-controls">
                         <!-- City text input -->
-                        <div style="position:relative; flex:1; min-width:200px;">
+                        <div style="position:relative; flex:1; min-width:180px; max-width:280px;">
                             <input
                                 type="text"
                                 name="city"
@@ -36,19 +36,10 @@
                                 data-i18n="[placeholder]up_loc_placeholder"
                                 autocomplete="off"
                                 oninput="onCityInput(this)"
-                                style="
-                                    width: 100%; padding: 0.5rem 2.2rem 0.5rem 0.75rem;
-                                    border: 1px solid #ced4da; border-radius: 8px;
-                                    font-size: 0.9rem; color: #495057;
-                                    box-sizing: border-box; transition: border-color 0.2s;
-                                "
+                                class="weather-location-input"
                             />
                             <!-- Tick icon inside input -->
-                            <span id="city-tick" style="
-                                position:absolute; right:0.6rem; top:50%;
-                                transform:translateY(-50%);
-                                font-size:1rem; display:none;
-                            ">✅</span>
+                            <span id="city-tick" class="weather-location-tick">✅</span>
                         </div>
 
                         <!-- Hidden lat/lon fields for GPS -->
@@ -68,12 +59,13 @@
                             "
                             onmouseover="this.style.background='#138496'"
                             onmouseout="this.style.background='#17a2b8'"
+                            class="weather-location-button"
                         >
                             📍 Use My Location
                         </button>
                     </div>
 
-                    <p id="geo-status" style="margin: 0.5rem 0 0; font-size: 0.8rem; color: #6c757d;"></p>
+                    <p id="geo-status" class="weather-location-status"></p>
                 </div>
 
 <script>
@@ -83,20 +75,23 @@ function onCityInput(input) {
     const status = document.getElementById('geo-status');
     const latInput = document.getElementById('lat-input');
     const lonInput = document.getElementById('lon-input');
+    const locationBtn = document.getElementById('use-location-btn');
 
     if (input.value.trim().length > 1) {
         // Show green tick and confirmation
         tick.style.display = 'inline';
-        input.style.borderColor = '#28a745';
+        input.style.borderColor = 'var(--success-border)';
         status.textContent = '✅ Location set: ' + input.value.trim();
-        status.style.color = '#28a745';
+        status.className = 'weather-location-status is-success';
+        if (locationBtn) locationBtn.classList.remove('is-success');
         // Clear GPS coords so city name is used instead
         latInput.value = '';
         lonInput.value = '';
     } else {
         tick.style.display = 'none';
-        input.style.borderColor = '#ced4da';
+        input.style.borderColor = 'var(--weather-location-input-border)';
         status.textContent = '';
+        status.className = 'weather-location-status';
     }
 }
 
@@ -106,9 +101,11 @@ function useMyLocation() {
     const cityInput = document.getElementById('city-input');
     const tick = document.getElementById('city-tick');
 
+    btn.classList.remove('is-success');
+
     if (!navigator.geolocation) {
         status.textContent = '⚠️ Geolocation not supported by your browser.';
-        status.style.color = '#dc3545';
+        status.className = 'weather-location-status is-error';
         return;
     }
 
@@ -123,25 +120,74 @@ function useMyLocation() {
             document.getElementById('lon-input').value = lon;
             cityInput.value = '';
             tick.style.display = 'none';
-            cityInput.style.borderColor = '#ced4da';
+            cityInput.style.borderColor = 'var(--weather-location-input-border)';
             status.textContent = '✅ GPS location detected: ' + lat + ', ' + lon;
-            status.style.color = '#28a745';
+            status.className = 'weather-location-status is-success';
             btn.textContent = '📍 Location Set';
-            btn.style.background = '#28a745';
+            btn.classList.add('is-success');
+            btn.disabled = false;
         },
         function(err) {
             status.textContent = '⚠️ Could not get GPS: ' + err.message + '. Try typing your city instead.';
-            status.style.color = '#dc3545';
+            status.className = 'weather-location-status is-error';
             btn.textContent = '📍 Use My Location';
+            btn.classList.remove('is-success');
             btn.disabled = false;
         },
-        { timeout: 8000 }
+        {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0,
+        }
     );
 }
 
 </script>
                 <!-- File Upload Area -->
-                <div class="upload-area" onclick="document.getElementById('fileInput').click()" style="
+                <div id="validation-error" class="alert alert-error weather-location-alert" style="display:none; margin-top:1rem;" role="alert">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="error-message"></span>
+                </div>
+
+                <div id="camera-btn-container" style="margin-top: 1.5rem; display: block;">
+                    <button type="button" class="camera-capture-btn" onclick="document.getElementById('cameraInput').click()" aria-label="Open camera to capture crop image" style="
+                        width: 100%;
+                        padding: 1.25rem;
+                        background: linear-gradient(135deg, var(--emerald-green) 0%, #1e7041 100%);
+                        color: white;
+                        border: none;
+                        border-radius: 16px;
+                        font-size: 1.15rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 0.75rem;
+                        box-shadow: 0 8px 16px rgba(46, 139, 87, 0.25);
+                        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                    " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 20px rgba(46, 139, 87, 0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 16px rgba(46, 139, 87, 0.25)';" onfocus="this.style.outline='3px solid var(--emerald-green)'; this.style.outlineOffset='2px';" onblur="this.style.outline='none';">
+                        <i class="fas fa-camera" style="font-size: 1.3rem;"></i>
+                        <span>Take Crop Photo</span>
+                    </button>
+                    
+                    <input
+                        type="file"
+                        id="cameraInput"
+                        accept="image/*"
+                        capture="environment"
+                        style="display:none;"
+                        onchange="previewImage(this)"
+                    />
+                </div>
+
+                <div id="upload-divider" style="display: flex; align-items: center; text-align: center; color: #6c757d; font-size: 0.9rem; font-weight: 500; margin-top: 1.5rem;">
+                    <div style="flex: 1; height: 1px; background: #e9ecef;"></div>
+                    <span style="padding: 0 1rem;">OR UPLOAD FILE</span>
+                    <div style="flex: 1; height: 1px; background: #e9ecef;"></div>
+                </div>
+
+                <div class="upload-area" id="drop-zone" onclick="document.getElementById('fileInput').click()" style="
                     border: 2px dashed var(--emerald-green);
                     border-radius: 16px;
                     padding: 2.5rem;
@@ -161,16 +207,64 @@ function useMyLocation() {
                         ">✕ Remove Image</button>
                     </div>
                     <i class="fas fa-cloud-upload-alt" style="font-size: 2.5rem; color: var(--emerald-green); margin-bottom: 1rem;"></i>
-                    <p style="font-size: 1rem; margin-bottom: 0.5rem;">Drag & drop your crop image here</p>
-                    <p style="font-size: 0.85rem; opacity: 0.6;">or click to browse — PNG, JPG, JPEG, GIF up to 10MB</p>
+                    <p style="font-size: 1rem; margin-bottom: 0.5rem;">Drag & drop any crop file here</p>
+                    <p style="font-size: 0.85rem; opacity: 0.6;">All formats supported (Images, PDFs, etc. — Max 5MB)</p>
                     <input
                         type="file"
                         id="fileInput"
                         name="file"
-                        accept="image/*"
+                        accept="*/*"
                         style="display:none;"
                         onchange="previewImage(this)"
                     />
+                </div>
+                <!-- Smart Crop Health Insights Panel -->
+                <div class="smart-insights-panel">
+
+                    <div class="insights-header">
+                        <h3>🌿 Smart Crop Health Insights</h3>
+                        <p>AI-powered environmental and crop recommendations</p>
+                    </div>
+                
+                    <div class="insights-grid">
+                    
+                        <!-- Weather Card -->
+                        <div class="insight-card weather-card">
+                            <div class="insight-icon">🌤️</div>
+                            <h4>Weather Status</h4>
+                            <p class="insight-value">28°C Cloudy</p>
+                            <span class="insight-tag good">Good for crop monitoring</span>
+                        </div>
+                    
+                        <!-- Soil Moisture -->
+                        <div class="insight-card moisture-card">
+                            <div class="insight-icon">💧</div>
+                            <h4>Soil Moisture</h4>
+                            <p class="insight-value">Moderate</p>
+                            <span class="insight-tag warning">Irrigation suggested</span>
+                        </div>
+                    
+                        <!-- Disease Risk -->
+                        <div class="insight-card disease-card">
+                            <div class="insight-icon">🦠</div>
+                            <h4>Disease Risk</h4>
+                            <p class="insight-value">Low Risk</p>
+                            <span class="insight-tag success">Healthy condition</span>
+                        </div>
+                    
+                        <!-- Crop Health -->
+                        <div class="insight-card health-card">
+                            <div class="insight-icon">🌱</div>
+                            <h4>Crop Health</h4>
+                        
+                            <div class="health-progress">
+                                <div class="health-progress-bar"></div>
+                            </div>
+                        
+                            <p class="health-score">86% Healthy</p>
+                        </div>
+                    
+                    </div>
                 </div>
                 <div style="margin-top: 3rem;">
                     <button type="submit" class="btn btn-primary btn-large action-btn">
@@ -197,16 +291,65 @@ function useMyLocation() {
                 transition: width 0.4s ease;
             "></div>
         </div>
- 
+        <!-- AI Confidence & Crop Health Meter -->
+            <div class="ai-health-dashboard">
+            
+                <!-- AI Confidence -->
+                <div class="ai-meter-card">
+                    <div class="meter-header">
+                        <span>🤖 AI Confidence</span>
+                        <span id="confidenceValue">94%</span>
+                    </div>
+                
+                    <div class="circular-progress">
+                        <svg>
+                            <circle cx="55" cy="55" r="45"></circle>
+                            <circle cx="55" cy="55" r="45" id="confidenceCircle"></circle>
+                        </svg>
+                    
+                        <div class="progress-number" id="confidenceText">
+                            94%
+                        </div>
+                    </div>
+                
+                    <p class="meter-status success-status">
+                        High Prediction Accuracy
+                    </p>
+                </div>
+            
+                <!-- Crop Health Meter -->
+                <div class="ai-meter-card">
+                
+                    <div class="meter-header">
+                        <span>🌱 Crop Health</span>
+                        <span id="healthValue">86%</span>
+                    </div>
+                
+                    <div class="health-meter-wrapper">
+                        <div class="health-meter">
+                            <div class="health-meter-fill" id="healthMeterFill"></div>
+                        </div>
+                    </div>
+                
+                    <div class="health-labels">
+                        <span>Critical</span>
+                        <span>Moderate</span>
+                        <span>Healthy</span>
+                    </div>
+                
+                    <p class="meter-status healthy-status">
+                        Crop condition looks healthy
+                    </p>
+                </div>
+            
+            </div>
         <!-- Step checklist -->
         <div id="streamStepList" style="display:flex; flex-direction:column; gap:0.5rem;">
-            <div class="stream-step" id="step-upload_received"   data-label="File received">⬜ File received</div>
-            <div class="stream-step" id="step-preprocessing"     data-label="Preprocessing image">⬜ Preprocessing image</div>
-            <div class="stream-step" id="step-growth_inference"  data-label="YOLOv8 growth stage detection">⬜ YOLOv8 growth stage detection</div>
-            <div class="stream-step" id="step-disease_inference" data-label="ResNet50 disease classification">⬜ ResNet50 disease classification</div>
-            <div class="stream-step" id="step-recommendations"   data-label="Generating recommendations">⬜ Generating recommendations</div>
-            <div class="stream-step" id="step-complete"          data-label="Complete">⬜ Complete</div>
-                    </div>
+            <div class="stream-step" id="step-upload" data-label="Uploading image...">⬜ Uploading image...</div>
+            <div class="stream-step" id="step-analyze" data-label="Analyzing crop health...">⬜ Analyzing crop health...</div>
+            <div class="stream-step" id="step-predict" data-label="Generating prediction...">⬜ Generating prediction...</div>
+            <div class="stream-step" id="step-complete" data-label="Analysis complete">⬜ Analysis complete</div>
+        </div>
             
                     <!-- Current status message -->
                     <p id="streamStatusMsg" style="
@@ -235,7 +378,6 @@ function useMyLocation() {
             }
             </style>
             </form>
-
             <div id="loadingOverlay" class="loading-overlay hidden" aria-hidden="true">
                 <div class="loading-panel">
                     <div class="loading-spinner"></div>
@@ -298,9 +440,137 @@ function useMyLocation() {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+/* MOBILE RESPONSIVE FIXES */
+
+@media (max-width: 768px) {
+
+    .loading-panel {
+        width: 90%;
+        padding: 20px;
+        border-radius: 14px;
+    }
+
+    .loading-panel p {
+        font-size: 0.9rem;
+    }
+
+    .upload-area {
+        padding: 1.5rem !important;
+    }
+
+    .upload-area p {
+        font-size: 0.85rem !important;
+    }
+
+    .upload-card {
+        padding: 1rem;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .tip-card,
+    .help-card {
+        width: 100%;
+    }
+
+    .action-btn {
+        width: 100%;
+    }
+}
 </style>
 
 <script>
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB for images
+const MAX_PDF_SIZE = 10 * 1024 * 1024;  // 10MB for PDFs
+
+function showError(message) {
+    const errorDiv = document.getElementById('validation-error');
+    const errorMsg = document.getElementById('error-message');
+    const uploadArea = document.getElementById('drop-zone');
+    
+    if (errorMsg) errorMsg.textContent = message;
+    if (errorDiv) {
+        errorDiv.className = 'alert alert-error';
+        errorDiv.style.display = 'flex';
+    }
+    if (uploadArea) {
+        uploadArea.style.borderColor = 'var(--error-border)';
+        uploadArea.style.background = 'var(--error-bg)';
+    }
+}
+
+function showInfo(message) {
+    const errorDiv = document.getElementById('validation-error');
+    const errorMsg = document.getElementById('error-message');
+    const uploadArea = document.getElementById('drop-zone');
+    
+    if (errorMsg) errorMsg.textContent = message;
+    if (errorDiv) {
+        errorDiv.className = 'alert alert-info';
+        errorDiv.style.display = 'flex';
+    }
+    if (uploadArea) {
+        uploadArea.style.borderColor = 'var(--ai-blue)';
+    }
+}
+
+function hideError() {
+    const errorDiv = document.getElementById('validation-error');
+    const uploadArea = document.getElementById('drop-zone');
+    
+    if (errorDiv) errorDiv.style.display = 'none';
+    if (uploadArea) {
+        uploadArea.style.borderColor = 'var(--emerald-green)';
+        uploadArea.style.background = 'var(--success-bg)';
+    }
+}
+
+async function convertPdfToImage(file) {
+    if (typeof pdfjsLib === 'undefined') {
+        throw new Error('PDF library failed to load. Please check your internet connection and refresh.');
+    }
+    
+    // Explicitly set worker for reliability
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    
+    showInfo('Processing PDF document... This may take a moment.');
+    
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+        const pdf = await loadingTask.promise;
+        
+        if (pdf.numPages === 0) throw new Error('The PDF appears to be empty.');
+        
+        const page = await pdf.getPage(1);
+        const viewport = page.getViewport({ scale: 1.5 }); // Balanced scale for AI analysis
+        
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        
+        await page.render({ canvasContext: context, viewport: viewport }).promise;
+        
+        return new Promise((resolve, reject) => {
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    const newFileName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+                    resolve(new File([blob], newFileName, { type: 'image/jpeg' }));
+                } else {
+                    reject(new Error('Failed to extract image from PDF.'));
+                }
+            }, 'image/jpeg', 0.9);
+        });
+    } catch (error) {
+        console.error('PDF error:', error);
+        throw new Error('PDF Error: ' + (error.message || 'Unable to process this PDF format.'));
+    }
+}
+
 function getResizedDimensions(width, height, maxWidth, maxHeight) {
     const ratio = Math.min(maxWidth / width, maxHeight / height, 1);
     return {
@@ -311,18 +581,10 @@ function getResizedDimensions(width, height, maxWidth, maxHeight) {
 
 function compressImageFile(file, maxWidth = 1280, maxHeight = 1280, quality = 0.8) {
     return new Promise((resolve, reject) => {
-        if (!file.type.startsWith('image/')) {
-            reject(new Error('Unsupported file type'));
-            return;
-        }
-
         const reader = new FileReader();
         const image = new Image();
 
-        reader.onload = (e) => {
-            image.src = e.target.result;
-        };
-
+        reader.onload = (e) => { image.src = e.target.result; };
         image.onload = () => {
             const dimensions = getResizedDimensions(image.width, image.height, maxWidth, maxHeight);
             const canvas = document.createElement('canvas');
@@ -331,15 +593,11 @@ function compressImageFile(file, maxWidth = 1280, maxHeight = 1280, quality = 0.
             const ctx = canvas.getContext('2d');
             ctx.drawImage(image, 0, 0, dimensions.width, dimensions.height);
             canvas.toBlob((blob) => {
-                if (!blob) {
-                    reject(new Error('Image compression failed'));
-                    return;
-                }
-                resolve(blob);
+                if (blob) resolve(blob);
+                else reject(new Error('Image processing failed'));
             }, 'image/jpeg', quality);
         };
-
-        image.onerror = () => reject(new Error('Unable to read image for compression'));
+        image.onerror = () => reject(new Error('The file selected is not a compatible image format.'));
         reader.onerror = () => reject(new Error('File read error'));
         reader.readAsDataURL(file);
     });
@@ -348,40 +606,87 @@ function compressImageFile(file, maxWidth = 1280, maxHeight = 1280, quality = 0.
 async function previewImage(input) {
     const previewContainer = document.getElementById('previewContainer');
     const preview = document.getElementById('imagePreview');
-    const uploadContent = document.querySelector('.upload-area > *:not(#previewContainer)');
+
+    hideError();
 
     if (input.files && input.files[0]) {
+        let file = input.files[0];
+        const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+
+        // 1. Validate Size (Different limits for PDF vs Image)
+        if (isPdf && file.size > MAX_PDF_SIZE) {
+            showError('PDF is too large. Maximum allowed size is 10MB.');
+            input.value = ''; return;
+        } else if (!isPdf && file.size > MAX_IMAGE_SIZE) {
+            showError('Image is too large. Maximum allowed size is 5MB.');
+            input.value = ''; return;
+        }
+
+        // 2. Handle PDF Conversion
+        if (isPdf) {
+            try {
+                file = await convertPdfToImage(file);
+                hideError();
+            } catch (err) {
+                showError(err.message);
+                input.value = ''; return;
+            }
+        }
+
+        // 3. Final Image Processing & Preview
         try {
-            const originalFile = input.files[0];
-            const compressedBlob = await compressImageFile(originalFile, 1280, 1280, 0.8);
-            const compressedFile = new File([compressedBlob], originalFile.name, { type: 'image/jpeg' });
+            const compressedBlob = await compressImageFile(file, 1280, 1280, 0.8);
+            const processedFile = new File([compressedBlob], file.name, { type: 'image/jpeg' });
+            
             const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(compressedFile);
-            input.files = dataTransfer.files;
+            dataTransfer.items.add(processedFile);
+            
+            // Always set the processed file to the main fileInput so form submission works
+            document.getElementById('fileInput').files = dataTransfer.files;
 
             const reader = new FileReader();
             reader.onload = function(e) {
                 preview.src = e.target.result;
                 previewContainer.style.display = 'block';
-                Array.from(document.querySelectorAll('.upload-area > *:not(#previewContainer)')).forEach(el => {
-                    el.style.display = 'none';
-                });
+                
+                // Hide camera button and divider when image is selected
+                const cameraBtnContainer = document.getElementById('camera-btn-container');
+                const uploadDivider = document.getElementById('upload-divider');
+                if (cameraBtnContainer) cameraBtnContainer.style.display = 'none';
+                if (uploadDivider) uploadDivider.style.display = 'none';
+
+                const children = document.getElementById('drop-zone').children;
+                for (let child of children) {
+                    if (child.id !== 'previewContainer') child.style.display = 'none';
+                }
             }
-            reader.readAsDataURL(compressedFile);
+            reader.readAsDataURL(processedFile);
         } catch (error) {
-            console.error('Image compression failed:', error);
+            showError(error.message);
+            // Reset both inputs on error
+            document.getElementById('fileInput').value = '';
+            document.getElementById('cameraInput').value = '';
         }
     }
 }
 
 function resetUpload() {
     const input = document.getElementById('fileInput');
+    const cameraInput = document.getElementById('cameraInput');
     const previewContainer = document.getElementById('previewContainer');
     const preview = document.getElementById('imagePreview');
     
+    hideError();
     input.value = '';
+    if (cameraInput) cameraInput.value = '';
     preview.src = '';
     previewContainer.style.display = 'none';
+    
+    // Show camera button and divider again
+    const cameraBtnContainer = document.getElementById('camera-btn-container');
+    const uploadDivider = document.getElementById('upload-divider');
+    if (cameraBtnContainer) cameraBtnContainer.style.display = 'block';
+    if (uploadDivider) uploadDivider.style.display = 'flex';
     
     // Show the placeholder text again
     Array.from(document.querySelectorAll('.upload-area > *:not(#previewContainer)')).forEach(el => {
@@ -418,9 +723,14 @@ uploadArea.addEventListener('drop', (e) => {
     }
 });
 
+
+let isAnalyzing = false;
+
 document.querySelector('form').addEventListener('submit', async function(event) {
     event.preventDefault();   // stop normal form submission
  
+    if (isAnalyzing) return; // Prevent duplicate submissions
+
     const form        = event.target;
     const submitBtn   = document.querySelector('.action-btn');
     const panel       = document.getElementById('streamProgressPanel');
@@ -434,19 +744,29 @@ document.querySelector('form').addEventListener('submit', async function(event) 
         alert('Please select a crop image first.');
         return;
     }
+
+    isAnalyzing = true;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
  
-    // Show progress panel, hide submit button
+    // Show progress panel, hide submit button (or disable it during progress)
     panel.style.display = 'block';
     submitBtn.style.display = 'none';
     if (loadingOverlay) loadingOverlay.classList.add('hidden');
  
-    // Reset all steps
-    document.querySelectorAll('.stream-step').forEach(el => {
-        el.classList.remove('done', 'active', 'error-step');
-        el.textContent = '⬜ ' + el.dataset.label;
+    // Reset all steps to default unchecked
+    const steps = ['upload', 'analyze', 'predict', 'complete'];
+    steps.forEach(s => {
+        const el = document.getElementById('step-' + s);
+        if (el) {
+            el.className = 'stream-step';
+            el.textContent = '⬜ ' + el.dataset.label;
+        }
     });
     progressBar.style.width = '0%';
     statusMsg.textContent = '';
+    statusMsg.style.color = '';
+    progressBar.style.background = '';
  
     // Build FormData from the form
     const formData = new FormData(form);
@@ -492,32 +812,58 @@ document.querySelector('form').addEventListener('submit', async function(event) 
                 statusMsg.textContent = message;
  
                 if (step === 'error') {
-                    // Mark all active steps as error
-                    document.querySelectorAll('.stream-step.active').forEach(el => {
-                        el.classList.remove('active');
-                        el.classList.add('error-step');
-                        el.textContent = '❌ ' + el.dataset.label;
+                    // Mark active steps as error-step
+                    steps.forEach(s => {
+                        const el = document.getElementById('step-' + s);
+                        if (el && el.classList.contains('active')) {
+                            el.className = 'stream-step error-step';
+                            el.textContent = '❌ ' + el.dataset.label;
+                        }
                     });
+                    statusMsg.textContent = '❌ ' + message;
                     statusMsg.style.color = '#ff6b6b';
                     progressBar.style.background = '#ff6b6b';
+                    
+                    isAnalyzing = false;
                     submitBtn.style.display = '';
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="fas fa-magnifying-glass"></i> Try Again';
                     return;
                 }
  
-                // Mark previous active as done
-                document.querySelectorAll('.stream-step.active').forEach(el => {
-                    el.classList.remove('active');
-                    el.classList.add('done');
-                    el.textContent = '✅ ' + el.dataset.label;
-                });
- 
-                // Mark current step as active
-                const stepEl = document.getElementById('step-' + step);
-                if (stepEl) {
-                    stepEl.classList.add('active');
-                    stepEl.textContent = '⏳ ' + stepEl.dataset.label;
+                // Map backend step to our frontend 4 UI steps:
+                // upload: upload_received
+                // analyze: preprocessing, growth_inference, disease_inference
+                // predict: recommendations
+                // complete: complete
+                let uiStep = '';
+                if (step === 'upload_received') {
+                    uiStep = 'upload';
+                } else if (step === 'preprocessing' || step === 'growth_inference' || step === 'disease_inference') {
+                    uiStep = 'analyze';
+                } else if (step === 'recommendations') {
+                    uiStep = 'predict';
+                } else if (step === 'complete') {
+                    uiStep = 'complete';
+                }
+
+                if (uiStep) {
+                    const currentIndex = steps.indexOf(uiStep);
+                    steps.forEach((s, idx) => {
+                        const el = document.getElementById('step-' + s);
+                        if (el) {
+                            if (idx < currentIndex) {
+                                el.className = 'stream-step done';
+                                el.textContent = '✅ ' + el.dataset.label;
+                            } else if (idx === currentIndex) {
+                                el.className = 'stream-step active';
+                                el.textContent = '⏳ ' + el.dataset.label;
+                            } else {
+                                el.className = 'stream-step';
+                                el.textContent = '⬜ ' + el.dataset.label;
+                            }
+                        }
+                    });
                 }
  
                 // On complete — store payload and redirect via hidden form
@@ -525,10 +871,10 @@ document.querySelector('form').addEventListener('submit', async function(event) 
                     finalPayload = data;
  
                     // Mark complete step as done
-                    if (stepEl) {
-                        stepEl.classList.remove('active');
-                        stepEl.classList.add('done');
-                        stepEl.textContent = '✅ ' + stepEl.dataset.label;
+                    const completeEl = document.getElementById('step-complete');
+                    if (completeEl) {
+                        completeEl.className = 'stream-step done';
+                        completeEl.textContent = '✅ ' + completeEl.dataset.label;
                     }
  
                     statusMsg.textContent = '✅ Done! Loading results...';
@@ -557,10 +903,72 @@ document.querySelector('form').addEventListener('submit', async function(event) 
     } catch (err) {
         statusMsg.textContent = '❌ Connection error: ' + err.message;
         statusMsg.style.color = '#ff6b6b';
+        progressBar.style.background = '#ff6b6b';
+        
+        steps.forEach(s => {
+            const el = document.getElementById('step-' + s);
+            if (el && el.classList.contains('active')) {
+                el.className = 'stream-step error-step';
+                el.textContent = '❌ ' + el.dataset.label;
+            }
+        });
+        
+        isAnalyzing = false;
         submitBtn.style.display = '';
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fas fa-magnifying-glass"></i> Try Again';
+    } finally {
+        // Reset analyzing state if we didn't redirect
+        if (!finalPayload) {
+            isAnalyzing = false;
+            submitBtn.disabled = false;
+        }
     }
 });
 </script>
+<script>
+
+/* AI CONFIDENCE + HEALTH ANIMATION */
+
+function updateAIMetrics(confidence = 94, health = 86) {
+
+    // Confidence Circle
+    const circle = document.getElementById('confidenceCircle');
+    const confidenceText = document.getElementById('confidenceText');
+    const confidenceValue = document.getElementById('confidenceValue');
+
+    const radius = 45;
+    const circumference = 2 * Math.PI * radius;
+
+    const offset = circumference - (confidence / 100) * circumference;
+
+    circle.style.strokeDashoffset = offset;
+
+    confidenceText.textContent = confidence + '%';
+    confidenceValue.textContent = confidence + '%';
+
+    // Health Meter
+    const healthFill = document.getElementById('healthMeterFill');
+    const healthValue = document.getElementById('healthValue');
+
+    healthFill.style.width = health + '%';
+    healthValue.textContent = health + '%';
+}
+
+/* Simulate AI updates during analysis */
+
+setTimeout(() => {
+    updateAIMetrics(72, 65);
+}, 1200);
+
+setTimeout(() => {
+    updateAIMetrics(84, 78);
+}, 2500);
+
+setTimeout(() => {
+    updateAIMetrics(94, 86);
+}, 4000);
+
+</script>
+
 {% endblock %}

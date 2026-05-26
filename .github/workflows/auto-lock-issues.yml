@@ -5,7 +5,9 @@ on:
     - cron: "0 */12 * * *"   # Runs every 12 hours
   workflow_dispatch:         
 
-permissions:
+permissions: 
+  contents: write 
+  pull-requests: write 
   issues: write
 
 jobs:

@@ -5,10 +5,34 @@ Optionally supports OpenWeatherMap if OPENWEATHER_API_KEY is set in .env
 """
 
 import requests
+from requests.exceptions import (
+    Timeout,
+    ConnectionError,
+    HTTPError,
+    RequestException,
+    JSONDecodeError,
+)
 import logging
 from typing import Optional
 
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
 logger = logging.getLogger(__name__)
+
+# Retry strategy for temporary API/network failures
+retry_strategy = Retry(
+    total=3,
+    backoff_factor=1,
+    status_forcelist=[429, 500, 502, 503, 504],
+    allowed_methods=["GET"],
+)
+
+adapter = HTTPAdapter(max_retries=retry_strategy)
+
+session = requests.Session()
+session.mount("https://", adapter)
+session.mount("http://", adapter)
 
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 OPENWEATHER_URL = "https://api.openweathermap.org/data/2.5/weather"
@@ -18,24 +42,54 @@ GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
 def geocode_city(city: str) -> Optional[dict]:
     """Convert a city name to lat/lon using Open-Meteo's free geocoding API."""
     try:
-        resp = requests.get(
+        resp = session.get(
             GEOCODING_URL,
-            params={"name": city, "count": 1, "language": "en", "format": "json"},
+            params={
+                "name": city,
+                "count": 1,
+                "language": "en",
+                "format": "json",
+            },
             timeout=5,
         )
+
         resp.raise_for_status()
+
         data = resp.json()
+
+        if not isinstance(data, dict):
+            logger.error("Invalid geocoding API response format")
+            return None
+
         results = data.get("results", [])
+
         if results:
             r = results[0]
+
             return {
                 "lat": r["latitude"],
                 "lon": r["longitude"],
                 "name": r.get("name", city),
                 "country": r.get("country", ""),
             }
-    except Exception as e:
-        logger.warning(f"Geocoding failed for '{city}': {e}")
+
+        logger.warning(f"No geocoding results found for '{city}'")
+
+    except Timeout:
+        logger.error(f"Geocoding request timed out for '{city}'")
+
+    except ConnectionError:
+        logger.error(f"Connection error during geocoding for '{city}'")
+
+    except HTTPError as e:
+        logger.error(f"HTTP error during geocoding for '{city}': {e}")
+
+    except JSONDecodeError:
+        logger.error(f"Invalid JSON received from geocoding API for '{city}'")
+
+    except RequestException as e:
+        logger.error(f"Request failure during geocoding for '{city}': {e}")
+
     return None
 
 
@@ -59,10 +113,16 @@ def get_weather_open_meteo(lat: float, lon: float) -> Optional[dict]:
             ],
             "timezone": "auto",
         }
-        resp = requests.get(OPEN_METEO_URL, params=params, timeout=7)
+        resp = session.get(OPEN_METEO_URL, params=params, timeout=7)
         resp.raise_for_status()
         data = resp.json()
-        current = data.get("current", {})
+        if not isinstance(data, dict):
+            logger.error("Malformed Open-Meteo API response")
+            return None
+        current = data.get("current")
+        if not isinstance(current, dict):
+            logger.error("Missing 'current' weather data in Open-Meteo response")
+            return None
 
         return {
             "source": "open-meteo",
@@ -78,9 +138,22 @@ def get_weather_open_meteo(lat: float, lon: float) -> Optional[dict]:
             "description": _wmo_description(current.get("weather_code")),
             "icon": _wmo_icon(current.get("weather_code")),
         }
-    except Exception as e:
-        logger.warning(f"Open-Meteo fetch failed: {e}")
-        return None
+    except Timeout:
+        logger.error("Open-Meteo request timed out")
+
+    except ConnectionError:
+        logger.error("Connection error while fetching Open-Meteo weather data")
+
+    except HTTPError as e:
+        logger.error(f"Open-Meteo HTTP error: {e}")
+
+    except JSONDecodeError:
+        logger.error("Invalid JSON received from Open-Meteo API")
+
+    except RequestException as e:
+        logger.error(f"Open-Meteo request failed: {e}")
+
+    return None
 
 
 def get_weather_openweathermap(lat: float, lon: float, api_key: str) -> Optional[dict]:
@@ -95,7 +168,8 @@ def get_weather_openweathermap(lat: float, lon: float, api_key: str) -> Optional
             "appid": api_key,
             "units": "metric",
         }
-        resp = requests.get(OPENWEATHER_URL, params=params, timeout=7)
+        # Reuse shared session so OpenWeatherMap calls also benefit from retry policy.
+        resp = session.get(OPENWEATHER_URL, params=params, timeout=7)
         resp.raise_for_status()
         data = resp.json()
         main = data.get("main", {})
@@ -115,9 +189,22 @@ def get_weather_openweathermap(lat: float, lon: float, api_key: str) -> Optional
             "description": weather.get("description", "").title(),
             "icon": weather.get("icon"),
         }
-    except Exception as e:
-        logger.warning(f"OpenWeatherMap fetch failed: {e}")
-        return None
+    except Timeout:
+        logger.error("OpenWeatherMap request timed out")
+        
+    except ConnectionError:
+        logger.error("Connection error while fetching OpenWeatherMap data")
+
+    except HTTPError as e:
+        logger.error(f"OpenWeatherMap HTTP error: {e}")
+
+    except JSONDecodeError:
+        logger.error("Invalid JSON received from OpenWeatherMap API")
+
+    except RequestException as e:
+        logger.error(f"OpenWeatherMap request failed: {e}")
+
+    return None
 
 
 def get_weather(lat: float, lon: float, owm_api_key: str = None) -> Optional[dict]:

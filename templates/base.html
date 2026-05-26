@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agri-Vision</title>
     <script>
         (function() {
@@ -51,6 +52,39 @@
             </ul>
         </div>
     </nav>
+    <header>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px;">
+            <h1 style="margin:0;">Agri-Vision</h1>
+            <button id="hamburger" aria-label="Toggle menu" style="display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:4px;">
+                <span style="display:block; width:25px; height:3px; background:currentColor; border-radius:3px;"></span>
+                <span style="display:block; width:25px; height:3px; background:currentColor; border-radius:3px;"></span>
+                <span style="display:block; width:25px; height:3px; background:currentColor; border-radius:3px;"></span>
+            </button>
+        </div>
+        <nav id="main-nav" style="display:flex; flex-wrap:wrap; gap:12px; padding:0 16px 12px;">
+            <a href="/">Home</a>
+            <a href="/analyze">Analyze</a>
+            <a href="/comparison">Field Comparison</a>
+            <a href="/demo">Demo</a>
+            <a href="/tutorials">Tutorials</a>
+            <a href="/stories">Stories</a>
+        </nav>
+        <hr/>
+    </header>
+
+    <style>
+        @media (max-width: 768px) {
+            #hamburger { display: flex !important; }
+            #main-nav { display: none; flex-direction: column; }
+            #main-nav.open { display: flex; }
+        }
+    </style>
+
+    <script>
+        document.getElementById('hamburger').addEventListener('click', function() {
+            document.getElementById('main-nav').classList.toggle('open');
+        });
+    </script>
     <main>
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}

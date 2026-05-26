@@ -46,6 +46,9 @@ class MockResNetModel:
         logits[0, 5] = 10.0
         return logits
 
+    def eval(self):
+        return self
+
 
 class MockYOLOBox:
     def __init__(self, class_id, confidence, xyxy):
@@ -80,6 +83,8 @@ def test_preprocess_image_for_resnet():
 
 
 def test_infer_disease_fallback(monkeypatch):
+    monkeypatch.setattr(app.model_manager, "resnet_model", None)
+    monkeypatch.setattr(app.model_manager, "loaded", True)
     monkeypatch.setattr(app, "resnet_model", None)
     dummy_img = np.zeros((100, 100, 3), dtype=np.uint8)
     res = app.infer_disease(dummy_img)
@@ -90,6 +95,8 @@ def test_infer_disease_fallback(monkeypatch):
 
 
 def test_infer_disease_active(monkeypatch):
+    monkeypatch.setattr(app.model_manager, "resnet_model", MockResNetModel())
+    monkeypatch.setattr(app.model_manager, "loaded", True)
     monkeypatch.setattr(app, "resnet_model", MockResNetModel())
     dummy_img = np.zeros((100, 100, 3), dtype=np.uint8)
     res = app.infer_disease(dummy_img)
@@ -99,7 +106,8 @@ def test_infer_disease_active(monkeypatch):
 
 
 def test_infer_growth_stage_fallback(monkeypatch):
-    monkeypatch.setattr(app, "yolo_model", None)
+    monkeypatch.setattr(app.model_manager, "yolo_model", None)
+    monkeypatch.setattr(app.model_manager, "loaded", True)
     dummy_img = np.zeros((100, 100, 3), dtype=np.uint8)
     res = app.infer_growth_stage(dummy_img)
     assert res["main_class"] is None
@@ -108,7 +116,8 @@ def test_infer_growth_stage_fallback(monkeypatch):
 
 
 def test_analyze_image_without_growth_detection(monkeypatch):
-    monkeypatch.setattr(app, "yolo_model", None)
+    monkeypatch.setattr(app.model_manager, "yolo_model", None)
+    monkeypatch.setattr(app.model_manager, "loaded", True)
     dummy_img = np.zeros((100, 100, 3), dtype=np.uint8)
     result = app.analyze_image(dummy_img)
     assert "disease" in result
@@ -121,7 +130,8 @@ def test_analyze_image_without_growth_detection(monkeypatch):
 
 
 def test_infer_growth_stage_active(monkeypatch):
-    monkeypatch.setattr(app, "yolo_model", MockYOLOModel())
+    monkeypatch.setattr(app.model_manager, "yolo_model", MockYOLOModel())
+    monkeypatch.setattr(app.model_manager, "loaded", True)
     dummy_img = np.zeros((100, 100, 3), dtype=np.uint8)
     res = app.infer_growth_stage(dummy_img)
     assert res["main_class"] == "Matured Cotton Boll"
@@ -139,6 +149,7 @@ def test_generate_recommendations():
         "confidence": 0.9,
         "all_confidences": {},
         "health_score": 45.0,
+        "is_uncertain": True,
         "raw": [],
     }
     growth_res = {
@@ -151,7 +162,7 @@ def test_generate_recommendations():
     recs = app.generate_recommendations(disease_res, growth_res)
     assert isinstance(recs, list)
     assert len(recs) > 0
-    assert any("Consult an agricultural expert" in r for r in recs)
+    assert any("consult an agricultural expert" in r.lower() for r in recs)
     assert any("insecticides" in r for r in recs or "Aphids" in r)
     assert any("blossom" in r.lower() for r in recs)
 
@@ -184,8 +195,9 @@ def test_set_language_redirect(client):
 
 
 def test_health_check_endpoint(client, monkeypatch):
-    monkeypatch.setattr(app, "resnet_model", MockResNetModel())
-    monkeypatch.setattr(app, "yolo_model", MockYOLOModel())
+    monkeypatch.setattr(app.model_manager, "resnet_model", MockResNetModel())
+    monkeypatch.setattr(app.model_manager, "yolo_model", MockYOLOModel())
+    monkeypatch.setattr(app.model_manager, "loaded", True)
     resp = client.get("/health")
     assert resp.status_code == 200
     data = json.loads(resp.data)
@@ -194,12 +206,13 @@ def test_health_check_endpoint(client, monkeypatch):
 
 
 def test_health_check_endpoint_fallback(client, monkeypatch):
-    monkeypatch.setattr(app, "resnet_model", None)
-    monkeypatch.setattr(app, "yolo_model", None)
+    monkeypatch.setattr(app.model_manager, "resnet_model", None)
+    monkeypatch.setattr(app.model_manager, "yolo_model", None)
+    monkeypatch.setattr(app.model_manager, "loaded", True)
     resp = client.get("/health")
-    assert resp.status_code == 200
+    assert resp.status_code == 503
     data = json.loads(resp.data)
-    assert data["status"] == "healthy"
+    assert data["status"] == "degraded"
     assert data["model_loaded"] is False
 
 
@@ -328,6 +341,26 @@ def test_post_comparison_invalid_crop_image(client, monkeypatch):
     )
 
 
+def test_post_comparison_duplicate_image(client):
+    # Create the same image twice
+    image_content = io.BytesIO()
+    Image.new("RGB", (100, 100), color="blue").save(image_content, format="PNG")
+    
+    # We need two separate BytesIO objects with the same content for the request
+    image_one = io.BytesIO(image_content.getvalue())
+    image_two = io.BytesIO(image_content.getvalue())
+
+    data = {
+        "last_week_image": (image_one, "field_1.png"),
+        "current_week_image": (image_two, "field_2.png"),
+    }
+    
+    resp = client.post("/comparison", data=data, content_type="multipart/form-data")
+    assert resp.status_code == 200
+    assert b"Duplicate field images detected" in resp.data
+    assert b"Please upload two different images" in resp.data
+
+
 def test_post_comparison_fallback_when_both_images_no_growth(client, monkeypatch):
     def mock_analyze_image(_image):
         return {
@@ -353,7 +386,8 @@ def test_post_comparison_fallback_when_both_images_no_growth(client, monkeypatch
         }
 
     monkeypatch.setattr(app, "analyze_image", mock_analyze_image)
-    monkeypatch.setattr(app, "yolo_model", object())
+    monkeypatch.setattr(app.model_manager, "yolo_model", object())
+    monkeypatch.setattr(app.model_manager, "loaded", True)
 
     image_one = io.BytesIO()
     Image.new("RGB", (80, 80), color="green").save(image_one, format="PNG")
@@ -534,4 +568,46 @@ def test_gradcam_class_initialization():
     res = gradcam(input_tensor, target_class_idx=2, original_image_rgb=orig_img)
     assert res is not None
     assert res.shape == (224, 224, 3)
+
+
+def test_api_chat_test(client):
+    resp = client.get("/api/chat_test")
+    assert resp.status_code == 200
+    data = json.loads(resp.data)
+    assert data == {"status": "ok"}
+
+
+def test_api_chat_empty_message(client):
+    resp = client.post("/api/chat", json={})
+    assert resp.status_code == 400
+    data = json.loads(resp.data)
+    assert "reply" in data
+    assert "didn't receive a message" in data["reply"]
+
+
+def test_api_chat_keyword_matching(client):
+    # Test "hello"
+    resp = client.post("/api/chat", json={"message": "Hello!"})
+    assert resp.status_code == 200
+    data = json.loads(resp.data)
+    assert "Hello there!" in data["reply"] or "Hi!" in data["reply"]
+
+    # Test "disease"
+    resp = client.post("/api/chat", json={"message": "Spots on crop leaves"})
+    assert resp.status_code == 200
+    data = json.loads(resp.data)
+    assert "Bacterial Blight" in data["reply"] or "Target Spot" in data["reply"]
+
+    # Test "yield"
+    resp = client.post("/api/chat", json={"message": "how to improve yield"})
+    assert resp.status_code == 200
+    data = json.loads(resp.data)
+    assert "health score" in data["reply"] or "growth stage" in data["reply"]
+
+
+def test_api_chat_fallback_response(client):
+    resp = client.post("/api/chat", json={"message": "unknown query message"})
+    assert resp.status_code == 200
+    data = json.loads(resp.data)
+    assert "Agri-Vision AI assistant" in data["reply"]
 

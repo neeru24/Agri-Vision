@@ -79,7 +79,7 @@ Agri-Vision uses deep learning and computer vision techniques to:
 
 ## ✨ Features
 
-- 🌿 **Growth Phase Detection** (4 stages for cotton, 🍅 Tomato coming soon)
+- 🌿 **Growth Phase Detection** (Supported for cotton and 🍅 Tomato)
 - 💚 **Health Assessment** (disease & damage detection)
 - 🤖 **AI-Powered Analysis** using deep learning
 - 🌐 **Web Interface** (Flask-based)
@@ -117,7 +117,7 @@ https://universe.roboflow.com/p-project-ebvkg/cotton-boll-growth-detection/datas
 
 ### Crop Disease Classification Dataset (for cotton crop)  
 
-https://universe.roboflow.com/deep-learning-nygzt/cotton-crop-dieases/browse?queryText=&pageSize=50&startingIndex=0&browseQuery=true
+https://universe.roboflow.com/deep-learning-nygzt/tomato-crop-diseases
 
 ## Growth Phases Detected
 
@@ -151,8 +151,7 @@ https://www.kaggle.com/datasets/arjunsudheer326/tomato-plant-stages-dataset
 
 ### Crop Disease Classification Dataset (for tomato crop)  
 
-https://universe.roboflow.com/deep-learning-nygzt/cotton-crop-dieases/browse?queryText=&pageSize=50&startingIndex=0&browseQuery=true
-
+https://universe.roboflow.com/deep-learning-nygzt/tomato-crop-diseases
 ## Growth Phases Detected
 
 - Early Vegetative
@@ -173,8 +172,24 @@ https://universe.roboflow.com/deep-learning-nygzt/cotton-crop-dieases/browse?que
 - Yellow leaf curl virus
 
 ---
-# 🤖 Model Information
+## For Potato Crop
+The datasets used for training the potato disease classification model were taken from kaggle
+
+## Crop disease dataset (for potato)
+https://www.kaggle.com/datasets/faysalmiah1721758/potato-dataset
+
+## Health Issues Identified
+- Early Blight
+- Late Blight
+- Healthy Leaf
+
+## setup 
+Download the dataset from the given URL and make sure to split the it into training data, testing data and validation data.
 ---
+
+---
+# 🤖 Model Information
+<!-- --- -->
 ## For cotton crop
 ## Growth Stage Prediction Model
 Model Used - YOLOv8   
@@ -307,8 +322,7 @@ Using Docker is the easiest way to run Agri-Vision as it avoids system dependenc
 3. Build and start the container:
    ```bash
    docker-compose up --build
-   
-```
+   ```
 4. Access the web interface at `http://localhost:5000`.
 
 ---
@@ -450,7 +464,7 @@ curl -X POST -F "file=@cotton_image.jpg" http://localhost:5000/api/analyze
 
 - 📱 Mobile application support  
 - 🎥 Real-time video analysis  
-- 🌾 Multi-crop support (🍅 Tomato crop analysis - In Progress)
+- 🌾 Multi-crop support (Cotton, Tomato, and Potato fully integrated)
 - ☁️ Weather data integration  
 - 📊 Yield prediction system  
 - 🧠 Improved AI models
@@ -500,7 +514,7 @@ Special thanks to:
 
 <div align="center">
 
-## ❤️ Made with Passion by neeru24
+## ❤️ Made with Passion by [neeru24](https://github.com/neeru24)
 
 ⭐ If you found this project helpful, consider giving it a star. ⭐
 

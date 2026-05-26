@@ -1,0 +1,133 @@
+{% extends "index.html" %}
+
+{% block content %}
+
+<section class="main-content">
+
+    <div class="container">
+
+        <h1 class="results-title">
+            Crop Analysis History
+        </h1>
+
+        <div
+            class="history-container"
+            id="historyContainer">
+
+        </div>
+
+    </div>
+
+</section>
+
+<script>
+
+const history =
+    JSON.parse(localStorage.getItem("cropHistory")) || [];
+
+const container =
+    document.getElementById("historyContainer");
+
+if(history.length === 0){
+    const emptyMsg = document.createElement("p");
+    emptyMsg.textContent = "No scan history found.";
+    container.appendChild(emptyMsg);
+} else {
+    history.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "history-card";
+
+        const img = document.createElement("img");
+        const imageSrc = String(item.image || "");
+        if (imageSrc.startsWith("data:") || imageSrc.startsWith("http:") || imageSrc.startsWith("https:")) {
+            img.src = imageSrc;
+        } else {
+            img.src = "";
+        }
+        img.alt = "Crop Image";
+        card.appendChild(img);
+
+        const h2 = document.createElement("h2");
+        h2.textContent = item.disease || "Unknown";
+        card.appendChild(h2);
+
+        const pConfidence = document.createElement("p");
+        const bConfidence = document.createElement("b");
+        bConfidence.textContent = "Confidence: ";
+        pConfidence.appendChild(bConfidence);
+        pConfidence.appendChild(document.createTextNode(item.confidence || ""));
+        card.appendChild(pConfidence);
+
+        const pTreatment = document.createElement("p");
+        const bTreatment = document.createElement("b");
+        bTreatment.textContent = "Treatment: ";
+        pTreatment.appendChild(bTreatment);
+        pTreatment.appendChild(document.createTextNode(item.treatment || ""));
+        card.appendChild(pTreatment);
+
+        const pDate = document.createElement("p");
+        const bDate = document.createElement("b");
+        bDate.textContent = "Date: ";
+        pDate.appendChild(bDate);
+        pDate.appendChild(document.createTextNode(item.date || ""));
+        card.appendChild(pDate);
+
+        container.appendChild(card);
+    });
+}
+
+</script>
+
+<style>
+.main-content{
+
+    min-height:75vh;
+}
+.history-container{
+
+    display:grid;
+
+    grid-template-columns:
+    repeat(auto-fit,minmax(320px,1fr));
+
+    gap:20px;
+
+    margin-top:2rem;
+}
+
+.history-card{
+
+    background:rgba(255,255,255,0.08);
+
+    backdrop-filter:blur(10px);
+
+    border:1px solid rgba(255,255,255,0.1);
+
+    border-radius:20px;
+
+    padding:20px;
+
+    transition:0.3s;
+}
+
+.history-card:hover{
+
+    transform:translateY(-5px);
+}
+
+.history-card img{
+
+    width:100%;
+
+    height:220px;
+
+    object-fit:cover;
+
+    border-radius:14px;
+
+    margin-bottom:1rem;
+}
+
+</style>
+
+{% endblock %}

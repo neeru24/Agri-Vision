@@ -3,7 +3,11 @@ name: Reopen Issues on PR Revert
 on:
   pull_request:
     types: [closed]
-
+    
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
 jobs:
   reopen_issue:
     if: github.event.pull_request.merged == true

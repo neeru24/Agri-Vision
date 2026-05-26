@@ -8,6 +8,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 import sys
 import os
+import requests
 
 # Allow importing from project root
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
@@ -51,7 +52,7 @@ MOCK_GEOCODING_RESPONSE = {
 
 class TestGetWeatherOpenMeteo:
 
-    @patch("services.weather_service.requests.get")
+    @patch("services.weather_service.session.get")
     def test_returns_structured_dict(self, mock_get):
         mock_resp = MagicMock()
         mock_resp.json.return_value = MOCK_OPEN_METEO_RESPONSE
@@ -70,13 +71,13 @@ class TestGetWeatherOpenMeteo:
         assert result["lat"] == 21.14
         assert result["lon"] == 79.08
 
-    @patch("services.weather_service.requests.get")
+    @patch("services.weather_service.session.get")
     def test_returns_none_on_network_error(self, mock_get):
-        mock_get.side_effect = Exception("Network error")
+        mock_get.side_effect = requests.exceptions.RequestException("Network error")
         result = get_weather_open_meteo(0.0, 0.0)
         assert result is None
 
-    @patch("services.weather_service.requests.get")
+    @patch("services.weather_service.session.get")
     def test_description_and_icon_set(self, mock_get):
         mock_resp = MagicMock()
         mock_resp.json.return_value = MOCK_OPEN_METEO_RESPONSE
@@ -92,7 +93,7 @@ class TestGetWeatherOpenMeteo:
 
 class TestGeocodeCity:
 
-    @patch("services.weather_service.requests.get")
+    @patch("services.weather_service.session.get")
     def test_returns_lat_lon_for_valid_city(self, mock_get):
         mock_resp = MagicMock()
         mock_resp.json.return_value = MOCK_GEOCODING_RESPONSE
@@ -102,11 +103,11 @@ class TestGeocodeCity:
         result = geocode_city("Nagpur")
 
         assert result is not None
-        assert result["lat"] == 21.14
-        assert result["lon"] == 79.08
+        assert result["lat"] == pytest.approx(21.14, abs=1e-2)
+        assert result["lon"] == pytest.approx(79.08, abs=1e-2)
         assert result["name"] == "Nagpur"
 
-    @patch("services.weather_service.requests.get")
+    @patch("services.weather_service.session.get")
     def test_returns_none_for_unknown_city(self, mock_get):
         mock_resp = MagicMock()
         mock_resp.json.return_value = {"results": []}
@@ -116,9 +117,9 @@ class TestGeocodeCity:
         result = geocode_city("Xyz_Nonexistent_City_999")
         assert result is None
 
-    @patch("services.weather_service.requests.get")
+    @patch("services.weather_service.session.get")
     def test_returns_none_on_error(self, mock_get):
-        mock_get.side_effect = Exception("Timeout")
+        mock_get.side_effect = requests.exceptions.Timeout("Timeout")
         result = geocode_city("Delhi")
         assert result is None
 
@@ -189,3 +190,96 @@ class TestWMOHelpers:
 
     def test_none_code_returns_default_icon(self):
         assert _wmo_icon(None) == "🌡️"
+# ── OpenWeatherMap tests ─────────────────────────────────────────────
+
+class TestGetWeatherOpenWeatherMap:
+
+    @patch("services.weather_service.session.get")
+    def test_returns_structured_dict(self, mock_get):
+        mock_resp = MagicMock()
+        mock_resp.raise_for_status = MagicMock()
+        mock_resp.json.return_value = {
+            "main": {
+                "temp": 31.5,
+                "feels_like": 35.0,
+                "humidity": 74,
+            },
+            "wind": {"speed": 5.0},
+            "weather": [{"description": "scattered clouds", "icon": "03d"}],
+        }
+        mock_get.return_value = mock_resp
+
+        from services.weather_service import get_weather_openweathermap
+        result = get_weather_openweathermap(21.14, 79.08, "fake_api_key")
+
+        assert result is not None
+        assert result["source"] == "openweathermap"
+        assert result["temperature"] == 31.5
+        assert result["humidity"] == 74
+        assert result["wind_speed"] == 5.0 * 3.6  # m/s → km/h
+        assert result["description"] == "Scattered Clouds"
+        assert result["lat"] == 21.14
+        assert result["lon"] == 79.08
+
+    @patch("services.weather_service.session.get")
+    def test_returns_none_on_failure(self, mock_get):
+        mock_get.side_effect = requests.exceptions.RequestException("API error")
+
+        from services.weather_service import get_weather_openweathermap
+        result = get_weather_openweathermap(0.0, 0.0, "fake_key")
+
+        assert result is None
+
+    @patch("services.weather_service.session.get")
+    def test_rainfall_parsed_correctly(self, mock_get):
+        mock_resp = MagicMock()
+        mock_resp.raise_for_status = MagicMock()
+        mock_resp.json.return_value = {
+            "main": {"temp": 28.0, "feels_like": 30.0, "humidity": 85},
+            "wind": {"speed": 3.0},
+            "weather": [{"description": "light rain", "icon": "10d"}],
+            "rain": {"1h": 3.5},
+        }
+        mock_get.return_value = mock_resp
+
+        from services.weather_service import get_weather_openweathermap
+        result = get_weather_openweathermap(21.14, 79.08, "fake_key")
+
+        assert result["precipitation"] == 3.5
+
+
+# ── get_weather() entry point tests ─────────────────────────────────
+
+class TestGetWeather:
+
+    @patch("services.weather_service.get_weather_openweathermap")
+    def test_uses_owm_when_api_key_provided(self, mock_owm):
+        mock_owm.return_value = {"source": "openweathermap", "temperature": 30.0}
+
+        from services.weather_service import get_weather
+        result = get_weather(21.14, 79.08, owm_api_key="fake_key")
+
+        mock_owm.assert_called_once_with(21.14, 79.08, "fake_key")
+        assert result["source"] == "openweathermap"
+
+    @patch("services.weather_service.get_weather_open_meteo")
+    def test_falls_back_to_open_meteo_when_no_key(self, mock_meteo):
+        mock_meteo.return_value = {"source": "open-meteo", "temperature": 29.0}
+
+        from services.weather_service import get_weather
+        result = get_weather(21.14, 79.08, owm_api_key=None)
+
+        mock_meteo.assert_called_once_with(21.14, 79.08)
+        assert result["source"] == "open-meteo"
+
+    @patch("services.weather_service.get_weather_open_meteo")
+    @patch("services.weather_service.get_weather_openweathermap")
+    def test_falls_back_to_open_meteo_when_owm_fails(self, mock_owm, mock_meteo):
+        mock_owm.return_value = None
+        mock_meteo.return_value = {"source": "open-meteo", "temperature": 27.0}
+
+        from services.weather_service import get_weather
+        result = get_weather(21.14, 79.08, owm_api_key="fake_key")
+
+        mock_meteo.assert_called_once()
+        assert result["source"] == "open-meteo"

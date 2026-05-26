@@ -4,8 +4,10 @@ on:
   pull_request_target:
     types: [closed]
 
-permissions:
-  pull-requests: write
+permissions: 
+  contents: write 
+  pull-requests: write 
+  issues: write
 
 jobs:
   assign-author:

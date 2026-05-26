@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Results - Agri-Vision</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .results-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .job-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .job-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .info-card {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .info-label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .progress-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .progress-bar {
+            height: 40px;
+            background: #e5e7eb;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+        }
+        
+        .progress-stats {
+            display: flex;
+            justify-content: space-around;
+            color: #666;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .result-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .result-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .result-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-complete {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .status-processing {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+        
+        .status-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        .status-error {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .result-body {
+            padding: 20px;
+        }
+        
+        .result-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+        }
+        
+        .result-detail {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .result-detail:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .detail-value {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .confidence-high {
+            color: #16a34a;
+        }
+        
+        .confidence-medium {
+            color: #d97706;
+        }
+        
+        .confidence-low {
+            color: #dc2626;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #333;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .empty-state i {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .refresh-btn:hover {
+            transform: rotate(180deg) scale(1.1);
+        }
+        
+        .refresh-btn.spinning {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">
+                <i class="fas fa-leaf"></i>
+                <span>Agri-Vision</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="/">Home</a></li>
+                <li><a href="/analyze">Analyze</a></li>
+                <li><a href="/batch" class="active">Batch Analysis</a></li>
+                <li><a href="/model-admin">Admin</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="results-container">
+        <div class="job-header">
+            <h1><i class="fas fa-clipboard-list"></i> Batch Analysis Results</h1>
+            <p style="opacity: 0.9; margin-top: 10px;">Job ID: {{ job_id }}</p>
+            
+            <div class="job-info">
+                <div class="info-card">
+                    <div class="info-label">Total Images</div>
+                    <div class="info-value" id="totalImages">-</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Completed</div>
+                    <div class="info-value" id="completedImages">-</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Failed</div>
+                    <div class="info-value" id="failedImages">-</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-label">Status</div>
+                    <div class="info-value" id="jobStatus">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="progress-section">
+            <h3 style="margin-bottom: 20px;"><i class="fas fa-tasks"></i> Progress</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%">0%</div>
+            </div>
+            <div class="progress-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="statComplete">0</div>
+                    <div>Complete</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="statProcessing">0</div>
+                    <div>Processing</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="statPending">0</div>
+                    <div>Pending</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="statFailed">0</div>
+                    <div>Failed</div>
+                </div>
+            </div>
+        </div>
+        
+        <h3 style="margin-bottom: 20px;"><i class="fas fa-images"></i> Individual Results</h3>
+        <div class="results-grid" id="resultsGrid">
+            <div class="empty-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading results...</p>
+            </div>
+        </div>
+        
+        <div class="action-buttons" id="actionButtons" style="display: none;">
+            <button class="btn btn-primary" onclick="exportCSV()">
+                <i class="fas fa-file-csv"></i> Export CSV
+            </button>
+            <button class="btn btn-secondary" onclick="window.location.href='/batch'">
+                <i class="fas fa-plus"></i> New Batch
+            </button>
+        </div>
+    </div>
+    
+    <button class="refresh-btn" id="refreshBtn" onclick="loadResults()">
+        <i class="fas fa-sync-alt"></i>
+    </button>
+
+    <script>
+        const jobId = '{{ job_id }}';
+        let refreshInterval;
+        
+        function loadResults() {
+            const refreshBtn = document.getElementById('refreshBtn');
+            refreshBtn.classList.add('spinning');
+            
+            Promise.all([
+                fetch(`/api/batch_status/${jobId}`).then(r => r.json()),
+                fetch(`/api/batch_results/${jobId}`).then(r => r.json())
+            ])
+            .then(([status, results]) => {
+                updateStatus(status);
+                updateResults(results);
+                
+                if (status.status === 'completed') {
+                    clearInterval(refreshInterval);
+                    document.getElementById('actionButtons').style.display = 'flex';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading results:', error);
+            })
+            .finally(() => {
+                refreshBtn.classList.remove('spinning');
+            });
+        }
+        
+        function updateStatus(status) {
+            document.getElementById('totalImages').textContent = status.total_images;
+            document.getElementById('completedImages').textContent = status.completed_images;
+            document.getElementById('failedImages').textContent = status.failed_images;
+            document.getElementById('jobStatus').textContent = status.status.charAt(0).toUpperCase() + status.status.slice(1);
+            
+            const progress = status.progress || 0;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            document.getElementById('progressFill').textContent = `${progress}%`;
+        }
+        
+        function updateResults(data) {
+            const grid = document.getElementById('resultsGrid');
+            const results = data.results || [];
+            
+            let complete = 0, processing = 0, pending = 0, failed = 0;
+            
+            if (results.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Processing images...</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = results.map(result => {
+                const status = result.status;
+                if (status === 'complete') complete++;
+                else if (status === 'processing') processing++;
+                else if (status === 'pending') pending++;
+                else if (status === 'error') failed++;
+                
+                const statusClass = `status-${status}`;
+                const resultsData = result.results || {};
+                
+                return `
+                    <div class="result-card">
+                        <div class="result-header">
+                            <span style="font-weight: 600;">${result.image_name}</span>
+                            <span class="result-status ${statusClass}">${status.toUpperCase()}</span>
+                        </div>
+                        <div class="result-body">
+                            <div class="result-image">
+                                <i class="fas fa-image" style="font-size: 40px;"></i>
+                            </div>
+                            ${status === 'complete' ? `
+                                <div class="result-detail">
+                                    <span class="detail-label">Disease</span>
+                                    <span class="detail-value">${resultsData.disease?.predicted_class || 'N/A'}</span>
+                                </div>
+                                <div class="result-detail">
+                                    <span class="detail-label">Confidence</span>
+                                    <span class="detail-value ${getConfidenceClass(resultsData.disease?.confidence)}">
+                                        ${(resultsData.disease?.confidence * 100 || 0).toFixed(1)}%
+                                    </span>
+                                </div>
+                                <div class="result-detail">
+                                    <span class="detail-label">Health Score</span>
+                                    <span class="detail-value">${resultsData.disease?.health_score?.toFixed(1) || 'N/A'}%</span>
+                                </div>
+                                <div class="result-detail">
+                                    <span class="detail-label">Growth Stage</span>
+                                    <span class="detail-value">${resultsData.growth?.main_class || 'N/A'}</span>
+                                </div>
+                            ` : status === 'error' ? `
+                                <p style="color: #dc2626; text-align: center; padding: 20px;">
+                                    <i class="fas fa-exclamation-triangle"></i><br>
+                                    ${result.error_message || 'Processing failed'}
+                                </p>
+                            ` : `
+                                <p style="color: #666; text-align: center; padding: 20px;">
+                                    <i class="fas fa-spinner fa-spin"></i><br>
+                                    Processing...
+                                </p>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('statComplete').textContent = complete;
+            document.getElementById('statProcessing').textContent = processing;
+            document.getElementById('statPending').textContent = pending;
+            document.getElementById('statFailed').textContent = failed;
+        }
+        
+        function getConfidenceClass(confidence) {
+            if (!confidence) return '';
+            if (confidence >= 0.8) return 'confidence-high';
+            if (confidence >= 0.5) return 'confidence-medium';
+            return 'confidence-low';
+        }
+        
+        function exportCSV() {
+            fetch(`/api/batch_results/${jobId}`)
+                .then(r => r.json())
+                .then(data => {
+                    const results = data.results || [];
+                    let csv = 'Image Name,Status,Disease,Confidence,Health Score,Growth Stage\n';
+                    
+                    results.forEach(r => {
+                        const resultsData = r.results || {};
+                        csv += `"${r.image_name}",${r.status},"${resultsData.disease?.predicted_class || 'N/A'}",${(resultsData.disease?.confidence || 0).toFixed(3)},"${resultsData.disease?.health_score?.toFixed(1) || 'N/A'}","${resultsData.growth?.main_class || 'N/A'}"\n`;
+                    });
+                    
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `batch_results_${jobId}.csv`;
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                });
+        }
+        
+        // Initial load
+        loadResults();
+        
+        // Auto-refresh every 3 seconds
+        refreshInterval = setInterval(loadResults, 3000);
+    </script>
+</body>
+</html>
