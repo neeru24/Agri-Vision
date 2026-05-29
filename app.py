@@ -112,13 +112,30 @@ def not_found(e):
 
 # Try dynamic package loading to prevent crash on automated CI testing rigs
 try:
-    redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
+    # Get Redis configuration from environment variables
+    redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    
+    # Parse Redis URL to get host, port, and db
+    from urllib.parse import urlparse
+    parsed_url = urlparse(redis_url)
+    
+    # Extract host, port, and db from URL
+    redis_host = parsed_url.hostname or "localhost"
+    redis_port = parsed_url.port or 6379
+    redis_db = int(parsed_url.path.lstrip('/') or 0) if parsed_url.path else 0
+    
+    redis_client = redis.Redis(
+        host=redis_host, 
+        port=redis_port, 
+        db=redis_db, 
+        decode_responses=True
+    )
     redis_client.ping()
-    logger.info("redis connected for caching and rate limiting")
+    logger.info(f"redis connected to {redis_host}:{redis_port}/{redis_db} for caching and rate limiting")
     limiter = Limiter(
         get_remote_address,
         app=app,
-        storage_uri="redis://localhost:6379",
+        storage_uri=redis_url,
         strategy="fixed-window",
     )
 except (redis.ConnectionError, ModuleNotFoundError) as err:

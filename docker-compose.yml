@@ -12,6 +12,7 @@ services:
       - FLASK_APP=app.py
       - FLASK_ENV=production
       - SECRET_KEY=${SECRET_KEY}
+      - REDIS_URL=redis://redis:6379/0  # Use Redis service name in Docker
       - PYTHONUNBUFFERED=1
     volumes:
       # Mount for persistent uploads
@@ -20,6 +21,8 @@ services:
       - ./models:/app/models
       # Mount for results output
       - ./results:/app/results
+    depends_on:
+      - redis
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
@@ -27,6 +30,18 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - agri-vision-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: agri-vision-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
     networks:
       - agri-vision-network
 
@@ -51,3 +66,6 @@ services:
 networks:
   agri-vision-network:
     driver: bridge
+
+volumes:
+  redis_data:
