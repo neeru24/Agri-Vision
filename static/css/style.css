@@ -287,27 +287,76 @@ body {
     opacity: 0.8;
 }
 
-   /* SCROLL-TO-TOP BUTTON */
-#scrollTopBtn {
+   /* SCROLL NAVIGATOR — Floating Up/Down Buttons */
+.scroll-navigator {
     position: fixed;
     bottom: 90px;
     right: 20px;
-    width: 55px;
-    height: 55px;
-    border: none;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    color: white;
-    font-size: 1.2rem;
-    cursor: pointer;
-    display: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
     z-index: 999;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    transition: 0.3s;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
 }
 
-#scrollTopBtn:hover {
-    transform: translateY(-5px) scale(1.05);
+.scroll-navigator.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.scroll-nav-btn {
+    width: 50px;
+    height: 50px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #2E8B57;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.12);
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.scroll-nav-btn:hover {
+    transform: translateY(-3px) scale(1.08);
+    box-shadow: 0 12px 35px rgba(46, 139, 87, 0.25);
+    background: rgba(255, 255, 255, 0.85);
+}
+
+.scroll-nav-btn:active {
+    transform: translateY(-1px) scale(1.02);
+}
+
+[data-theme="dark"] .scroll-nav-btn {
+    background: rgba(22, 27, 33, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #5cd18b;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .scroll-nav-btn:hover {
+    background: rgba(22, 27, 33, 0.85);
+    box-shadow: 0 12px 35px rgba(92, 209, 139, 0.2);
+}
+
+@media (max-width: 768px) {
+    .scroll-nav-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 1rem;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+    }
 }
 
    /* NAVIGATION */

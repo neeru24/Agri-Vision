@@ -977,14 +977,6 @@ src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit
         })();
     </script>
     <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
-    <button id="scrollTopBtn">
-        <i class="fas fa-arrow-up"></i>
-    </button>
-    <script>
-        const scrollBtn = document.getElementById("scrollTopBtn");
-        window.addEventListener("scroll", () => {
-            if(window.scrollY > 300) scrollBtn.style.display = "block";
-            else scrollBtn.style.display = "none";
         if (!('ontouchstart' in window) && window.matchMedia('(pointer: fine)').matches) {
             document.addEventListener("DOMContentLoaded", () => {
                 const container = document.querySelector(".trail-container");
@@ -1062,22 +1054,14 @@ src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit
 
         <!-- Chatbot Controller -->
         <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
-        <button id="scrollTopBtn">
-            <i class="fas fa-arrow-up"></i>
-        </button>
         <script>
     // Mobile Navigation Toggle
     const navToggle = document.getElementById('nav-toggle');
     const navMenu = document.getElementById('nav-menu');
 
-    console.log('Nav toggle:', navToggle);
-    console.log('Nav menu:', navMenu);
-
     if (navToggle && navMenu) {
         navToggle.addEventListener('click', () => {
-            console.log('Toggle clicked, current classes:', navMenu.classList);
             navMenu.classList.toggle('active');
-            console.log('After toggle, classes:', navMenu.classList);
             const icon = navToggle.querySelector('i');
             if (navMenu.classList.contains('active')) {
                 icon.classList.remove('fa-bars');
@@ -1107,32 +1091,7 @@ src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit
                 icon.classList.add('fa-bars');
             }
         });
-    } else {
-        console.error('Navigation elements not found!');
     }
-
-    const scrollBtn =
-        document.getElementById("scrollTopBtn");
-
-    window.addEventListener("scroll", () => {
-
-        if(window.scrollY > 300){
-
-            scrollBtn.style.display = "block";
-
-        } else {
-
-            scrollBtn.style.display = "none";
-        }
-    });
-
-    scrollBtn.addEventListener("click", () => {
-
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-        });
-    });
 </script>
 <script src="{{ url_for('static',
 filename='js/language.js') }}"></script>

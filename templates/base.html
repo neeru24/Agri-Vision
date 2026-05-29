@@ -72,5 +72,16 @@
     <script src="https://unpkg.com/swup@4"></script>
     <script src="https://unpkg.com/@swup/progress-plugin@3"></script>
     <script src="{{ url_for('static', filename='js/page-transitions.js') }}" defer></script>
+
+    <!-- Scroll Navigator -->
+    <div class="scroll-navigator" aria-label="Scroll navigation">
+        <button class="scroll-nav-btn" data-direction="up" aria-label="Scroll to top" title="Scroll to top">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        <button class="scroll-nav-btn" data-direction="down" aria-label="Scroll to bottom" title="Scroll to bottom">
+            <i class="fas fa-arrow-down"></i>
+        </button>
+    </div>
+    <script src="{{ url_for('static', filename='js/scroll-navigator.js') }}" defer></script>
 </body>
 </html>
