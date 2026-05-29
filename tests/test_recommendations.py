@@ -35,9 +35,9 @@ def client():
 
 @pytest.fixture
 def valid_image():
-    """Generates a valid green 100x100 PNG image in-memory."""
+    """Generates a valid green 224x224 PNG image in-memory."""
     img_byte_arr = io.BytesIO()
-    Image.new("RGB", (100, 100), color="green").save(img_byte_arr, format="PNG")
+    Image.new("RGB", (224, 224), color="green").save(img_byte_arr, format="PNG")
     img_byte_arr.seek(0)
     return img_byte_arr
 
@@ -250,8 +250,9 @@ class TestAnalyzeImageIntegration:
             assert "prevention" in tr
             assert "is_fallback" in tr
 
-    def test_api_analyze_includes_treatment_recommendations(self, client, valid_image):
+    def test_api_analyze_includes_treatment_recommendations(self, client, valid_image, monkeypatch):
         """POST /api/analyze should include treatment_recommendations in response."""
+        monkeypatch.setattr(app, "safe_validate_image_quality", lambda *a: ({"passed": True, "quality_score": 100, "status": "Excellent", "warnings": [], "suggestions": [], "metrics": {}, "is_blocking": False}, False))
         data = {"file": (valid_image, "test_cotton.png")}
         resp = client.post("/api/analyze", data=data, content_type="multipart/form-data")
         assert resp.status_code == 200

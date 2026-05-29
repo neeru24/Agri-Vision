@@ -47,7 +47,7 @@ def client(app_with_db):
 @pytest.fixture
 def valid_image():
     img_byte_arr = io.BytesIO()
-    Image.new("RGB", (100, 100), color="green").save(img_byte_arr, format="PNG")
+    Image.new("RGB", (224, 224), color="green").save(img_byte_arr, format="PNG")
     img_byte_arr.seek(0)
     return img_byte_arr
 
@@ -59,7 +59,7 @@ def invalid_file():
 
 @pytest.fixture
 def oversized_file():
-    return io.BytesIO(b"0" * (11 * 1024 * 1024))  # 11MB file to test limit
+    return io.BytesIO(b"0" * (51 * 1024 * 1024))  # 51MB file to exceed MAX_CONTENT_LENGTH (50MB)
 
 
 # Mocking deep learning models for active path checks
@@ -462,8 +462,14 @@ def test_post_analyze_oversized_file(client, oversized_file):
     assert resp.status_code == 413
 
 
+def _mock_good_quality(*args, **kwargs):
+    return {"passed": True, "quality_score": 100, "status": "Excellent", "warnings": [], "suggestions": [], "metrics": {}, "is_blocking": False}, False
+
+
 # Rest API validation checks
-def test_post_api_analyze_valid(client, valid_image):
+def test_post_api_analyze_valid(client, valid_image, monkeypatch):
+    monkeypatch.setattr(app, "redis_client", None)
+    monkeypatch.setattr(app, "safe_validate_image_quality", _mock_good_quality)
     data = {"file": (valid_image, "test_cotton.png")}
     resp = client.post("/api/analyze", data=data, content_type="multipart/form-data")
     assert resp.status_code == 200
@@ -536,6 +542,7 @@ def test_post_analyze_exception(client, monkeypatch, valid_image):
         raise RuntimeError("Mock analysis error")
 
     monkeypatch.setattr(app, "analyze_image", mock_raise)
+    monkeypatch.setattr(app, "safe_validate_image_quality", _mock_good_quality)
     data = {"file": (valid_image, "test_cotton.png")}
     resp = client.post("/analyze", data=data, content_type="multipart/form-data")
     assert resp.status_code == 302
@@ -546,7 +553,9 @@ def test_post_api_analyze_exception(client, monkeypatch, valid_image):
     def mock_raise(*args, **kwargs):
         raise RuntimeError("Mock API error")
 
+    monkeypatch.setattr(app, "redis_client", None)
     monkeypatch.setattr(app, "analyze_image", mock_raise)
+    monkeypatch.setattr(app, "safe_validate_image_quality", _mock_good_quality)
     data = {"file": (valid_image, "test_cotton.png")}
     resp = client.post("/api/analyze", data=data, content_type="multipart/form-data")
     assert resp.status_code == 500

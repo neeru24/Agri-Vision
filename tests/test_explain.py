@@ -19,7 +19,7 @@ def client():
 @pytest.fixture
 def valid_image():
     img_byte_arr = io.BytesIO()
-    Image.new("RGB", (100, 100), color="green").save(img_byte_arr, format="PNG")
+    Image.new("RGB", (224, 224), color="green").save(img_byte_arr, format="PNG")
     img_byte_arr.seek(0)
     return img_byte_arr
 
@@ -43,7 +43,12 @@ def test_generate_pure_heatmap():
     assert pure_heatmap.shape == (100, 100, 3)
     assert pure_heatmap.dtype == np.uint8
 
-def test_api_explain_endpoint_valid(client, valid_image):
+def _mock_good_quality(*args, **kwargs):
+    return {"passed": True, "quality_score": 100, "status": "Excellent", "warnings": [], "suggestions": [], "metrics": {}, "is_blocking": False}, False
+
+
+def test_api_explain_endpoint_valid(client, valid_image, monkeypatch):
+    monkeypatch.setattr(app, "safe_validate_image_quality", _mock_good_quality)
     data = {"file": (valid_image, "test_cotton.png")}
     resp = client.post("/api/explain", data=data, content_type="multipart/form-data")
     

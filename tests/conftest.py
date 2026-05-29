@@ -20,8 +20,8 @@ def client(app):
 
 @pytest.fixture
 def valid_image():
-    """Generates a valid green 100x100 PNG image in-memory."""
-    img = Image.new('RGB', (100, 100), color='green')
+    """Generates a valid green 224x224 PNG image in-memory."""
+    img = Image.new('RGB', (224, 224), color='green')
     img_byte_arr = io.BytesIO()
     img.save(img_byte_arr, format='PNG')
     img_byte_arr.seek(0)
@@ -36,8 +36,7 @@ def invalid_file():
 
 @pytest.fixture
 def oversized_file():
-    """Generates a dummy file larger than 10MB to trigger MaxContentLength (MAX_CONTENT_LENGTH = 10 * 1024 * 1024)."""
-    # 11MB of dummy data
-    file_bytes = io.BytesIO(b"0" * (11 * 1024 * 1024))
+    """Generates a dummy file larger than 50MB to trigger MaxContentLength (MAX_CONTENT_LENGTH = 50 * 1024 * 1024)."""
+    file_bytes = io.BytesIO(b"0" * (51 * 1024 * 1024))
     file_bytes.seek(0)
     return file_bytes
