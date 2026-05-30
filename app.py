@@ -26,11 +26,14 @@ _flask_env = os.getenv("FLASK_ENV", "production").lower()
 _secret_key = os.getenv("SECRET_KEY")
 _GENERATED_EPHEMERAL_SECRET = False
 if not _secret_key:
-    if _flask_env in ("development", "dev", "testing") or os.getenv(
-        "AGRI_VISION_ALLOW_DEV_SECRET", "false"
-    ).lower() in ("1", "true", "t"):
+    _is_test_or_ci = (
+        _flask_env in ("development", "dev", "testing")
+        or os.getenv("AGRI_VISION_ALLOW_DEV_SECRET", "false").lower() in ("1", "true", "t")
+        or os.getenv("PYTEST_CURRENT_TEST") is not None
+        or os.getenv("CI") is not None
+    )
+    if _is_test_or_ci:
         import secrets
-
         _secret_key = secrets.token_urlsafe(64)
         _GENERATED_EPHEMERAL_SECRET = True
     else:
