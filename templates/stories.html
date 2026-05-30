@@ -59,9 +59,15 @@
         border-radius: 18px;
     }
 
-    .story-card:hover {
+    .story-card:hover,
+    .story-card:focus-visible {
         transform: translateY(-6px);
         box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .story-card:focus-visible {
+        outline: 3px solid rgba(46, 139, 87, 0.35);
+        outline-offset: 4px;
     }
 
     .modal-content {
@@ -96,14 +102,6 @@
     .dark-theme .btn-close {
         filter: invert(1);
     }
-</style>
-
-<div class="container" style="margin-top: 130px; margin-bottom: 70px;">
-
-    <!-- Header -->
-    <div class="text-center mb-5 stories-header">
-        <h1 class="fw-bold">Farmer Success Stories</h1>
-
     .yield-icon {
         width: 20px;
         height: 20px;
@@ -176,7 +174,8 @@
         -webkit-backdrop-filter: blur(16px);
     }
 
-    [data-theme="dark"] .story-card:hover {
+    [data-theme="dark"] .story-card:hover,
+    [data-theme="dark"] .story-card:focus-visible {
         box-shadow:
             0 20px 52px rgba(0,0,0,0.45),
             0 0 0 1px rgba(46,139,87,0.50),
@@ -211,7 +210,8 @@
             transform: none;
             transition: box-shadow 0.2s ease, border-color 0.2s ease;
         }
-        .story-card:hover {
+        .story-card:hover,
+        .story-card:focus-visible {
             transform: none;
         }
         .stories-eyebrow .badge-dot {
@@ -239,6 +239,8 @@
         <!-- Farmer 1 -->
         <div class="col-lg-4 col-md-6 d-flex">
             <div class="card h-100 story-card"
+                 role="button"
+                 tabindex="0"
                  data-bs-toggle="modal"
                  data-bs-target="#story1Modal">
 
@@ -287,6 +289,8 @@
         <!-- Farmer 2 -->
         <div class="col-lg-4 col-md-6 d-flex">
             <div class="card h-100 story-card"
+                 role="button"
+                 tabindex="0"
                  data-bs-toggle="modal"
                  data-bs-target="#story2Modal">
 
@@ -323,6 +327,8 @@
         <!-- Farmer 3 -->
         <div class="col-lg-4 col-md-6 d-flex">
             <div class="card h-100 story-card"
+                 role="button"
+                 tabindex="0"
                  data-bs-toggle="modal"
                  data-bs-target="#story3Modal">
 
@@ -371,6 +377,8 @@
         <!-- Farmer 4 -->
         <div class="col-lg-4 col-md-6 d-flex">
             <div class="card h-100 story-card"
+                 role="button"
+                 tabindex="0"
                  data-bs-toggle="modal"
                  data-bs-target="#story4Modal">
 
@@ -412,6 +420,8 @@
         <!-- Farmer 5 -->
         <div class="col-lg-4 col-md-6 d-flex">
             <div class="card h-100 story-card"
+                 role="button"
+                 tabindex="0"
                  data-bs-toggle="modal"
                  data-bs-target="#story5Modal">
 
@@ -453,6 +463,8 @@
         <!-- Farmer 6 -->
         <div class="col-lg-4 col-md-6 d-flex">
             <div class="card h-100 story-card"
+                 role="button"
+                 tabindex="0"
                  data-bs-toggle="modal"
                  data-bs-target="#story6Modal">
 
