@@ -1850,8 +1850,7 @@ def analyze():
                     predictor = DiseasePredictor()
                     detected_disease = results.get("disease", {}).get("predicted_class", "")
                     if detected_disease:
-                        # Disease name is automatically normalized by DiseasePredictor
-                        # via DISEASE_DISPLAY_TO_KEY mapping, so we pass it directly
+                        # DiseasePredictor uses fuzzy matching so pass names directly
                         disease_name = detected_disease
 
                         # Get weather-based risk
@@ -1875,8 +1874,9 @@ def analyze():
                             # Get current month risk
                             current_month = datetime.now().month
                             seasonal_patterns = analyzer.seasonal_patterns
-                            if disease_name in seasonal_patterns:
-                                monthly_risk = seasonal_patterns[disease_name].get(current_month, 0)
+                            seasonal_match = DiseasePredictor._fuzzy_match(disease_name, set(seasonal_patterns.keys()))
+                            if seasonal_match:
+                                monthly_risk = seasonal_patterns[seasonal_match].get(current_month, 0)
                                 forecast_data['seasonal_risk'] = {
                                     'month': current_month,
                                     'month_name': datetime(2024, current_month, 1).strftime('%B'),
