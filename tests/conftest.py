@@ -1,7 +1,11 @@
 import pytest
 import io
+import os
 from PIL import Image
 import numpy as np
+
+os.environ.setdefault("SECRET_KEY", "test-secret")
+
 from app import app as flask_app
 
 @pytest.fixture
