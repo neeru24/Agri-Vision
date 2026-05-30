@@ -1,0 +1,192 @@
+/* =========================================================
+   Agri-Vision Form Input System
+   - Unified, accessible, responsive input styling
+   - SSR-safe (CSS only)
+   - Designed to work with existing theme tokens in style.css
+   ========================================================= */
+
+:root {
+  --form-input-radius: 12px;
+  --form-input-radius-sm: 10px;
+
+  --form-input-h-compact: 40px;
+  --form-input-h-default: 44px;
+  --form-input-h-large: 52px;
+
+  --form-input-px: 0.875rem;
+  --form-input-py: 0.55rem;
+
+  --form-input-fg: var(--deep-forest);
+  --form-input-placeholder: rgba(141, 110, 99, 0.75);
+
+  --form-input-bg: rgba(255, 255, 255, 0.92);
+  --form-input-border: rgba(0, 0, 0, 0.09);
+  --form-input-border-hover: rgba(46, 139, 87, 0.35);
+
+  --form-input-focus-ring: 0 0 0 4px rgba(74, 144, 226, 0.18);
+  --form-input-focus-border: var(--ai-blue);
+
+  --form-input-disabled-bg: rgba(0, 0, 0, 0.035);
+  --form-input-disabled-fg: rgba(27, 67, 50, 0.55);
+
+  --form-input-error-border: rgba(220, 53, 69, 0.55);
+  --form-input-error-ring: 0 0 0 4px rgba(220, 53, 69, 0.15);
+
+  --form-input-success-border: rgba(46, 139, 87, 0.45);
+  --form-input-success-ring: 0 0 0 4px rgba(46, 139, 87, 0.12);
+
+  --form-input-transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+[data-theme="dark"] {
+  --form-input-placeholder: rgba(148, 163, 184, 0.75);
+  --form-input-bg: rgba(22, 27, 33, 0.75);
+  --form-input-border: rgba(255, 255, 255, 0.12);
+  --form-input-border-hover: rgba(92, 209, 139, 0.28);
+
+  --form-input-disabled-bg: rgba(255, 255, 255, 0.04);
+  --form-input-disabled-fg: rgba(224, 224, 224, 0.6);
+}
+
+/* Layout helpers */
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--deep-forest);
+}
+
+.form-hint {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+.form-error {
+  font-size: 0.84rem;
+  color: var(--error-text);
+}
+
+/* Base controls */
+.form-input,
+.form-textarea,
+.form-select {
+  font-family: inherit;
+  color: var(--form-input-fg);
+  background: var(--form-input-bg);
+  border: 1px solid var(--form-input-border);
+  border-radius: var(--form-input-radius-sm);
+  padding: 0 var(--form-input-px);
+  transition: var(--form-input-transition);
+
+  width: 100%;
+  min-width: 0;
+
+  /* ensure consistent text metrics */
+  line-height: 1.25;
+}
+
+.form-input {
+  height: var(--form-input-h-default);
+}
+
+.form-input--compact { height: var(--form-input-h-compact); }
+.form-input--large { height: var(--form-input-h-large); }
+
+.form-select {
+  height: var(--form-input-h-default);
+  padding-right: 2.35rem;
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(74, 144, 226, 0.9) 50%),
+    linear-gradient(135deg, rgba(74, 144, 226, 0.9) 50%, transparent 50%);
+  background-position:
+    calc(100% - 1.05rem) calc(50% - 2px),
+    calc(100% - 0.95rem) calc(50% - 2px);
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  appearance: none;
+}
+
+.form-textarea {
+  padding: 0.65rem var(--form-input-px);
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* Hover */
+.form-input:hover,
+.form-select:hover,
+.form-textarea:hover {
+  border-color: var(--form-input-border-hover);
+}
+
+/* Focus */
+.form-input:focus,
+.form-input:focus-visible,
+.form-select:focus,
+.form-select:focus-visible,
+.form-textarea:focus,
+.form-textarea:focus-visible {
+  outline: none;
+}
+
+.form-input:focus-visible,
+.form-select:focus-visible,
+.form-textarea:focus-visible {
+  border-color: var(--form-input-focus-border);
+  box-shadow: var(--form-input-focus-ring);
+}
+
+/* Invalid (ARIA) */
+input[aria-invalid="true"].form-input,
+select[aria-invalid="true"].form-select,
+textarea[aria-invalid="true"].form-textarea,
+.form-input[aria-invalid="true"],
+.form-select[aria-invalid="true"],
+.form-textarea[aria-invalid="true"],
+.is-invalid.form-input,
+.is-invalid.form-select,
+.is-invalid.form-textarea {
+  border-color: var(--form-input-error-border);
+  box-shadow: var(--form-input-error-ring);
+}
+
+/* Valid */
+.is-valid.form-input,
+.is-valid.form-select,
+.is-valid.form-textarea {
+  border-color: var(--form-input-success-border);
+  box-shadow: var(--form-input-success-ring);
+}
+
+/* Disabled */
+.form-input:disabled,
+.form-select:disabled,
+.form-textarea:disabled {
+  cursor: not-allowed;
+  background: var(--form-input-disabled-bg);
+  color: var(--form-input-disabled-fg);
+  border-color: rgba(0,0,0,0.08);
+}
+
+/* Placeholder */
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: var(--form-input-placeholder);
+  opacity: 1;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .form-input,
+  .form-select,
+  .form-textarea {
+    transition: none;
+  }
+}
+

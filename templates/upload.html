@@ -5,20 +5,19 @@
     <div class="container" style="padding-bottom: 4rem;">
         <div class="glass-card reveal reveal-fade-up upload-card">
             <div class="section-header" style="margin-bottom: 1.5rem;">
-                <h1 style="font-size: 2rem; margin-bottom: 0.5rem;" data-i18n="up_title">📸 Analyze Crop</h1>
-                <p style="font-size: 0.95rem;" data-i18n="up_desc">Upload a high-resolution image of your cotton crop
-                    for instant AI diagnostics.</p>
+                <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">📸 Analyze Crop</h1>
+                <p style="font-size: 0.95rem;">Upload a high-resolution image of your cotton crop for instant AI diagnostics.</p>
             </div>
-
+            
             <form action="/analyze" method="POST" enctype="multipart/form-data">
-                <div class="weather-location-section" style="
+               <div class="weather-location-section" style="
                     margin: 1.5rem 0;
                     padding: 1.2rem 1.5rem;
                     border-radius: 12px;
                 ">
                     <h4 class="weather-location-title" style="margin: 0 0 0.5rem; font-size: 1rem;">
                         ☁️ Add Location for Weather-Aware Recommendations
-                        <span style="font-weight:400; font-size:0.85rem;" data-i18n="up_loc_opt">(optional)</span>
+                        <span style="font-weight:400; font-size:0.85rem;">(optional)</span>
                     </h4>
                     <p class="weather-location-subtitle" style="margin: 0 0 0.8rem; font-size: 0.85rem;">
                         Type your city or use GPS — we'll fetch live weather for smarter crop advice.
@@ -26,10 +25,17 @@
 
                     <div class="weather-location-controls">
                         <!-- City text input -->
-                        <div style="position:relative; flex:1; min-width:180px; max-width:280px;">
-                            <input type="text" name="city" id="city-input" placeholder="e.g. Nagpur, Maharashtra"
-                                data-i18n="[placeholder]up_loc_placeholder" autocomplete="off"
-                                oninput="onCityInput(this)" class="weather-location-input" />
+                        <div class="weather-location-input-wrap">
+                            <input
+                                type="text"
+                                name="city"
+                                id="city-input"
+                                placeholder="e.g. Nagpur, Maharashtra"
+                                autocomplete="off"
+                                oninput="onCityInput(this)"
+                                class="weather-location-input"
+                            />
+                            <!-- Tick icon inside input -->
                             <span id="city-tick" class="weather-location-tick">✅</span>
                         </div>
 
@@ -37,8 +43,12 @@
                         <input type="hidden" name="lat" id="lat-input">
                         <input type="hidden" name="lon" id="lon-input">
 
-                        <button type="button" id="use-location-btn" onclick="useMyLocation()"
-                            class="weather-location-button">
+                        <button
+                            type="button"
+                            id="use-location-btn"
+                            onclick="useMyLocation()"
+                            class="weather-location-button"
+                        >
                             📍 Use My Location
                         </button>
                     </div>
@@ -46,92 +56,89 @@
                     <p id="geo-status" class="weather-location-status"></p>
                 </div>
 
-                <script>
-                    // Show green tick as soon as user types something in city box
-                    function onCityInput(input) {
-                        const tick = document.getElementById('city-tick');
-                        const status = document.getElementById('geo-status');
-                        const latInput = document.getElementById('lat-input');
-                        const lonInput = document.getElementById('lon-input');
-                        const locationBtn = document.getElementById('use-location-btn');
+<script>
+// Show green tick as soon as user types something in city box
+function onCityInput(input) {
+    const tick = document.getElementById('city-tick');
+    const status = document.getElementById('geo-status');
+    const latInput = document.getElementById('lat-input');
+    const lonInput = document.getElementById('lon-input');
+    const locationBtn = document.getElementById('use-location-btn');
 
-                        if (input.value.trim().length > 1) {
-                            // Show green tick and confirmation
-                            tick.style.display = 'inline';
-                            input.style.borderColor = 'var(--success-border)';
-                            status.textContent = '✅ Location set: ' + input.value.trim();
-                            status.className = 'weather-location-status is-success';
-                            if (locationBtn) locationBtn.classList.remove('is-success');
-                            // Clear GPS coords so city name is used instead
-                            latInput.value = '';
-                            lonInput.value = '';
-                        } else {
-                            tick.style.display = 'none';
-                            input.style.borderColor = 'var(--weather-location-input-border)';
-                            status.textContent = '';
-                            status.className = 'weather-location-status';
-                        }
-                    }
+    if (input.value.trim().length > 1) {
+        // Show green tick and confirmation
+        tick.style.display = 'inline';
+        input.style.borderColor = 'var(--success-border)';
+        status.textContent = '✅ Location set: ' + input.value.trim();
+        status.className = 'weather-location-status is-success';
+        if (locationBtn) locationBtn.classList.remove('is-success');
+        // Clear GPS coords so city name is used instead
+        latInput.value = '';
+        lonInput.value = '';
+    } else {
+        tick.style.display = 'none';
+        input.style.borderColor = 'var(--weather-location-input-border)';
+        status.textContent = '';
+        status.className = 'weather-location-status';
+    }
+}
 
-                    function useMyLocation() {
-                        const btn = document.getElementById('use-location-btn');
-                        const status = document.getElementById('geo-status');
-                        const cityInput = document.getElementById('city-input');
-                        const tick = document.getElementById('city-tick');
+function useMyLocation() {
+    const btn = document.getElementById('use-location-btn');
+    const status = document.getElementById('geo-status');
+    const cityInput = document.getElementById('city-input');
+    const tick = document.getElementById('city-tick');
 
-                        btn.classList.remove('is-success');
+    btn.classList.remove('is-success');
 
-                        if (!navigator.geolocation) {
-                            status.textContent = '⚠️ Geolocation not supported by your browser.';
-                            status.className = 'weather-location-status is-error';
-                            return;
-                        }
+    if (!navigator.geolocation) {
+        status.textContent = '⚠️ Geolocation not supported by your browser.';
+        status.className = 'weather-location-status is-error';
+        return;
+    }
 
-                        btn.textContent = '⏳ Detecting...';
-                        btn.disabled = true;
+    btn.textContent = '⏳ Detecting...';
+    btn.disabled = true;
 
-                        navigator.geolocation.getCurrentPosition(
-                            function (pos) {
-                                const lat = pos.coords.latitude.toFixed(5);
-                                const lon = pos.coords.longitude.toFixed(5);
-                                document.getElementById('lat-input').value = lat;
-                                document.getElementById('lon-input').value = lon;
-                                cityInput.value = lat + ', ' + lon;
-                                tick.style.display = 'inline';
-                                cityInput.style.borderColor = 'var(--success-border)';
-                                status.textContent = '';
-                                status.className = 'weather-location-status';
-                                btn.textContent = '📍 Location Set';
-                                btn.classList.add('is-success');
-                                btn.disabled = false;
-                            },
-                            function (err) {
-                                status.textContent = '⚠️ Could not get GPS: ' + err.message + '. Try typing your city instead.';
-                                status.className = 'weather-location-status is-error';
-                                btn.textContent = '📍 Use My Location';
-                                btn.classList.remove('is-success');
-                                btn.disabled = false;
-                            },
-                            {
-                                enableHighAccuracy: true,
-                                timeout: 15000,
-                                maximumAge: 0,
-                            }
-                        );
-                    }
+    navigator.geolocation.getCurrentPosition(
+        function(pos) {
+            const lat = pos.coords.latitude.toFixed(5);
+            const lon = pos.coords.longitude.toFixed(5);
+            document.getElementById('lat-input').value = lat;
+            document.getElementById('lon-input').value = lon;
+            cityInput.value = '';
+            tick.style.display = 'none';
+            cityInput.style.borderColor = 'var(--weather-location-input-border)';
+            status.textContent = '✅ GPS location detected: ' + lat + ', ' + lon;
+            status.className = 'weather-location-status is-success';
+            btn.textContent = '📍 Location Set';
+            btn.classList.add('is-success');
+            btn.disabled = false;
+        },
+        function(err) {
+            status.textContent = '⚠️ Could not get GPS: ' + err.message + '. Try typing your city instead.';
+            status.className = 'weather-location-status is-error';
+            btn.textContent = '📍 Use My Location';
+            btn.classList.remove('is-success');
+            btn.disabled = false;
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0,
+        }
+    );
+}
 
-                </script>
+</script>
                 <!-- File Upload Area -->
-                <div id="validation-error" class="alert alert-error weather-location-alert"
-                    style="display:none; margin-top:1rem;" role="alert">
+                <div id="validation-error" class="alert alert-error weather-location-alert" style="display:none; margin-top:1rem;" role="alert">
                     <i class="fas fa-exclamation-circle"></i>
                     <span id="error-message"></span>
                 </div>
 
                 <div id="camera-btn-container" style="margin-top: 1.5rem; display: block;">
-                    <button type="button" class="camera-capture-btn"
-                        onclick="document.getElementById('cameraInput').click()"
-                        aria-label="Open camera to capture crop image" style="
+                    <button type="button" class="camera-capture-btn" onclick="document.getElementById('cameraInput').click()" aria-label="Open camera to capture crop image" style="
                         width: 100%;
                         padding: 1.25rem;
                         background: linear-gradient(135deg, var(--emerald-green) 0%, #1e7041 100%);
@@ -147,20 +154,22 @@
                         gap: 0.75rem;
                         box-shadow: 0 8px 16px rgba(46, 139, 87, 0.25);
                         transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-                    " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 20px rgba(46, 139, 87, 0.3)';"
-                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 16px rgba(46, 139, 87, 0.25)';"
-                        onfocus="this.style.outline='3px solid var(--emerald-green)'; this.style.outlineOffset='2px';"
-                        onblur="this.style.outline='none';">
+                    " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 20px rgba(46, 139, 87, 0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 16px rgba(46, 139, 87, 0.25)';" onfocus="this.style.outline='3px solid var(--emerald-green)'; this.style.outlineOffset='2px';" onblur="this.style.outline='none';">
                         <i class="fas fa-camera" style="font-size: 1.3rem;"></i>
                         <span>Take Crop Photo</span>
                     </button>
-
-                    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;"
-                        onchange="previewImage(this)" />
+                    
+                    <input
+                        type="file"
+                        id="cameraInput"
+                        accept="image/*"
+                        capture="environment"
+                        style="display:none;"
+                        onchange="previewImage(this)"
+                    />
                 </div>
 
-                <div id="upload-divider"
-                    style="display: flex; align-items: center; text-align: center; color: #6c757d; font-size: 0.9rem; font-weight: 500; margin-top: 1.5rem;">
+                <div id="upload-divider" style="display: flex; align-items: center; text-align: center; color: #6c757d; font-size: 0.9rem; font-weight: 500; margin-top: 1.5rem;">
                     <div style="flex: 1; height: 1px; background: #e9ecef;"></div>
                     <span style="padding: 0 1rem;">OR UPLOAD FILE</span>
                     <div style="flex: 1; height: 1px; background: #e9ecef;"></div>
@@ -176,65 +185,37 @@
                     transition: all 0.3s ease;
                     margin-top: 1.5rem;
                 ">
-                    <div id="previewContainer" style="display:none; text-align: center;">
-                        <img id="imagePreview" src="" alt="Preview"
-                            style="max-width:100%; max-height:300px; border-radius:10px; margin-bottom: 10px;" />
+                    <div id="previewContainer" style="display:none;">
+                        <img id="imagePreview" src="" alt="Preview" style="max-width:100%; max-height:300px; border-radius:10px;" />
                         <br>
                         <button type="button" onclick="event.stopPropagation(); resetUpload()" style="
-        padding: 0.6rem 1.2rem;
-        background: #dc3545; 
-        color: white; 
-        border: none;
-        border-radius: 8px; 
-        cursor: pointer; 
-        font-size: 0.9rem;
-        font-weight: 600;
-        transition: background 0.2s;
-    " onmouseover="this.style.background='#c82333'" onmouseout="this.style.background='#dc3545'">
-                            <i class="fas fa-trash-alt"></i> Clear & Remove
-                        </button>
+                            margin-top: 0.75rem; padding: 0.4rem 1rem;
+                            background: #dc3545; color: white; border: none;
+                            border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+                        ">✕ Remove Image</button>
                     </div>
-                    <i class="fas fa-cloud-upload-alt"
-                        style="font-size: 2.5rem; color: var(--emerald-green); margin-bottom: 1rem;"></i>
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 2.5rem; color: var(--emerald-green); margin-bottom: 1rem;"></i>
                     <p style="font-size: 1rem; margin-bottom: 0.5rem;">Drag & drop any crop file here</p>
-                    <p style="font-size: 0.85rem; opacity: 0.6;">All formats supported (Images, PDFs, etc. — Max 5MB)
-                    </p>
-                    <input type="file" id="fileInput" name="file" accept="*/*" style="display:none;"
-                        onchange="previewImage(this)" />
+                    <p style="font-size: 0.85rem; opacity: 0.6;">All formats supported (Images, PDFs, etc. — Max 5MB)</p>
+                    <input
+                        type="file"
+                        id="fileInput"
+                        name="file"
+                        accept="*/*"
+                        style="display:none;"
+                        onchange="previewImage(this)"
+                    />
                 </div>
-                <input type="hidden" id="continueAnalysisInput" name="continue_analysis" value="0" />
-                <div id="qualityFeedbackPanel" class="quality-feedback-panel" style="display:none;" aria-live="polite">
-                    <div class="quality-feedback-head">
-                        <div>
-                            <span class="quality-eyebrow">Image Quality</span>
-                            <h4 id="qualityStatusText">Checking image quality...</h4>
-                        </div>
-                        <div id="qualityScoreBadge" class="quality-score-badge">--</div>
-                    </div>
-                    <div id="qualityWarningList" class="quality-warning-list"></div>
-                    <div id="qualitySuggestionList" class="quality-suggestion-list"></div>
-                    <div id="qualityActions" class="quality-actions" style="display:none;">
-                        <button type="button" class="btn btn-secondary" onclick="resetUpload()">
-                            <i class="fas fa-arrow-rotate-left"></i> Re-upload
-                        </button>
-                        <button type="button" class="btn btn-primary" onclick="continueWithCurrentImage()">
-                            <i class="fas fa-play"></i> Continue Anyway
-                        </button>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary btn-large action-btn">
-                        <i class="fas fa-magnifying-glass"></i> Start AI Analysis
-                    </button>
                 <!-- Smart Crop Health Insights Panel -->
                 <div class="smart-insights-panel">
-
+                    
                     <div class="insights-header">
                         <h3>🌿 Smart Crop Health Insights</h3>
                         <p>AI-powered environmental and crop recommendations</p>
                     </div>
-
+                
                     <div class="insights-grid">
-
+                    
                         <!-- Weather Card -->
                         <div class="insight-card weather-card">
                             <div class="insight-icon">🌤️</div>
@@ -242,7 +223,7 @@
                             <p class="insight-value">28°C Cloudy</p>
                             <span class="insight-tag good">Good for crop monitoring</span>
                         </div>
-
+                    
                         <!-- Soil Moisture -->
                         <div class="insight-card moisture-card">
                             <div class="insight-icon">💧</div>
@@ -250,7 +231,7 @@
                             <p class="insight-value">Moderate</p>
                             <span class="insight-tag warning">Irrigation suggested</span>
                         </div>
-
+                    
                         <!-- Disease Risk -->
                         <div class="insight-card disease-card">
                             <div class="insight-icon">🦠</div>
@@ -258,161 +239,81 @@
                             <p class="insight-value">Low Risk</p>
                             <span class="insight-tag success">Healthy condition</span>
                         </div>
-
+                    
                         <!-- Crop Health -->
                         <div class="insight-card health-card">
                             <div class="insight-icon">🌱</div>
                             <h4>Crop Health</h4>
-
+                        
                             <div class="health-progress">
                                 <div class="health-progress-bar"></div>
                             </div>
-
+                        
                             <p class="health-score">86% Healthy</p>
                         </div>
-
+                    
                     </div>
                 </div>
                 <div style="margin-top: 3rem;">
-                    
+                    <button type="submit" class="btn btn-primary btn-large action-btn">
+                        <i class="fas fa-magnifying-glass"></i> Start AI Analysis
+                    </button>
                 </div>
                 <div id="streamProgressPanel" style="display:none; margin-top:1.5rem;">
-                    <div style="
+    <div style="
         background: linear-gradient(135deg, #0c1c27 0%, #043158 100%);
         border: 1px solid rgba(255,255,255,0.1);
         border-radius: 16px;
         padding: 1.5rem 1.75rem;
         color: white;
     ">
-                        <h4 style="margin:0 0 1.25rem; font-size:1rem; color:#80ffb2;">
-                            🔬 Analyzing your crop...
-                        </h4>
-
-                        <!-- Progress bar -->
-                        <div
-                            style="background:rgba(255,255,255,0.1); border-radius:8px; height:8px; margin-bottom:1.25rem; overflow:hidden;">
-                            <div id="streamProgressBar" style="
+        <h4 style="margin:0 0 1.25rem; font-size:1rem; color:#80ffb2;">
+            🔬 Analyzing your crop...
+        </h4>
+ 
+        <!-- Progress bar -->
+        <div style="background:rgba(255,255,255,0.1); border-radius:8px; height:8px; margin-bottom:1.25rem; overflow:hidden;">
+            <div id="streamProgressBar" style="
                 height:100%; width:0%; border-radius:8px;
                 background: linear-gradient(90deg, #80ffb2, #17a2b8);
                 transition: width 0.4s ease;
             "></div>
-                        </div>
-                        <!-- AI Confidence & Crop Health Meter -->
-                        <div class="ai-health-dashboard" id="ai-health-dashboard" style="display:none;">
-
-                            <!-- AI Confidence -->
-                            <div class="ai-meter-card">
-                                <div class="meter-header">
-                                    <span>🤖 AI Confidence</span>
-                                    <span id="confidenceValue">94%</span>
-                                </div>
-
-                                <div class="circular-progress">
-                                    <svg>
-                                        <circle cx="55" cy="55" r="45"></circle>
-                                        <circle cx="55" cy="55" r="45" id="confidenceCircle"></circle>
-                                    </svg>
-
-                                    <div class="progress-number" id="confidenceText">
-                                        94%
-                                    </div>
-                                </div>
-
-                                <p class="meter-status success-status">
-                                    High Prediction Accuracy
-                                </p>
-                            </div>
-
-                            <!-- Crop Health Meter -->
-                            <div class="ai-meter-card">
-
-                                <div class="meter-header">
-                                    <span>🌱 Crop Health</span>
-                                    <span id="healthValue">86%</span>
-                                </div>
-
-                                <div class="health-meter-wrapper">
-                                    <div class="health-meter">
-                                        <div class="health-meter-fill" id="healthMeterFill"></div>
-                                    </div>
-                                </div>
-
-                                <div class="health-labels">
-                                    <span>Critical</span>
-                                    <span>Moderate</span>
-                                    <span>Healthy</span>
-                                </div>
-
-                                <p class="meter-status healthy-status">
-                                    Crop condition looks healthy
-                                </p>
-                            </div>
-
-                        </div>
-                        <!-- Step checklist -->
-                        <div id="streamStepList" style="display:flex; flex-direction:column; gap:0.5rem;">
-                            <div class="stream-step" id="step-upload" data-label="Uploading image...">⬜ Uploading
-                                image...</div>
-                            <div class="stream-step" id="step-analyze" data-label="Analyzing crop health...">⬜ Analyzing
-                                crop health...</div>
-                            <div class="stream-step" id="step-predict" data-label="Generating prediction...">⬜
-                                Generating prediction...</div>
-                            <div class="stream-step" id="step-complete" data-label="Analysis complete">⬜ Analysis
-                                complete</div>
-                        </div>
-
-                        <p id="estimated-wait-msg" style="display:none; color:rgba(255,255,255,0.72); font-size:0.88rem; margin-top:8px; text-align:center;">
-                            This usually takes 20–30 seconds.
-                        </p>
-
-                        <p id="timeout-warning" style="display:none; color:#ff6b6b; font-size:0.88rem; margin-top:8px; text-align:center;">
-                            ⚠️ Taking longer than expected — please retry.
-                        </p>
-
-
-                        <button id="cancel-analysis-btn" onclick="cancelAnalysis()" style="display:none; margin-top:12px; width:100%; padding:10px; background:#c0392b; color:#fff; border:none; border-radius:10px; font-size:0.95rem; font-weight:600; cursor:pointer;">
-                            ✕ Cancel Analysis
-                        </button>
-
-                        <!-- Current status message -->
-                        <p id="streamStatusMsg" style="
+        </div>
+ 
+        <!-- Step checklist -->
+        <div id="streamStepList" style="display:flex; flex-direction:column; gap:0.5rem;">
+            <div class="stream-step" id="step-upload" data-label="Uploading image...">⬜ Uploading image...</div>
+            <div class="stream-step" id="step-analyze" data-label="Analyzing crop health...">⬜ Analyzing crop health...</div>
+            <div class="stream-step" id="step-predict" data-label="Generating prediction...">⬜ Generating prediction...</div>
+            <div class="stream-step" id="step-complete" data-label="Analysis complete">⬜ Analysis complete</div>
+        </div>
+            
+                    <!-- Current status message -->
+                    <p id="streamStatusMsg" style="
                         margin: 1rem 0 0; font-size:0.82rem;
                         color:rgba(255,255,255,0.55); font-style:italic;
                     "></p>
-                    </div>
                 </div>
-
-                <style>
-                    .stream-step {
-                        font-size: 0.88rem;
-                        color: rgba(255, 255, 255, 0.45);
-                        padding: 0.3rem 0;
-                        transition: color 0.3s ease;
-                    }
-
-                    .stream-step.done {
-                        color: #80ffb2;
-                    }
-
-                    .stream-step.active {
-                        color: #ffffff;
-                        font-weight: 600;
-                        background: rgba(128, 255, 178, 0.08);
-                        border-radius: 8px;
-                        padding: 0.4rem 0.75rem;
-                        animation: stepPulse 1.2s ease-in-out infinite;
-                    }
-
-                    .stream-step.error-step {
-                        color: #ff6b6b;
-                    }
-
-                    @keyframes stepPulse {
-                        0% { background: rgba(128, 255, 178, 0.05); }
-                        50% { background: rgba(128, 255, 178, 0.18); }
-                        100% { background: rgba(128, 255, 178, 0.05); }
-                    }
-                </style>
+            </div>
+            
+            <style>
+            .stream-step {
+                font-size: 0.88rem;
+                color: rgba(255,255,255,0.45);
+                padding: 0.3rem 0;
+                transition: color 0.3s ease;
+            }
+            .stream-step.done {
+                color: #80ffb2;
+            }
+            .stream-step.active {
+                color: #ffffff;
+                font-weight: 600;
+            }
+            .stream-step.error-step {
+                color: #ff6b6b;
+            }
+            </style>
             </form>
             <div id="loadingOverlay" class="loading-overlay hidden" aria-hidden="true">
                 <div class="loading-panel">
@@ -420,11 +321,10 @@
                     <p>Analyzing image, please wait...</p>
                 </div>
             </div>
-
+            
             <div class="info-grid reveal-stagger">
                 <div class="glass-card reveal reveal-slide-right tip-card">
-                    <h4 style="color: var(--emerald-green); margin-bottom: 1rem;"><i class="fas fa-lightbulb"></i> Pro
-                        Tips</h4>
+                    <h4 style="color: var(--emerald-green); margin-bottom: 1rem;"><i class="fas fa-lightbulb"></i> Pro Tips</h4>
                     <ul class="tip-list">
                         <li><i class="fas fa-check"></i> Use clear daylight</li>
                         <li><i class="fas fa-check"></i> Focus on the bolls</li>
@@ -432,10 +332,8 @@
                     </ul>
                 </div>
                 <div class="glass-card reveal reveal-slide-left help-card">
-                    <h4 style="color: var(--ai-blue); margin-bottom: 1rem;"><i class="fas fa-info-circle"></i> Quick
-                        Help</h4>
-                    <p style="font-size: 0.9rem; opacity: 0.8;">Our AI analyzes over 50 specific markers to determine
-                        growth stage and health status.</p>
+                    <h4 style="color: var(--ai-blue); margin-bottom: 1rem;"><i class="fas fa-info-circle"></i> Quick Help</h4>
+                    <p style="font-size: 0.9rem; opacity: 0.8;">Our AI analyzes over 50 specific markers to determine growth stage and health status.</p>
                 </div>
             </div>
         </div>
@@ -443,566 +341,386 @@
 </section>
 
 <style>
-    .loading-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(12, 28, 39, 0.75);
-        color: #ffffff;
-        text-align: center;
-        padding: 1rem;
-    }
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(12, 28, 39, 0.75);
+    color: #ffffff;
+    text-align: center;
+    padding: 1rem;
+}
+.loading-overlay.hidden {
+    display: none;
+}
+.loading-panel {
+    background: rgba(4, 49, 88, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 18px;
+    padding: 26px 32px;
+    max-width: 320px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+.loading-spinner {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 1rem;
+    border: 5px solid rgba(255,255,255,0.18);
+    border-top-color: #80ffb2;
+    border-radius: 50%;
+    animation: spin 1.1s linear infinite;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+/* MOBILE RESPONSIVE FIXES */
 
-    .loading-overlay.hidden {
-        display: none;
-    }
+@media (max-width: 768px) {
 
     .loading-panel {
-        background: rgba(4, 49, 88, 0.92);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 18px;
-        padding: 26px 32px;
-        max-width: 320px;
-        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+        width: 90%;
+        padding: 20px;
+        border-radius: 14px;
     }
 
-    .loading-spinner {
-        width: 48px;
-        height: 48px;
-        margin: 0 auto 1rem;
-        border: 5px solid rgba(255, 255, 255, 0.18);
-        border-top-color: #80ffb2;
-        border-radius: 50%;
-        animation: spin 1.1s linear infinite;
+    .loading-panel p {
+        font-size: 0.9rem;
     }
 
-    @keyframes spin {
-        0% {
-            transform: rotate(0deg);
-        }
-
-        100% {
-            transform: rotate(360deg);
-        }
+    .upload-area {
+        padding: 1.5rem !important;
     }
 
-    /* MOBILE RESPONSIVE FIXES */
+    .upload-area p {
+        font-size: 0.85rem !important;
+    }
 
-    .quality-feedback-panel {
-        margin-top: 1rem;
+    .upload-card {
         padding: 1rem;
-        border: 1px solid var(--card-border);
-        border-radius: 12px;
-        background: var(--card-bg);
-        color: var(--text-main);
-        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
-        animation: qualitySlideIn 0.24s ease;
     }
 
-    .quality-feedback-panel.is-good {
-        border-color: var(--success-border);
-        background: var(--success-bg);
-    }
-
-    .quality-feedback-panel.is-warning {
-        border-color: rgba(245, 158, 11, 0.45);
-        background: rgba(245, 158, 11, 0.10);
-    }
-
-    .quality-feedback-panel.is-error {
-        border-color: var(--error-border);
-        background: var(--error-bg);
-    }
-
-    .quality-feedback-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+    .info-grid {
+        grid-template-columns: 1fr;
         gap: 1rem;
     }
 
-    .quality-eyebrow {
-        display: block;
-        margin-bottom: 0.2rem;
-        color: var(--text-muted);
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
+    .tip-card,
+    .help-card {
+        width: 100%;
     }
 
-    .quality-feedback-head h4 {
-        margin: 0;
-        font-size: 1rem;
-        color: var(--text-main);
+    .action-btn {
+        width: 100%;
     }
-
-    .quality-score-badge {
-        min-width: 54px;
-        padding: 0.45rem 0.7rem;
-        border-radius: 8px;
-        background: var(--deep-forest);
-        color: #fff;
-        text-align: center;
-        font-weight: 800;
-    }
-
-    .quality-warning-list,
-    .quality-suggestion-list {
-        display: grid;
-        gap: 0.45rem;
-        margin-top: 0.8rem;
-    }
-
-    .quality-warning-item,
-    .quality-suggestion-item {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.5rem;
-        font-size: 0.9rem;
-        line-height: 1.45;
-    }
-
-    .quality-warning-item i {
-        color: #f59e0b;
-        margin-top: 0.15rem;
-    }
-
-    .quality-suggestion-item i {
-        color: var(--emerald-green);
-        margin-top: 0.15rem;
-    }
-
-    .quality-actions {
-        display: flex;
-        gap: 0.75rem;
-        margin-top: 1rem;
-    }
-
-    @keyframes qualitySlideIn {
-        from { opacity: 0; transform: translateY(8px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    @media (max-width: 768px) {
-
-        .loading-panel {
-            width: 90%;
-            padding: 20px;
-            border-radius: 14px;
-        }
-
-        .loading-panel p {
-            font-size: 0.9rem;
-        }
-
-        .upload-area {
-            padding: 1.5rem !important;
-        }
-
-        .upload-area p {
-            font-size: 0.85rem !important;
-        }
-
-        .upload-card {
-            padding: 1rem;
-        }
-
-        .quality-feedback-head,
-        .quality-actions {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .info-grid {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
-
-        .tip-card,
-        .help-card {
-            width: 100%;
-        }
-
-        .action-btn {
-            width: 100%;
-        }
-    }
-
-    /* Dark mode adjustments for quality panel */
-    @media (prefers-color-scheme: dark) {
-        .quality-feedback-panel {
-            background: rgba(20,24,28,0.6);
-            border-color: rgba(255,255,255,0.06);
-            color: #e6eef3;
-        }
-        .quality-feedback-panel.is-warning {
-            background: rgba(245, 158, 11, 0.08);
-            border-color: rgba(245, 158, 11, 0.2);
-        }
-        .quality-feedback-panel.is-error {
-            background: rgba(255, 99, 71, 0.06);
-            border-color: rgba(255, 99, 71, 0.18);
-        }
-        .quality-score-badge {
-            background: linear-gradient(135deg, #1f9d5a, #145c37);
-            color: #fff;
-        }
-    }
+}
 </style>
 
 <script>
-    const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB for images
-    const MAX_PDF_SIZE = 10 * 1024 * 1024;  // 10MB for PDFs
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB for images
+const MAX_PDF_SIZE = 10 * 1024 * 1024;  // 10MB for PDFs
 
-    function showError(message) {
-        const errorDiv = document.getElementById('validation-error');
-        const errorMsg = document.getElementById('error-message');
-        const uploadArea = document.getElementById('drop-zone');
-
-        if (errorMsg) errorMsg.textContent = message;
-        if (errorDiv) {
-            errorDiv.className = 'alert alert-error';
-            errorDiv.style.display = 'flex';
-        }
-        if (uploadArea) {
-            uploadArea.style.borderColor = 'var(--error-border)';
-            uploadArea.style.background = 'var(--error-bg)';
-        }
+function showError(message) {
+    const errorDiv = document.getElementById('validation-error');
+    const errorMsg = document.getElementById('error-message');
+    const uploadArea = document.getElementById('drop-zone');
+    
+    if (errorMsg) errorMsg.textContent = message;
+    if (errorDiv) {
+        errorDiv.className = 'alert alert-error';
+        errorDiv.style.display = 'flex';
     }
-
-    function showInfo(message) {
-        const errorDiv = document.getElementById('validation-error');
-        const errorMsg = document.getElementById('error-message');
-        const uploadArea = document.getElementById('drop-zone');
-
-        if (errorMsg) errorMsg.textContent = message;
-        if (errorDiv) {
-            errorDiv.className = 'alert alert-info';
-            errorDiv.style.display = 'flex';
-        }
-        if (uploadArea) {
-            uploadArea.style.borderColor = 'var(--ai-blue)';
-        }
+    if (uploadArea) {
+        uploadArea.style.borderColor = 'var(--error-border)';
+        uploadArea.style.background = 'var(--error-bg)';
     }
+}
 
-    function hideError() {
-        const errorDiv = document.getElementById('validation-error');
-        const uploadArea = document.getElementById('drop-zone');
-
-        if (errorDiv) errorDiv.style.display = 'none';
-        if (uploadArea) {
-            uploadArea.style.borderColor = 'var(--emerald-green)';
-            uploadArea.style.background = 'var(--success-bg)';
-        }
+function showInfo(message) {
+    const errorDiv = document.getElementById('validation-error');
+    const errorMsg = document.getElementById('error-message');
+    const uploadArea = document.getElementById('drop-zone');
+    
+    if (errorMsg) errorMsg.textContent = message;
+    if (errorDiv) {
+        errorDiv.className = 'alert alert-info';
+        errorDiv.style.display = 'flex';
     }
-
-    function renderQualityFeedback(quality, options = {}) {
-        const panel = document.getElementById('qualityFeedbackPanel');
-        const statusText = document.getElementById('qualityStatusText');
-        const scoreBadge = document.getElementById('qualityScoreBadge');
-        const warningList = document.getElementById('qualityWarningList');
-        const suggestionList = document.getElementById('qualitySuggestionList');
-        const actions = document.getElementById('qualityActions');
-
-        if (!panel || !quality) return;
-
-        const warnings = quality.warnings || [];
-        const suggestions = quality.suggestions || [];
-        const score = Number.isFinite(Number(quality.quality_score)) ? Number(quality.quality_score) : 0;
-        const status = quality.status || (warnings.length ? 'Fair' : 'Good');
-
-        panel.className = 'quality-feedback-panel';
-        if (quality.is_blocking) panel.classList.add('is-error');
-        else if (warnings.length) panel.classList.add('is-warning');
-        else panel.classList.add('is-good');
-
-        statusText.textContent = `${status} image quality`;
-        scoreBadge.textContent = `${score}/100`;
-        warningList.innerHTML = warnings.map(item => (
-            `<div class="quality-warning-item"><i class="fas fa-triangle-exclamation"></i><span>${item}</span></div>`
-        )).join('');
-        suggestionList.innerHTML = suggestions.map(item => (
-            `<div class="quality-suggestion-item"><i class="fas fa-lightbulb"></i><span>${item}</span></div>`
-        )).join('');
-        actions.style.display = options.allowContinue ? 'flex' : 'none';
-        panel.style.display = 'block';
-    }
-
-    function hideQualityFeedback() {
-        const panel = document.getElementById('qualityFeedbackPanel');
-        const continueInput = document.getElementById('continueAnalysisInput');
-        if (panel) panel.style.display = 'none';
-        if (continueInput) continueInput.value = '0';
-    }
-
-    function continueWithCurrentImage() {
-        const continueInput = document.getElementById('continueAnalysisInput');
-        const form = document.querySelector('form');
-        if (continueInput) continueInput.value = '1';
-        if (form) form.requestSubmit();
-    }
-
-    async function convertPdfToImage(file) {
-        if (typeof pdfjsLib === 'undefined') {
-            throw new Error('PDF library failed to load. Please check your internet connection and refresh.');
-        }
-
-        // Explicitly set worker for reliability
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-
-        showInfo('Processing PDF document... This may take a moment.');
-
-        try {
-            const arrayBuffer = await file.arrayBuffer();
-            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-            const pdf = await loadingTask.promise;
-
-            if (pdf.numPages === 0) throw new Error('The PDF appears to be empty.');
-
-            const page = await pdf.getPage(1);
-            const viewport = page.getViewport({ scale: 1.5 }); // Balanced scale for AI analysis
-
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
-
-            await page.render({ canvasContext: context, viewport: viewport }).promise;
-
-            return new Promise((resolve, reject) => {
-                canvas.toBlob((blob) => {
-                    if (blob) {
-                        const newFileName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
-                        resolve(new File([blob], newFileName, { type: 'image/jpeg' }));
-                    } else {
-                        reject(new Error('Failed to extract image from PDF.'));
-                    }
-                }, 'image/jpeg', 0.9);
-            });
-        } catch (error) {
-            console.error('PDF error:', error);
-            throw new Error('PDF Error: ' + (error.message || 'Unable to process this PDF format.'));
-        }
-    }
-
-    function getResizedDimensions(width, height, maxWidth, maxHeight) {
-        const ratio = Math.min(maxWidth / width, maxHeight / height, 1);
-        return {
-            width: Math.round(width * ratio),
-            height: Math.round(height * ratio),
-        };
-    }
-
-    function compressImageFile(file, maxWidth = 1280, maxHeight = 1280, quality = 0.8) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            const image = new Image();
-
-            reader.onload = (e) => { image.src = e.target.result; };
-            image.onload = () => {
-                const dimensions = getResizedDimensions(image.width, image.height, maxWidth, maxHeight);
-                const canvas = document.createElement('canvas');
-                canvas.width = dimensions.width;
-                canvas.height = dimensions.height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(image, 0, 0, dimensions.width, dimensions.height);
-                canvas.toBlob((blob) => {
-                    if (blob) resolve(blob);
-                    else reject(new Error('Image processing failed'));
-                }, 'image/jpeg', quality);
-            };
-            image.onerror = () => reject(new Error('The file selected is not a compatible image format.'));
-            reader.onerror = () => reject(new Error('File read error'));
-            reader.readAsDataURL(file);
-        });
-    }
-
-    async function previewImage(input) {
-        const previewContainer = document.getElementById('previewContainer');
-        const preview = document.getElementById('imagePreview');
-
-        hideError();
-
-        if (input.files && input.files[0]) {
-            let file = input.files[0];
-            const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-
-            // 1. Validate Size (Different limits for PDF vs Image)
-            if (isPdf && file.size > MAX_PDF_SIZE) {
-                showError('PDF is too large. Maximum allowed size is 10MB.');
-                input.value = ''; return;
-            } else if (!isPdf && file.size > MAX_IMAGE_SIZE) {
-                showError('Image is too large. Maximum allowed size is 5MB.');
-                input.value = ''; return;
-            }
-
-            // 2. Handle PDF Conversion
-            if (isPdf) {
-                try {
-                    file = await convertPdfToImage(file);
-                    hideError();
-                } catch (err) {
-                    showError(err.message);
-                    input.value = ''; return;
-                }
-            }
-
-            // 3. Final Image Processing & Preview
-            try {
-                const compressedBlob = await compressImageFile(file, 1280, 1280, 0.8);
-                const processedFile = new File([compressedBlob], file.name, { type: 'image/jpeg' });
-
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(processedFile);
-
-                // Always set the processed file to the main fileInput so form submission works
-                document.getElementById('fileInput').files = dataTransfer.files;
-
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    preview.src = e.target.result;
-                    previewContainer.style.display = 'block';
-
-                    // Hide camera button and divider when image is selected
-                    const cameraBtnContainer = document.getElementById('camera-btn-container');
-                    const uploadDivider = document.getElementById('upload-divider');
-                    if (cameraBtnContainer) cameraBtnContainer.style.display = 'none';
-                    if (uploadDivider) uploadDivider.style.display = 'none';
-
-                    const children = document.getElementById('drop-zone').children;
-                    for (let child of children) {
-                        if (child.id !== 'previewContainer') child.style.display = 'none';
-                    }
-                }
-                reader.readAsDataURL(processedFile);
-            } catch (error) {
-                showError(error.message);
-                // Reset both inputs on error
-                document.getElementById('fileInput').value = '';
-                document.getElementById('cameraInput').value = '';
-            }
-        }
-    }
-
-    function resetUpload() {
-        const input = document.getElementById('fileInput');
-        const cameraInput = document.getElementById('cameraInput');
-        const previewContainer = document.getElementById('previewContainer');
-        const preview = document.getElementById('imagePreview');
-
-        // 1. Reset file inputs
-        input.value = '';
-        if (cameraInput) cameraInput.value = '';
-
-        // 2. Clear UI
-        preview.src = '';
-        previewContainer.style.display = 'none';
-        hideError();
-
-        // 3. Restore upload area visibility
-        const cameraBtnContainer = document.getElementById('camera-btn-container');
-        const uploadDivider = document.getElementById('upload-divider');
-        if (cameraBtnContainer) cameraBtnContainer.style.display = 'block';
-        if (uploadDivider) uploadDivider.style.display = 'flex';
-
-        // 4. Restore the upload icon/text
-        Array.from(document.querySelectorAll('.upload-area > *:not(#previewContainer)')).forEach(el => {
-            el.style.display = '';
-        });
-    }
-
-    // Drag and drop enhanced interaction
-    const uploadArea = document.querySelector('.upload-area');
-    const fileInput = document.getElementById('fileInput');
-
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.style.transform = 'scale(1.02)';
-        uploadArea.style.background = 'rgba(46, 139, 87, 0.08)';
+    if (uploadArea) {
         uploadArea.style.borderColor = 'var(--ai-blue)';
-    });
+    }
+}
 
-    uploadArea.addEventListener('dragleave', () => {
-        uploadArea.style.transform = 'scale(1)';
-        uploadArea.style.background = 'rgba(46, 139, 87, 0.03)';
+function hideError() {
+    const errorDiv = document.getElementById('validation-error');
+    const uploadArea = document.getElementById('drop-zone');
+    
+    if (errorDiv) errorDiv.style.display = 'none';
+    if (uploadArea) {
         uploadArea.style.borderColor = 'var(--emerald-green)';
+        uploadArea.style.background = 'var(--success-bg)';
+    }
+}
+
+async function convertPdfToImage(file) {
+    if (typeof pdfjsLib === 'undefined') {
+        throw new Error('PDF library failed to load. Please check your internet connection and refresh.');
+    }
+    
+    // Explicitly set worker for reliability
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    
+    showInfo('Processing PDF document... This may take a moment.');
+    
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+        const pdf = await loadingTask.promise;
+        
+        if (pdf.numPages === 0) throw new Error('The PDF appears to be empty.');
+        
+        const page = await pdf.getPage(1);
+        const viewport = page.getViewport({ scale: 1.5 }); // Balanced scale for AI analysis
+        
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        
+        await page.render({ canvasContext: context, viewport: viewport }).promise;
+        
+        return new Promise((resolve, reject) => {
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    const newFileName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+                    resolve(new File([blob], newFileName, { type: 'image/jpeg' }));
+                } else {
+                    reject(new Error('Failed to extract image from PDF.'));
+                }
+            }, 'image/jpeg', 0.9);
+        });
+    } catch (error) {
+        console.error('PDF error:', error);
+        throw new Error('PDF Error: ' + (error.message || 'Unable to process this PDF format.'));
+    }
+}
+
+function getResizedDimensions(width, height, maxWidth, maxHeight) {
+    const ratio = Math.min(maxWidth / width, maxHeight / height, 1);
+    return {
+        width: Math.round(width * ratio),
+        height: Math.round(height * ratio),
+    };
+}
+
+function compressImageFile(file, maxWidth = 1280, maxHeight = 1280, quality = 0.8) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        const image = new Image();
+
+        reader.onload = (e) => { image.src = e.target.result; };
+        image.onload = () => {
+            const dimensions = getResizedDimensions(image.width, image.height, maxWidth, maxHeight);
+            const canvas = document.createElement('canvas');
+            canvas.width = dimensions.width;
+            canvas.height = dimensions.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(image, 0, 0, dimensions.width, dimensions.height);
+            canvas.toBlob((blob) => {
+                if (blob) resolve(blob);
+                else reject(new Error('Image processing failed'));
+            }, 'image/jpeg', quality);
+        };
+        image.onerror = () => reject(new Error('The file selected is not a compatible image format.'));
+        reader.onerror = () => reject(new Error('File read error'));
+        reader.readAsDataURL(file);
     });
+}
 
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.style.transform = 'scale(1)';
-        uploadArea.style.background = 'rgba(46, 139, 87, 0.03)';
-        uploadArea.style.borderColor = 'var(--emerald-green)';
+async function previewImage(input) {
+    const previewContainer = document.getElementById('previewContainer');
+    const preview = document.getElementById('imagePreview');
 
-        if (e.dataTransfer.files.length) {
-            fileInput.files = e.dataTransfer.files;
-            previewImage(fileInput);
+    hideError();
+
+    if (input.files && input.files[0]) {
+        let file = input.files[0];
+        const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+
+        // 1. Validate Size (Different limits for PDF vs Image)
+        if (isPdf && file.size > MAX_PDF_SIZE) {
+            showError('PDF is too large. Maximum allowed size is 10MB.');
+            input.value = ''; return;
+        } else if (!isPdf && file.size > MAX_IMAGE_SIZE) {
+            showError('Image is too large. Maximum allowed size is 5MB.');
+            input.value = ''; return;
         }
-    });
 
-    let elapsedTimer = null;
-    let isAnalyzing = false;
-
-    let analysisAbortController = null;
-
-    function cancelAnalysis() {
-        clearInterval(elapsedTimer);
-        const timeoutWarning = document.getElementById('timeout-warning');
-        if (timeoutWarning) timeoutWarning.style.display = 'none';
-
-        const cancelBtn = document.getElementById('cancel-analysis-btn');
-        if (cancelBtn) cancelBtn.style.display = 'none';
-
-        isAnalyzing = false;
-
-        // Cancel the in-flight request
-        try {
-            if (analysisAbortController) {
-                analysisAbortController.abort();
+        // 2. Handle PDF Conversion
+        if (isPdf) {
+            try {
+                file = await convertPdfToImage(file);
+                hideError();
+            } catch (err) {
+                showError(err.message);
+                input.value = ''; return;
             }
-        } catch (e) {
-            // ignore
         }
 
-        const submitBtn = document.querySelector('.action-btn');
-        const panel = document.getElementById('streamProgressPanel');
-        if (submitBtn) {
-            submitBtn.style.display = '';
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-magnifying-glass"></i> Start AI Analysis';
+        // 3. Final Image Processing & Preview
+        try {
+            const compressedBlob = await compressImageFile(file, 1280, 1280, 0.8);
+            const processedFile = new File([compressedBlob], file.name, { type: 'image/jpeg' });
+            
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(processedFile);
+            
+            // Always set the processed file to the main fileInput so form submission works
+            document.getElementById('fileInput').files = dataTransfer.files;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                previewContainer.style.display = 'block';
+                
+                // Hide camera button and divider when image is selected
+                const cameraBtnContainer = document.getElementById('camera-btn-container');
+                const uploadDivider = document.getElementById('upload-divider');
+                if (cameraBtnContainer) cameraBtnContainer.style.display = 'none';
+                if (uploadDivider) uploadDivider.style.display = 'none';
+
+                const children = document.getElementById('drop-zone').children;
+                for (let child of children) {
+                    if (child.id !== 'previewContainer') child.style.display = 'none';
+                }
+            }
+            reader.readAsDataURL(processedFile);
+        } catch (error) {
+            showError(error.message);
+            // Reset both inputs on error
+            document.getElementById('fileInput').value = '';
+            document.getElementById('cameraInput').value = '';
         }
-        if (panel) panel.style.display = 'none';
+    }
+}
 
-        const estMsg = document.getElementById('estimated-wait-msg');
-        if (estMsg) estMsg.style.display = 'none';
+function resetUpload() {
+    const input = document.getElementById('fileInput');
+    const cameraInput = document.getElementById('cameraInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const preview = document.getElementById('imagePreview');
+    
+    hideError();
+    input.value = '';
+    if (cameraInput) cameraInput.value = '';
+    preview.src = '';
+    previewContainer.style.display = 'none';
+    
+    // Show camera button and divider again
+    const cameraBtnContainer = document.getElementById('camera-btn-container');
+    const uploadDivider = document.getElementById('upload-divider');
+    if (cameraBtnContainer) cameraBtnContainer.style.display = 'block';
+    if (uploadDivider) uploadDivider.style.display = 'flex';
+    
+    // Show the placeholder text again
+    Array.from(document.querySelectorAll('.upload-area > *:not(#previewContainer)')).forEach(el => {
+        el.style.display = '';
+    });
+}
 
-        // Do NOT hard refresh; user can retry immediately.
+// Drag and drop enhanced interaction
+const uploadArea = document.querySelector('.upload-area');
+const fileInput = document.getElementById('fileInput');
+
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.style.transform = 'scale(1.02)';
+    uploadArea.style.background = 'rgba(46, 139, 87, 0.08)';
+    uploadArea.style.borderColor = 'var(--ai-blue)';
+});
+
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.style.transform = 'scale(1)';
+    uploadArea.style.background = 'rgba(46, 139, 87, 0.03)';
+    uploadArea.style.borderColor = 'var(--emerald-green)';
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.style.transform = 'scale(1)';
+    uploadArea.style.background = 'rgba(46, 139, 87, 0.03)';
+    uploadArea.style.borderColor = 'var(--emerald-green)';
+    
+    if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        previewImage(fileInput);
+    }
+});
+
+
+let isAnalyzing = false;
+
+document.querySelector('form').addEventListener('submit', async function(event) {
+    event.preventDefault();   // stop normal form submission
+ 
+    if (isAnalyzing) return; // Prevent duplicate submissions
+
+    const form        = event.target;
+    const submitBtn   = document.querySelector('.action-btn');
+    const panel       = document.getElementById('streamProgressPanel');
+    const progressBar = document.getElementById('streamProgressBar');
+    const statusMsg   = document.getElementById('streamStatusMsg');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+ 
+    // Validate file selected
+    const fileInput = document.getElementById('fileInput');
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        alert('Please select a crop image first.');
+        return;
     }
 
-
-    document.querySelector('form').addEventListener('submit', async function (event) {
-        event.preventDefault();   // stop normal form submission
-
-        if (isAnalyzing) return; // Prevent duplicate submissions
-
-        const form = event.target;
-        const submitBtn = document.querySelector('.action-btn');
-        const panel = document.getElementById('streamProgressPanel');
-        const progressBar = document.getElementById('streamProgressBar');
-        const statusMsg = document.getElementById('streamStatusMsg');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-
-        // Validate file selected
-        const fileInput = document.getElementById('fileInput');
-        if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-            alert('Please select a crop image first.');
-            return;
+    isAnalyzing = true;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+ 
+    // Show progress panel, hide submit button (or disable it during progress)
+    panel.style.display = 'block';
+    submitBtn.style.display = 'none';
+    if (loadingOverlay) loadingOverlay.classList.add('hidden');
+ 
+    // Reset all steps to default unchecked
+    const steps = ['upload', 'analyze', 'predict', 'complete'];
+    steps.forEach(s => {
+        const el = document.getElementById('step-' + s);
+        if (el) {
+            el.className = 'stream-step';
+            el.textContent = '⬜ ' + el.dataset.label;
         }
-        /*
+    });
+    progressBar.style.width = '0%';
+    statusMsg.textContent = '';
+    statusMsg.style.color = '';
+    progressBar.style.background = '';
+ 
+    // Build FormData from the form
+    const formData = new FormData(form);
+ 
+    // Store results payload for redirect
+    let finalPayload = null;
+ 
+    try {
+        const response = await fetch('/api/analyze_stream', {
+            method: 'POST',
+            body: formData,
+        });
+ 
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+ 
         const reader  = response.body.getReader();
         const decoder = new TextDecoder();
         let   buffer  = '';
@@ -1024,7 +742,7 @@
                     continue;
                 }
  
-                const { step, status, progress, message, data, results } = parsed;
+                const { step, progress, message, data } = parsed;
  
                 // Update progress bar
                 progressBar.style.width = progress + '%';
@@ -1043,13 +761,6 @@
                     statusMsg.style.color = '#ff6b6b';
                     progressBar.style.background = '#ff6b6b';
                     
-                    const previewContainer = document.getElementById('previewContainer');
-                    const preview = document.getElementById('imagePreview');
-
-                    if (previewContainer && preview && preview.src) {
-                        previewContainer.style.display = 'block';
-                        preview.style.display = 'block';
-                    }
                     isAnalyzing = false;
                     submitBtn.style.display = '';
                     submitBtn.disabled = false;
@@ -1072,274 +783,84 @@
                 } else if (step === 'complete') {
                     uiStep = 'complete';
                 }
-            }
-        }
-        */
+
+                if (uiStep) {
+                    const currentIndex = steps.indexOf(uiStep);
+                    steps.forEach((s, idx) => {
+                        const el = document.getElementById('step-' + s);
+                        if (el) {
+                            if (idx < currentIndex) {
+                                el.className = 'stream-step done';
+                                el.textContent = '✅ ' + el.dataset.label;
+                            } else if (idx === currentIndex) {
+                                el.className = 'stream-step active';
+                                el.textContent = '⏳ ' + el.dataset.label;
+                            } else {
+                                el.className = 'stream-step';
+                                el.textContent = '⬜ ' + el.dataset.label;
+                            }
+                        }
+                    });
+                }
  
-        // (removed stray reader block)
-
-        isAnalyzing = true;
-
-        // ---- Estimated wait time (field-friendly) ----
-        const estMsg = document.getElementById('estimated-wait-msg');
-        if (estMsg) {
-            estMsg.textContent = 'This usually takes 20–30 seconds (depending on network and image quality).';
-            estMsg.style.display = 'block';
-        }
-
-        let elapsedSeconds = 0;
-        clearInterval(elapsedTimer);
-        elapsedTimer = setInterval(() => {
-            elapsedSeconds++;
-            if (elapsedSeconds === 40) {
-                document.getElementById('timeout-warning').style.display = 'block';
-                document.getElementById('cancel-analysis-btn').style.display = 'block';
+                // On complete — store payload and redirect via hidden form
+                if (step === 'complete' && data) {
+                    finalPayload = data;
+ 
+                    // Mark complete step as done
+                    const completeEl = document.getElementById('step-complete');
+                    if (completeEl) {
+                        completeEl.className = 'stream-step done';
+                        completeEl.textContent = '✅ ' + completeEl.dataset.label;
+                    }
+ 
+                    statusMsg.textContent = '✅ Done! Loading results...';
+ 
+                    // Small delay so user sees 100%
+                    await new Promise(r => setTimeout(r, 600));
+ 
+                    // POST the results to /analyze_result for rendering
+                    const resultForm = document.createElement('form');
+                    resultForm.method = 'POST';
+                    resultForm.action = '/analyze_result';
+                    resultForm.style.display = 'none';
+ 
+                    const input = document.createElement('input');
+                    input.type  = 'hidden';
+                    input.name  = 'payload';
+                    input.value = JSON.stringify(finalPayload);
+                    resultForm.appendChild(input);
+ 
+                    document.body.appendChild(resultForm);
+                    resultForm.submit();
+                }
             }
-        }, 1000);
-
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
-
-
-        // Show progress panel, hide submit button (or disable it during progress)
-        panel.style.display = 'block';
-        submitBtn.style.display = 'none';
-        if (loadingOverlay) loadingOverlay.classList.add('hidden');
-
-        // Reset all steps to default unchecked
-        const steps = ['upload', 'analyze', 'predict', 'complete'];
+        }
+ 
+    } catch (err) {
+        statusMsg.textContent = '❌ Connection error: ' + err.message;
+        statusMsg.style.color = '#ff6b6b';
+        progressBar.style.background = '#ff6b6b';
+        
         steps.forEach(s => {
             const el = document.getElementById('step-' + s);
-            if (el) {
-                el.className = 'stream-step';
-                el.textContent = '⬜ ' + el.dataset.label;
+            if (el && el.classList.contains('active')) {
+                el.className = 'stream-step error-step';
+                el.textContent = '❌ ' + el.dataset.label;
             }
         });
-        progressBar.style.width = '0%';
-        statusMsg.textContent = '';
-        statusMsg.style.color = '';
-        progressBar.style.background = '';
-        const dashboard = document.getElementById('ai-health-dashboard');
-        if (dashboard) dashboard.style.display = 'none';
-
-        // Build FormData from the form
-        const formData = new FormData(form);
-
-        // Store results payload for redirect
-        let finalPayload = null;
-        let highestStepIndex = -1;
-
-        try {
-            analysisAbortController = new AbortController();
-
-            const response = await fetch('/api/analyze_stream', {
-                method: 'POST',
-                body: formData,
-                signal: analysisAbortController.signal,
-            });
-
-
-            if (!response.ok) {
-                throw new Error(`Server error: ${response.status}`);
-            }
-
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = '';
-
-            while (true) {
-                const { value, done } = await reader.read();
-                if (done) break;
-
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop();   // keep incomplete last line
-
-                for (const line of lines) {
-                    if (!line.startsWith('data: ')) continue;
-                    let parsed;
-                    try {
-                        parsed = JSON.parse(line.slice(6));
-                    } catch {
-                        continue;
-                    }
-
-                    const step = parsed.step || parsed.status;
-                    const progress = parsed.progress || 0;
-                    const message = parsed.message || '';
-                    const data = parsed.data || parsed.results;
-
-                    // Update progress bar
-                    progressBar.style.width = progress + '%';
-                    statusMsg.textContent = message;
-
-                    // Handle server-sent quality warnings: show the inline quality panel
-                    if (step === 'quality_warning' || parsed.status === 'quality_warning') {
-                        const iq = parsed.image_quality || (parsed.data && parsed.data.image_quality);
-                        renderQualityFeedback(iq, { allowContinue: true });
-                        // Stop the streaming UI and allow the user to continue or re-upload
-                        isAnalyzing = false;
-                        submitBtn.style.display = '';
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<i class="fas fa-magnifying-glass"></i> Start AI Analysis';
-                        // Ensure preview remains visible
-                        const previewContainer = document.getElementById('previewContainer');
-                        if (previewContainer) previewContainer.style.display = 'block';
-                        return;
-                    }
-
-                    if (step === 'error') {
-                        // Mark active steps as error-step
-                        steps.forEach(s => {
-                            const el = document.getElementById('step-' + s);
-                            if (el && el.classList.contains('active')) {
-                                el.className = 'stream-step error-step';
-                                el.textContent = '❌ ' + el.dataset.label;
-                            }
-                        });
-                        statusMsg.textContent = '❌ Analysis could not be completed. Please try again after some time.';
-                        statusMsg.style.color = '#ff6b6b';
-                        progressBar.style.background = '#ff6b6b';
-
-                        isAnalyzing = false;
-                        submitBtn.style.display = '';
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<i class="fas fa-magnifying-glass"></i> Try Again';
-                        return;
-                    }
-
-                    // Map backend step to our frontend 4 UI steps:
-                    // upload: upload_received
-                    // analyze: preprocessing, growth_inference, disease_inference
-                    // predict: recommendations
-                    // complete: complete
-                    let uiStep = '';
-                    if (step === 'upload_received' || step === 'uploading') {
-                        uiStep = 'upload';
-                    } else if (step === 'preprocessing' || step === 'growth_inference' || step === 'disease_inference' || step === 'analyzing') {
-                        uiStep = 'analyze';
-                    } else if (step === 'recommendations' || step === 'generating') {
-                        uiStep = 'predict';
-                    } else if (step === 'complete') {
-                        uiStep = 'complete';
-                    }
-
-                    if (uiStep) {
-                        highestStepIndex = Math.max(highestStepIndex, steps.indexOf(uiStep));
-                        const currentIndex = highestStepIndex;
-                        steps.forEach((s, idx) => {
-                            const el = document.getElementById('step-' + s);
-                            if (el) {
-                                if (idx < currentIndex) {
-                                    el.className = 'stream-step done';
-                                    el.textContent = '✅ ' + el.dataset.label;
-                                } else if (idx === currentIndex) {
-                                    el.className = 'stream-step active';
-                                    el.textContent = '⏳ ' + el.dataset.label;
-                                } else {
-                                    el.className = 'stream-step';
-                                    el.textContent = '⬜ ' + el.dataset.label;
-                                }
-                            }
-                        });
-                    }
-                    const status = parsed.status;
-
-
-                    // On complete — store payload and redirect via hidden form
-                    if (status === 'complete' || (step === 'complete' && data)) {
-                    const finalData = results || data;
-
-                        // Mark complete step as done
-                        const completeEl = document.getElementById('step-complete');
-                        if (completeEl) {
-                            completeEl.className = 'stream-step done';
-                            completeEl.textContent = '✅ ' + completeEl.dataset.label;
-                        }
-                        const dashboard = document.getElementById('ai-health-dashboard');
-                        if (dashboard) dashboard.style.display = 'grid';
-
-                        const realConfidence = Math.round((finalPayload?.disease?.confidence || 0) * 100);
-                        const realHealth = Math.round(finalPayload?.disease?.health_score || 0);
-                        updateAIMetrics(realConfidence, realHealth);
-
-                        statusMsg.textContent = '✅ Done! Loading results...';
-
-                        // Small delay so user sees 100%
-                        await new Promise(r => setTimeout(r, 600));
-
-                        // POST the results to /analyze_result for rendering
-                        window.location.href = '/dashboard';
-                    }
-                }
-            }
-
-        } catch (err) {
-            clearInterval(elapsedTimer);
-
-            // If user clicked Cancel, don't show a scary network error.
-            if (err && err.name === 'AbortError') {
-                statusMsg.textContent = 'Analysis canceled. You can upload and try again.';
-                statusMsg.style.color = 'rgba(255,255,255,0.7)';
-                progressBar.style.background = '';
-            } else {
-                statusMsg.textContent = '❌ Analysis is taking longer than expected. Please try again after some time.';
-                statusMsg.style.color = '#ff6b6b';
-                progressBar.style.background = '#ff6b6b';
-            }
-
-
-            steps.forEach(s => {
-                const el = document.getElementById('step-' + s);
-                if (el && el.classList.contains('active')) {
-                    el.className = 'stream-step error-step';
-                    el.textContent = '❌ ' + el.dataset.label;
-                }
-            });
-
+        
+        isAnalyzing = false;
+        submitBtn.style.display = '';
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-magnifying-glass"></i> Try Again';
+    } finally {
+        // Reset analyzing state if we didn't redirect
+        if (!finalPayload) {
             isAnalyzing = false;
-            submitBtn.style.display = '';
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-magnifying-glass"></i> Try Again';
-        } finally {
-            clearInterval(elapsedTimer);
-            // Reset analyzing state if we didn't redirect
-            if (!finalPayload) {
-                isAnalyzing = false;
-                submitBtn.disabled = false;
-            }
         }
-    });
-</script>
-<script>
-
-    /* AI CONFIDENCE + HEALTH ANIMATION */
-
-    function updateAIMetrics(confidence = 94, health = 86) {
-
-        // Confidence Circle
-        const circle = document.getElementById('confidenceCircle');
-        const confidenceText = document.getElementById('confidenceText');
-        const confidenceValue = document.getElementById('confidenceValue');
-
-        const radius = 45;
-        const circumference = 2 * Math.PI * radius;
-
-        const offset = circumference - (confidence / 100) * circumference;
-
-        circle.style.strokeDashoffset = offset;
-
-        confidenceText.textContent = confidence + '%';
-        confidenceValue.textContent = confidence + '%';
-
-        // Health Meter
-        const healthFill = document.getElementById('healthMeterFill');
-        const healthValue = document.getElementById('healthValue');
-
-        healthFill.style.width = health + '%';
-        healthValue.textContent = health + '%';
     }
-
+});
 </script>
-
 {% endblock %}
