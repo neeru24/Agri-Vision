@@ -10,6 +10,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 import os
 import random
 import re
+import sys
 import threading
 from datetime import datetime
 from typing import Any, Dict, Optional, Tuple
@@ -92,7 +93,11 @@ app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
 app.jinja_env.auto_reload = True
 app.jinja_env.cache = {}
 
-secret_key = os.getenv("SECRET_KEY") or "dev_secret_123"
+secret_key = os.getenv("SECRET_KEY")
+if not secret_key and os.getenv("FLASK_ENV") == "production":
+    logger.critical("SECRET_KEY must be set in production.")
+    sys.exit(1)
+secret_key = secret_key or "dev_secret_123"
 app.secret_key = secret_key
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
 app.config["MAX_FORM_MEMORY_SIZE"] = 25 * 1024 * 1024
@@ -621,6 +626,41 @@ def generate_advanced_recommendations(disease_result: Dict[str, Any], growth_res
     return adv_recs
 
 
+def build_treatment_recommendations(disease_result: Dict[str, Any]) -> Dict[str, Any]:
+    disease_name = disease_result.get("predicted_class") or disease_result.get("class") or "unknown"
+    disease_info = disease_info_map.get(disease_name, {})
+    is_fallback = not bool(disease_info)
+
+    treatment = disease_info.get(
+        "treatment",
+        "Use field scouting notes and consult a local agricultural expert before applying treatment.",
+    )
+    symptoms = disease_info.get("symptoms", "Symptoms vary by crop stage and field conditions.")
+
+    prevention = "Maintain field hygiene, monitor plants regularly, and follow locally recommended crop protection practices."
+    if disease_name == "Healthy":
+        prevention = "Continue routine monitoring, balanced irrigation, and preventive crop hygiene."
+    elif "Aphids" in disease_name:
+        prevention = "Encourage natural predators, inspect leaf undersides, and avoid unnecessary broad-spectrum sprays."
+    elif "worm" in disease_name.lower():
+        prevention = "Scout for larvae early and use recommended biological controls when thresholds are crossed."
+    elif "blight" in disease_name.lower() or "spot" in disease_name.lower() or "mildew" in disease_name.lower():
+        prevention = "Improve airflow, avoid prolonged leaf wetness, and remove infected residue where practical."
+
+    confidence = float(disease_result.get("confidence", 0.0) or 0.0)
+    confidence_advisory = None
+    if confidence and confidence < UNCERTAINTY_THRESHOLD:
+        confidence_advisory = "Model confidence is low. Verify symptoms in the field before applying any treatment."
+
+    return {
+        "disease_name": disease_name,
+        "symptoms": symptoms,
+        "treatment": treatment,
+        "prevention": prevention,
+        "confidence_advisory": confidence_advisory,
+        "is_fallback": is_fallback,
+    }
+
 
 def encode_image_for_display(image: np.ndarray) -> str:
     display_image = resize_image(image, DISPLAY_IMAGE_MAX_DIMENSION)
@@ -674,6 +714,33 @@ def set_cached_grad_cam(image_hash: str, overlay_b64: str, heatmap_only_b64: str
         GRAD_CAM_CACHE[image_hash] = (overlay_b64, heatmap_only_b64)
 
 
+def generate_gradcam_explanation(model, input_tensor, image_rgb, target_class_idx):
+    if model is None:
+        return {
+            "available": False,
+            "status": "unavailable",
+            "error": "ResNet50 model is not loaded.",
+        }
+
+    with GradCAM(model, model.layer4[-1]) as grad_cam:
+        overlay = grad_cam(input_tensor, target_class_idx, image_rgb)
+        heatmap_np = getattr(grad_cam, "heatmap_np", None)
+
+    if overlay is None or heatmap_np is None:
+        return {
+            "available": False,
+            "status": "failed",
+            "error": "Grad-CAM did not produce an activation heatmap.",
+        }
+
+    return {
+        "available": True,
+        "status": "generated",
+        "overlay_image": overlay,
+        "heatmap_image": generate_pure_heatmap(image_rgb, heatmap_np),
+    }
+
+
 def analyze_image(image: np.ndarray) -> Dict[str, Any]:
     import time
     start_time = time.time()
@@ -721,24 +788,41 @@ def analyze_image(image: np.ndarray) -> Dict[str, Any]:
         
         grad_cam_image_b64 = None
         heatmap_only_b64 = None
-        
+        explainability = {
+            "available": False,
+            "status": "unavailable",
+            "error": "Grad-CAM was not generated for this image.",
+        }
+
         if cached_result is not None:
             grad_cam_image_b64, heatmap_only_b64 = cached_result
+            explainability = {"available": True, "status": "cached", "error": None}
             logger.info("Using cached Grad-CAM heatmaps")
         else:
             if resnet_model is not None and disease.get("predicted_class_idx") is not None:
                 try:
                     input_tensor = preprocess_image_for_resnet(image)
-                    with GradCAM(resnet_model, resnet_model.layer4[-1]) as grad_cam:
-                        grad_cam_overlay = grad_cam(input_tensor, disease["predicted_class_idx"], image)
-                        heatmap_np = getattr(grad_cam, "heatmap_np", None)
-                    if grad_cam_overlay is not None:
-                        grad_cam_image_b64 = encode_image_for_display(grad_cam_overlay)
-                    if heatmap_np is not None:
-                        pure_heatmap_rgb = generate_pure_heatmap(image, heatmap_np)
-                        heatmap_only_b64 = encode_image_for_display(pure_heatmap_rgb)
+                    grad_result = generate_gradcam_explanation(
+                        resnet_model,
+                        input_tensor,
+                        image,
+                        disease["predicted_class_idx"],
+                    )
+                    explainability = {
+                        "available": bool(grad_result.get("available")),
+                        "status": grad_result.get("status", "failed"),
+                        "error": grad_result.get("error"),
+                    }
+                    if grad_result.get("available"):
+                        grad_cam_image_b64 = encode_image_for_display(grad_result["overlay_image"])
+                        heatmap_only_b64 = encode_image_for_display(grad_result["heatmap_image"])
                 except Exception as exc:
                     logger.error("Error generating Grad-CAM: %s", exc)
+                    explainability = {
+                        "available": False,
+                        "status": "failed",
+                        "error": str(exc),
+                    }
 
             if grad_cam_image_b64 is None or heatmap_only_b64 is None:
                 try:
@@ -762,6 +846,7 @@ def analyze_image(image: np.ndarray) -> Dict[str, Any]:
         yield_est = estimate_yield(disease, growth, weather=None, field_acres=1.0)
         adv_recs = generate_advanced_recommendations(disease, growth)
         insights = generate_farmer_insights(disease, growth)
+        treatment_recs = build_treatment_recommendations(disease)
 
         result = {
             "disease": disease,
@@ -769,9 +854,11 @@ def analyze_image(image: np.ndarray) -> Dict[str, Any]:
             "recommendations": recs,
             "grad_cam_image_b64": grad_cam_image_b64,
             "heatmap_only_b64": heatmap_only_b64,
+            "explainability": explainability,
             "disease_severity": severity,
             "yield_estimate": yield_est,
             "advanced_recommendations": adv_recs,
+            "treatment_recommendations": treatment_recs,
             "farmer_insights": insights,
         }
 
@@ -905,6 +992,7 @@ def admin_dashboard():
 # --- Model Management Admin Endpoints ---
 
 @app.route('/admin/models', methods=['GET'])
+@login_required
 def list_models():
     """List all registered models with their metadata"""
     model_type = request.args.get('type')
@@ -1085,6 +1173,7 @@ def set_rollback_threshold():
 
 
 @app.route('/admin/models/export/pdf', methods=['GET'])
+@login_required
 def export_pdf():
     """Export model metrics as PDF"""
     try:
@@ -1238,6 +1327,7 @@ def analyze():
                 weather=weather,
                 grad_cam_image_b64=results.get("grad_cam_image_b64"),
                 heatmap_only_b64=results.get("heatmap_only_b64"),
+                treatment_recommendations=results.get("treatment_recommendations"),
                 disease_info=disease_info,
             )
         except Exception as exc:
@@ -1453,30 +1543,33 @@ def demo():
     
         # Generate advanced recommendations
         adv_recs = generate_advanced_recommendations(demo_disease, demo_growth)
-    
+
         # Generate farmer insights
         insights = generate_farmer_insights(demo_disease, demo_growth)
+        treatment_recs = build_treatment_recommendations(demo_disease)
 
         example_json = {
-        "disease": demo_disease,
-        "growth": demo_growth,
-        "recommendations": generate_recommendations(demo_disease, demo_growth),
-        "grad_cam_image_b64": grad_cam_image_b64,
-        "disease_severity": severity,
-        "yield_estimate": yield_est,
-        "advanced_recommendations": adv_recs,
-        "farmer_insights": insights
+            "disease": demo_disease,
+            "growth": demo_growth,
+            "recommendations": generate_recommendations(demo_disease, demo_growth),
+            "grad_cam_image_b64": grad_cam_image_b64,
+            "disease_severity": severity,
+            "yield_estimate": yield_est,
+            "advanced_recommendations": adv_recs,
+            "treatment_recommendations": treatment_recs,
+            "farmer_insights": insights,
         }
         return render_template(
-        "results.html",
-        results=example_json,
-        filename="demo_cotton.jpg",
-        image_b64=image_b64,
-        img_shape={"width": 512, "height": 384},
-        raw_json=json.dumps(example_json, indent=2),
-        timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        grad_cam_image_b64=grad_cam_image_b64,
-        yield_estimate=yield_est # Also pass as top-level for robustness
+            "results.html",
+            results=example_json,
+            filename="demo_cotton.jpg",
+            image_b64=image_b64,
+            img_shape={"width": 512, "height": 384},
+            raw_json=json.dumps(example_json, indent=2),
+            timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            grad_cam_image_b64=grad_cam_image_b64,
+            yield_estimate=yield_est, # Also pass as top-level for robustness
+            treatment_recommendations=treatment_recs,
         )
 
     except Exception as e:
