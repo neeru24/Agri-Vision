@@ -15,7 +15,7 @@
             </div>
         </div>
 
-        <form class="comparison-upload-grid" id="comparisonForm" action="/comparison" method="POST" enctype="multipart/form-data">
+        <form class="comparison-upload-grid" id="comparisonForm" action="{{ url_for('comparison') }}" method="POST" enctype="multipart/form-data">
             <div id="validation-error" class="alert alert-error" style="display:none; grid-column: 1 / -1; margin-bottom: 1.5rem;" role="alert">
                 <i class="fas fa-exclamation-circle"></i>
                 <span id="error-message"></span>
@@ -30,14 +30,14 @@
                     </div>
                 </div>
                 <label class="comparison-dropzone" for="lastWeekInput" id="dropzone-lastWeek">
-                  <input type="file" id="lastWeekInput" name="last_week_image" accept="*/*" required data-preview-target="lastWeekPreview" data-file-label="lastWeekFile">
+                  <input type="file" id="lastWeekInput" name="last_week_image" accept="image/png,image/jpeg,image/jpg,image/gif" required data-preview-target="lastWeekPreview" data-file-label="lastWeekFile">
                     <div class="upload-placeholder">
                         <span class="comparison-upload-icon">
                             <i class="fas fa-cloud-arrow-up"></i>
                         </span>
                         <strong>Upload last week photo</strong>
                     
-                        <small>All formats supported (Max 5MB)</small>
+                        <small>PNG, JPG, JPEG, or GIF (Max 5MB)</small>
                     </div>
                     <img id="lastWeekPreview"
                          src=""
@@ -65,7 +65,7 @@
                     <input type="file"
                            id="currentWeekInput"
                            name="current_week_image"
-                           accept="*/*"
+                           accept="image/png,image/jpeg,image/jpg,image/gif"
                            required
                            data-preview-target="currentWeekPreview"
                            data-file-label="currentWeekFile">
@@ -77,7 +77,7 @@
                 
                         <strong>Upload current week photo</strong>
                 
-                        <small>All formats supported (Max 5MB)</small>
+                        <small>PNG, JPG, JPEG, or GIF (Max 5MB)</small>
                     </div>
                 
                     <img id="currentWeekPreview"
@@ -137,6 +137,26 @@
                     {% endif %}
                 </ul>
             </div>
+        </div>
+        {% endif %}
+
+        {% if old_image_b64 and new_image_b64 %}
+        <div class="comparison-image-grid fade-in">
+            <figure class="comparison-image-card">
+                <img src="data:image/jpeg;base64,{{ old_image_b64 }}" alt="Last week uploaded field image">
+                <figcaption>
+                    <span data-i18n="comp_old_title">Last Week Field Image</span>
+                    <strong>{{ old_filename or "Last week field photo" }}</strong>
+                </figcaption>
+            </figure>
+
+            <figure class="comparison-image-card current">
+                <img src="data:image/jpeg;base64,{{ new_image_b64 }}" alt="Current week uploaded field image">
+                <figcaption>
+                    <span data-i18n="comp_new_title">Current Week Field Image</span>
+                    <strong>{{ new_filename or "Current week field photo" }}</strong>
+                </figcaption>
+            </figure>
         </div>
         {% endif %}
 

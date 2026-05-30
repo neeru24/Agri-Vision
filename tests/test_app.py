@@ -334,6 +334,10 @@ def test_post_comparison_valid(client, monkeypatch):
     assert b"AI RECOMMENDATION" in resp.data
     assert b"Old Prediction" in resp.data
     assert b"New Prediction" in resp.data
+    assert b"comparison-image-grid" in resp.data
+    assert b"data:image/jpeg;base64" in resp.data
+    assert b"last_week.png" in resp.data
+    assert b"current_week.png" in resp.data
 
 
 def test_post_comparison_invalid_crop_image(client, monkeypatch):
@@ -363,6 +367,9 @@ def test_post_comparison_invalid_crop_image(client, monkeypatch):
         b"Unable to compare images" in resp.data
         or b"Unable to verify cotton crop" in resp.data
     )
+    assert b"data:image/jpeg;base64" in resp.data
+    assert b"last_week.png" in resp.data
+    assert b"current_week.png" in resp.data
 
 
 def test_post_comparison_duplicate_image(client):
@@ -634,4 +641,3 @@ def test_api_chat_fallback_response(client):
     assert resp.status_code == 200
     data = json.loads(resp.data)
     assert "Agri-Vision AI assistant" in data["reply"]
-
