@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reports - Agri-Vision</title>
     <link rel="stylesheet" href="/static/css/style.css">
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             margin: 0;
@@ -215,7 +215,7 @@
     <nav class="navbar">
         <div class="container">
             <a href="/" class="logo">
-                <i data-lucide="leaf"></i>
+                <i class="fas fa-leaf"></i>
                 <span>Agri-Vision</span>
             </a>
             <ul class="nav-menu">
@@ -224,14 +224,13 @@
                     <li><a href="/analyze">Analyze</a></li>
                     <li><a href="/batch">Batch</a></li>
                     <li><a href="/disease-map">Disease Map</a></li>
-                    <li><a href="/dashboard">Dashboard</a></li>
                     <li><a href="/history">History</a></li>
                     <li><a href="/reports" class="active">Reports</a></li>
                     <li><a href="/profile">Profile</a></li>
                     {% if current_user.is_researcher() %}
                         <li><a href="/model-admin">Admin</a></li>
                     {% endif %}
-                    <li><a href="/logout" style="color: #ef4444;"><i data-lucide="log-out"></i> Logout</a></li>
+                    <li><a href="/logout" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 {% else %}
                     <li><a href="/demo">Demo</a></li>
                     <li><a href="/login" class="btn btn-primary">Login</a></li>
@@ -244,7 +243,7 @@
     <div class="reports-container">
         <div class="reports-header">
             <div>
-                <h1><i data-lucide="file-pdf"></i> Automated Reports</h1>
+                <h1><i class="fas fa-file-pdf"></i> Automated Reports</h1>
                 <p>Generate and download comprehensive analysis reports</p>
             </div>
         </div>
@@ -252,7 +251,7 @@
         <div class="reports-grid">
             <div class="report-card">
                 <div class="report-icon" style="background: #dbeafe; color: #2563eb;">
-                    <i data-lucide="chart-bar"></i>
+                    <i class="fas fa-chart-bar"></i>
                 </div>
                 <h3>Summary Report</h3>
                 <p>Generate a comprehensive summary of all your analyses within a specified time period.</p>
@@ -268,18 +267,18 @@
                 </div>
                 
                 <div class="loading" id="summary-loading">
-                    <i data-lucide="loader-2" class="lucide-spin"></i>
+                    <i class="fas fa-spinner"></i>
                     <p>Generating report...</p>
                 </div>
                 
                 <button class="btn-generate" onclick="generateSummaryReport()" id="summary-btn">
-                    <i data-lucide="download"></i> Generate Summary Report
+                    <i class="fas fa-download"></i> Generate Summary Report
                 </button>
             </div>
             
             <div class="report-card">
                 <div class="report-icon" style="background: #dcfce7; color: #16a34a;">
-                    <i data-lucide="file-medical"></i>
+                    <i class="fas fa-file-medical"></i>
                 </div>
                 <h3>Individual Analysis Report</h3>
                 <p>Generate a detailed report for a specific analysis from your history.</p>
@@ -292,18 +291,18 @@
                 </div>
                 
                 <div class="loading" id="individual-loading">
-                    <i data-lucide="loader-2" class="lucide-spin"></i>
+                    <i class="fas fa-spinner"></i>
                     <p>Generating report...</p>
                 </div>
                 
                 <button class="btn-generate" onclick="generateIndividualReport()" id="individual-btn" disabled>
-                    <i data-lucide="download"></i> Generate Analysis Report
+                    <i class="fas fa-download"></i> Generate Analysis Report
                 </button>
             </div>
         </div>
         
         <div class="recent-reports">
-            <h3><i data-lucide="history"></i> Report Generation Guide</h3>
+            <h3><i class="fas fa-history"></i> Report Generation Guide</h3>
             <div style="color: #666; line-height: 1.6;">
                 <p><strong>Summary Report:</strong> Includes overall statistics, disease distribution, growth stage analysis, and regional data for all analyses within the selected time period.</p>
                 <p><strong>Individual Analysis Report:</strong> Provides detailed information about a specific analysis including disease detection, growth stage, confidence scores, and recommendations.</p>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Batch Results - Agri-Vision</title>
     <link rel="stylesheet" href="/static/css/style.css">
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .results-container {
             max-width: 1400px;
@@ -270,7 +270,7 @@
     <nav class="navbar">
         <div class="container">
             <a href="/" class="logo">
-                <i data-lucide="leaf"></i>
+                <i class="fas fa-leaf"></i>
                 <span>Agri-Vision</span>
             </a>
             <ul class="nav-menu">
@@ -284,7 +284,7 @@
 
     <div class="results-container">
         <div class="job-header">
-            <h1><i data-lucide="clipboard-list"></i> Batch Analysis Results</h1>
+            <h1><i class="fas fa-clipboard-list"></i> Batch Analysis Results</h1>
             <p style="opacity: 0.9; margin-top: 10px;">Job ID: {{ job_id }}</p>
             
             <div class="job-info">
@@ -308,7 +308,7 @@
         </div>
         
         <div class="progress-section">
-            <h3 style="margin-bottom: 20px;"><i data-lucide="tasks"></i> Progress</h3>
+            <h3 style="margin-bottom: 20px;"><i class="fas fa-tasks"></i> Progress</h3>
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill" style="width: 0%">0%</div>
             </div>
@@ -332,29 +332,29 @@
             </div>
         </div>
         
-        <h3 style="margin-bottom: 20px;"><i data-lucide="images"></i> Individual Results</h3>
+        <h3 style="margin-bottom: 20px;"><i class="fas fa-images"></i> Individual Results</h3>
         <div class="results-grid" id="resultsGrid">
             <div class="empty-state">
-                <i data-lucide="loader-2" class="lucide-spin -spin"></i>
+                <i class="fas fa-spinner fa-spin"></i>
                 <p>Loading results...</p>
             </div>
         </div>
         
         <div class="action-buttons" id="actionButtons" style="display: none;">
             <button class="btn btn-primary" onclick="exportBackendCSV()">
-                <i data-lucide="file-csv"></i> Export CSV
+                <i class="fas fa-file-csv"></i> Export CSV
             </button>
             <button class="btn btn-primary" style="background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);" onclick="exportBackendPDF()">
-                <i data-lucide="file-pdf"></i> Export PDF
+                <i class="fas fa-file-pdf"></i> Export PDF
             </button>
             <button class="btn btn-secondary" onclick="window.location.href='/batch'">
-                <i data-lucide="plus"></i> New Batch
+                <i class="fas fa-plus"></i> New Batch
             </button>
         </div>
     </div>
     
     <button class="refresh-btn" id="refreshBtn" onclick="loadResults()">
-        <i data-lucide="sync-alt"></i>
+        <i class="fas fa-sync-alt"></i>
     </button>
 
     <script>
@@ -406,7 +406,7 @@
             if (results.length === 0) {
                 grid.innerHTML = `
                     <div class="empty-state">
-                        <i data-lucide="loader-2" class="lucide-spin -spin"></i>
+                        <i class="fas fa-spinner fa-spin"></i>
                         <p>Processing images...</p>
                     </div>
                 `;
@@ -431,7 +431,7 @@
                         </div>
                         <div class="result-body">
                             <div class="result-image">
-                                <i data-lucide="image" style="font-size: 40px;"></i>
+                                <i class="fas fa-image" style="font-size: 40px;"></i>
                             </div>
                             ${status === 'complete' ? `
                                 <div class="result-detail">
@@ -454,12 +454,12 @@
                                 </div>
                             ` : status === 'error' ? `
                                 <p style="color: #dc2626; text-align: center; padding: 20px;">
-                                    <i data-lucide="exclamation-triangle"></i><br>
+                                    <i class="fas fa-exclamation-triangle"></i><br>
                                     ${result.error_message || 'Processing failed'}
                                 </p>
                             ` : `
                                 <p style="color: #666; text-align: center; padding: 20px;">
-                                    <i data-lucide="loader-2" class="lucide-spin -spin"></i><br>
+                                    <i class="fas fa-spinner fa-spin"></i><br>
                                     Processing...
                                 </p>
                             `}

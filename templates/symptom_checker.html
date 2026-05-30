@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Symptom Checker - Agri-Vision</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .symptom-checker-container {
             max-width: 1200px;
@@ -326,11 +326,11 @@
     <nav class="navbar" id="navbar">
         <div class="nav-container">
             <a href="/" class="nav-brand">
-                <i data-lucide="leaf"></i>
+                <i class="fas fa-seedling"></i>
                 <span>Agri-Vision</span>
             </a>
             <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
-                <i data-lucide="menu"></i>
+                <i class="fas fa-bars"></i>
             </button>
             <ul class="nav-menu" id="nav-menu">
                 <li><a href="/">Home</a></li>
@@ -347,7 +347,7 @@
                     {% if current_user.is_researcher() %}
                         <li><a href="/model-admin">Admin</a></li>
                     {% endif %}
-                    <li><a href="/logout" style="color: #ef4444;"><i data-lucide="log-out"></i> Logout</a></li>
+                    <li><a href="/logout" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 {% else %}
                     <li><a href="/demo">Demo</a></li>
                     <li><a href="/login" class="btn btn-primary">Login</a></li>
@@ -359,13 +359,13 @@
 
     <div class="symptom-checker-container">
         <div class="symptom-checker-header">
-            <h1><i data-lucide="stethoscope"></i> Symptom Checker</h1>
+            <h1><i class="fas fa-stethoscope"></i> Symptom Checker</h1>
             <p>Select symptoms you observe to identify potential cotton diseases</p>
         </div>
 
         <div class="checker-layout">
             <div class="symptoms-section">
-                <h2 class="section-title"><i data-lucide="list"></i> Select Symptoms</h2>
+                <h2 class="section-title"><i class="fas fa-list"></i> Select Symptoms</h2>
                 
                 <div class="category-tabs">
                     <button class="category-tab active" data-category="">All</button>
@@ -378,14 +378,14 @@
 
                 <div id="symptoms-list" class="symptoms-list">
                     <div class="loading">
-                        <i data-lucide="loader-2" class="lucide-spin"></i>
+                        <i class="fas fa-spinner"></i>
                         <p>Loading symptoms...</p>
                     </div>
                 </div>
             </div>
 
             <div class="results-section">
-                <h2 class="section-title"><i data-lucide="search"></i> Analysis Results</h2>
+                <h2 class="section-title"><i class="fas fa-search"></i> Analysis Results</h2>
                 
                 <div class="selected-symptoms">
                     <div class="selected-count">
@@ -398,7 +398,7 @@
                 </div>
 
                 <button id="check-btn" class="check-btn" onclick="checkSymptoms()" disabled>
-                    <i data-lucide="zoom-in"></i> Check Symptoms
+                    <i class="fas fa-search-plus"></i> Check Symptoms
                 </button>
 
                 <div id="results-container" class="results-container">
@@ -427,7 +427,7 @@
                 console.error('Error loading symptoms:', error);
                 document.getElementById('symptoms-list').innerHTML = `
                     <div class="no-results">
-                        <i data-lucide="alert-circle"></i>
+                        <i class="fas fa-exclamation-circle"></i>
                         <p>Error loading symptoms. Please try again.</p>
                     </div>
                 `;
@@ -440,7 +440,7 @@
             if (symptoms.length === 0) {
                 container.innerHTML = `
                     <div class="no-results">
-                        <i data-lucide="search"></i>
+                        <i class="fas fa-search"></i>
                         <p>No symptoms found in this category.</p>
                     </div>
                 `;
@@ -451,7 +451,7 @@
                 <div class="symptom-item ${selectedSymptoms.includes(symptom.id) ? 'selected' : ''}" 
                      onclick="toggleSymptom(${symptom.id})">
                     <div class="symptom-checkbox">
-                        <i data-lucide="check"></i>
+                        <i class="fas fa-check"></i>
                     </div>
                     <div class="symptom-info">
                         <div class="symptom-name">${symptom.name}</div>
@@ -486,7 +486,7 @@
                 return symptom ? `
                     <div class="symptom-tag">
                         ${symptom.name}
-                        <i data-lucide="x" onclick="event.stopPropagation(); toggleSymptom(${id})"></i>
+                        <i class="fas fa-times" onclick="event.stopPropagation(); toggleSymptom(${id})"></i>
                     </div>
                 ` : '';
             }).join('');
@@ -510,7 +510,7 @@
             resultsContainer.classList.add('active');
             resultsContent.innerHTML = `
                 <div class="loading">
-                    <i data-lucide="loader-2" class="lucide-spin"></i>
+                    <i class="fas fa-spinner"></i>
                     <p>Analyzing symptoms...</p>
                 </div>
             `;
@@ -531,7 +531,7 @@
                 if (data.results.length === 0) {
                     resultsContent.innerHTML = `
                         <div class="no-results">
-                            <i data-lucide="search"></i>
+                            <i class="fas fa-search"></i>
                             <p>No matching diseases found based on the selected symptoms.</p>
                             <p style="font-size: 0.9rem; margin-top: 10px;">Try selecting more symptoms or check the Disease Database for more information.</p>
                         </div>
@@ -555,7 +555,7 @@
                 console.error('Error checking symptoms:', error);
                 resultsContent.innerHTML = `
                     <div class="no-results">
-                        <i data-lucide="alert-circle"></i>
+                        <i class="fas fa-exclamation-circle"></i>
                         <p>Error analyzing symptoms. Please try again.</p>
                     </div>
                 `;

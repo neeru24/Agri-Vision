@@ -10,14 +10,14 @@
                 <p data-i18n="comp_hero_desc">Compare last week's cotton field photo with the current week using the same disease prediction model that powers Agri-Vision analysis.</p>
             </div>
             <div class="comparison-hero-badge">
-                <i data-lucide="brain"></i>
+                <i class="fas fa-brain"></i>
                 <span data-i18n="comp_model_badge">ResNet50 + Crop Health Score</span>
             </div>
         </div>
 
         <form class="comparison-upload-grid" id="comparisonForm" action="/comparison" method="POST" enctype="multipart/form-data">
             <div id="validation-error" class="alert alert-error" style="display:none; grid-column: 1 / -1; margin-bottom: 1.5rem;" role="alert">
-                <i data-lucide="alert-circle"></i>
+                <i class="fas fa-exclamation-circle"></i>
                 <span id="error-message"></span>
             </div>
 
@@ -33,7 +33,7 @@
                   <input type="file" id="lastWeekInput" name="last_week_image" accept="*/*" required data-preview-target="lastWeekPreview" data-file-label="lastWeekFile">
                     <div class="upload-placeholder">
                         <span class="comparison-upload-icon">
-                            <i data-lucide="cloud-arrow-up"></i>
+                            <i class="fas fa-cloud-arrow-up"></i>
                         </span>
                         <strong>Upload last week photo</strong>
                     
@@ -46,7 +46,7 @@
                     <button type="button"
                             class="remove-image-btn"
                             onclick="removeImage('lastWeekInput','lastWeekPreview','lastWeekFile', this)">
-                            <i data-lucide="x"></i>
+                            <i class="fas fa-times"></i>
                     </button>
                     <span id="lastWeekFile">No image selected</span>
                 </label>
@@ -72,7 +72,7 @@
                 
                     <div class="upload-placeholder">
                         <span class="comparison-upload-icon">
-                            <i data-lucide="leaf"></i>
+                            <i class="fas fa-leaf"></i>
                         </span>
                 
                         <strong>Upload current week photo</strong>
@@ -86,19 +86,19 @@
                     <button type="button"
                             class="remove-image-btn"
                             onclick="removeImage('currentWeekInput','currentWeekPreview','currentWeekFile', this)">
-                            <i data-lucide="x"></i>
+                            <i class="fas fa-times"></i>
                     </button>
                     <span id="currentWeekFile">No image selected</span>
                 
               </label>
                 <div id="duplicate-warning" style="display:none; color: #ff6b6b; font-size: 0.85rem; margin-top: 0.75rem; text-align: center; font-weight: 500;">
-                    <i data-lucide="alert-circle"></i> Please upload a different image for comparison.
+                    <i class="fas fa-exclamation-circle"></i> Please upload a different image for comparison.
               </div>
             </div>
 
             <div class="comparison-submit-row">
                 <button type="submit" class="btn btn-primary comparison-submit" data-i18n="comp_btn_submit">
-                    <i data-lucide="line-chart"></i>
+                    <i class="fas fa-chart-line"></i>
                     Compare Field Health
                 </button>
             </div>
@@ -107,7 +107,7 @@
         {% if error_message %}
         <div class="comparison-error-card glass-card fade-in">
             <div class="comparison-error-icon">
-                <i data-lucide="exclamation-triangle"></i>
+                <i class="fas fa-exclamation-triangle"></i>
             </div>
             <div>
                 <h2 data-i18n="comp_err_title">Unable to compare images</h2>
@@ -119,7 +119,7 @@
         {% if (old_results is defined and old_results.warnings) or (new_results is defined and new_results.warnings) %}
         <div class="comparison-warning-card glass-card fade-in">
             <div class="comparison-warning-icon">
-                <i data-lucide="alert-triangle"></i>
+                <i class="fas fa-triangle-exclamation"></i>
             </div>
             <div>
                 <h2 data-i18n="comp_warn_title">Comparison may be less reliable</h2>
@@ -194,9 +194,9 @@
                     <h2 data-i18n="comp_next_action">Next Field Action</h2>
                     <p data-i18n="{{ comparison.recommendation }}">{{ comparison.recommendation }}</p>
                     <div class="comparison-mini-meta">
-                        <span><i data-lucide="calendar-check"></i> {{ timestamp }}</span>
+                        <span><i class="fas fa-calendar-check"></i> {{ timestamp }}</span>
                         {% if new_results.growth.main_class %}
-                            <span><i data-lucide="leaf"></i> <span data-i18n="{{ new_results.growth.main_class }}">{{ new_results.growth.main_class }}</span></span>
+                            <span><i class="fas fa-seedling"></i> <span data-i18n="{{ new_results.growth.main_class }}">{{ new_results.growth.main_class }}</span></span>
                         {% endif %}
                     </div>
                 </div>

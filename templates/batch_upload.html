@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Batch Analysis - Agri-Vision</title>
     <link rel="stylesheet" href="/static/css/style.css">
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .batch-container {
             max-width: 1200px;
@@ -156,7 +156,7 @@
     <nav class="navbar">
         <div class="container">
             <a href="/" class="logo">
-                <i data-lucide="leaf"></i>
+                <i class="fas fa-leaf"></i>
                 <span>Agri-Vision</span>
             </a>
             <ul class="nav-menu">
@@ -170,16 +170,16 @@
 
     <div class="batch-container">
         <h1 style="text-align: center; margin-bottom: 30px;">
-            <i data-lucide="layer-group"></i> Batch Image Analysis
+            <i class="fas fa-layer-group"></i> Batch Image Analysis
         </h1>
         
         <div class="info-box">
-            <h3><i data-lucide="info"></i> How it works</h3>
+            <h3><i class="fas fa-info-circle"></i> How it works</h3>
             <p>Upload multiple cotton leaf images at once. Our system will process them in parallel using a queue system, providing real-time progress updates and comprehensive results.</p>
         </div>
         
         <div class="upload-zone" id="uploadZone">
-            <i data-lucide="upload-cloud" class="upload-icon"></i>
+            <i class="fas fa-cloud-upload-alt upload-icon"></i>
             <h2>Drag & Drop Images Here</h2>
             <p style="color: #666; margin-top: 10px;">or click to browse</p>
             <p style="color: #999; font-size: 14px; margin-top: 5px;">Supports: PNG, JPG, JPEG (Max 50MB total)</p>
@@ -196,7 +196,7 @@
         </div>
         
         <button class="btn-primary" id="uploadBtn" disabled>
-            <i data-lucide="rocket"></i> Start Batch Analysis
+            <i class="fas fa-rocket"></i> Start Batch Analysis
         </button>
     </div>
 
@@ -251,9 +251,9 @@
                 const item = document.createElement('div');
                 item.className = 'file-item';
                 item.innerHTML = `
-                    <span class="file-name"><i data-lucide="image"></i> ${file.name}</span>
+                    <span class="file-name"><i class="fas fa-image"></i> ${file.name}</span>
                     <span class="file-size">${formatFileSize(file.size)}</span>
-                    <i data-lucide="x" class="remove-file" onclick="removeFile(${index})"></i>
+                    <i class="fas fa-times remove-file" onclick="removeFile(${index})"></i>
                 `;
                 fileList.appendChild(item);
             });

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Disease Forecast - Agri-Vision</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .forecast-container {
             max-width: 1400px;
@@ -324,11 +324,11 @@
     <nav class="navbar" id="navbar">
         <div class="nav-container">
             <a href="/" class="nav-brand">
-                <i data-lucide="leaf"></i>
+                <i class="fas fa-seedling"></i>
                 <span>Agri-Vision</span>
             </a>
             <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
-                <i data-lucide="menu"></i>
+                <i class="fas fa-bars"></i>
             </button>
             <ul class="nav-menu" id="nav-menu">
                 <li><a href="/">Home</a></li>
@@ -346,7 +346,7 @@
                     {% if current_user.is_researcher() %}
                         <li><a href="/model-admin">Admin</a></li>
                     {% endif %}
-                    <li><a href="/logout" style="color: #ef4444;"><i data-lucide="log-out"></i> Logout</a></li>
+                    <li><a href="/logout" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 {% else %}
                     <li><a href="/demo">Demo</a></li>
                     <li><a href="/login" class="btn btn-primary">Login</a></li>
@@ -358,30 +358,30 @@
 
     <div class="forecast-container">
         <div class="forecast-header">
-            <h1><i data-lucide="cloud-sun-rain"></i> Disease Forecast Dashboard</h1>
+            <h1><i class="fas fa-cloud-sun-rain"></i> Disease Forecast Dashboard</h1>
             <p>Predict disease outbreaks 7-14 days in advance using weather data</p>
         </div>
 
         <div class="location-input-section">
             <div class="location-input-grid">
                 <div class="input-group">
-                    <label><i data-lucide="map-pin"></i> Location Name</label>
+                    <label><i class="fas fa-map-marker-alt"></i> Location Name</label>
                     <input type="text" id="location-name" placeholder="e.g., Punjab, India" value="Punjab, India">
                 </div>
                 <div class="input-group">
-                    <label><i data-lucide="globe"></i> Latitude</label>
+                    <label><i class="fas fa-globe"></i> Latitude</label>
                     <input type="number" id="latitude" placeholder="e.g., 30.3753" step="0.0001" value="30.3753">
                 </div>
                 <div class="input-group">
-                    <label><i data-lucide="globe"></i> Longitude</label>
+                    <label><i class="fas fa-globe"></i> Longitude</label>
                     <input type="number" id="longitude" placeholder="e.g., 76.7821" step="0.0001" value="76.7821">
                 </div>
                 <div class="input-group">
-                    <label><i data-lucide="calendar"></i> Forecast Days</label>
+                    <label><i class="fas fa-calendar"></i> Forecast Days</label>
                     <input type="number" id="forecast-days" placeholder="7-14" min="7" max="14" value="14">
                 </div>
                 <button class="get-forecast-btn" onclick="getForecast()">
-                    <i data-lucide="search"></i> Get Forecast
+                    <i class="fas fa-search"></i> Get Forecast
                 </button>
             </div>
         </div>
@@ -389,13 +389,13 @@
         <div id="error-container"></div>
 
         <div id="loading-container" class="loading" style="display: none;">
-            <i data-lucide="loader-2" class="lucide-spin"></i>
+            <i class="fas fa-spinner"></i>
             <p>Loading weather forecast and disease predictions...</p>
         </div>
 
         <div id="forecast-dashboard" class="forecast-dashboard">
             <div class="weather-summary">
-                <h3><i data-lucide="cloud"></i> Weather Summary for Next 7 Days</h3>
+                <h3><i class="fas fa-cloud"></i> Weather Summary for Next 7 Days</h3>
                 <div class="weather-grid" id="weather-summary">
                     <!-- Weather data will be loaded here -->
                 </div>
@@ -403,7 +403,7 @@
 
             <div class="disease-selector">
                 <label style="font-weight: 600; margin-bottom: 8px; display: block; color: var(--text-color);">
-                    <i data-lucide="virus"></i> Select Disease for Detailed Forecast
+                    <i class="fas fa-virus"></i> Select Disease for Detailed Forecast
                 </label>
                 <select id="disease-select" onchange="loadDiseaseForecast()">
                     <option value="">-- Select a disease --</option>
@@ -424,7 +424,7 @@
 
             <div class="forecast-chart" id="forecast-chart-section" style="display: none;">
                 <div class="chart-header">
-                    <h3><i data-lucide="line-chart"></i> 14-Day Risk Trend</h3>
+                    <h3><i class="fas fa-chart-line"></i> 14-Day Risk Trend</h3>
                     <p id="chart-disease-name" style="color: var(--text-color); opacity: 0.7;"></p>
                 </div>
                 <div class="chart-container" id="risk-chart">
@@ -433,7 +433,7 @@
             </div>
 
             <div class="recommendations-section" id="recommendations-section" style="display: none;">
-                <h3><i data-lucide="lightbulb"></i> Recommendations</h3>
+                <h3><i class="fas fa-lightbulb"></i> Recommendations</h3>
                 <div id="recommendations-list">
                     <!-- Recommendations will be loaded here -->
                 </div>
@@ -444,13 +444,13 @@
         <div class="historical-patterns-section" style="margin-top: 30px;">
             <div class="forecast-chart">
                 <div class="chart-header">
-                    <h3><i data-lucide="history"></i> Historical Pattern Analysis</h3>
+                    <h3><i class="fas fa-history"></i> Historical Pattern Analysis</h3>
                     <p style="color: var(--text-color); opacity: 0.7;">ML insights from historical disease occurrences</p>
                 </div>
                 
                 <div style="margin-bottom: 20px;">
                     <button class="get-forecast-btn" onclick="loadHistoricalPatterns()" style="padding: 10px 20px; font-size: 14px;">
-                        <i data-lucide="chart-bar"></i> Load Historical Analysis
+                        <i class="fas fa-chart-bar"></i> Load Historical Analysis
                     </button>
                 </div>
 
@@ -459,21 +459,21 @@
                     <div class="dashboard-grid" style="margin-bottom: 20px;">
                         <div class="risk-card">
                             <div class="risk-card-header">
-                                <h3><i data-lucide="chart-pie"></i> Total Occurrences</h3>
+                                <h3><i class="fas fa-chart-pie"></i> Total Occurrences</h3>
                             </div>
                             <div class="risk-value" id="total-occurrences">-</div>
                             <div class="risk-label">Historical records</div>
                         </div>
                         <div class="risk-card">
                             <div class="risk-card-header">
-                                <h3><i data-lucide="virus"></i> Most Common Disease</h3>
+                                <h3><i class="fas fa-virus"></i> Most Common Disease</h3>
                             </div>
                             <div class="risk-value" id="most-common-disease" style="font-size: 1.2rem;">-</div>
                             <div class="risk-label">Based on historical data</div>
                         </div>
                         <div class="risk-card">
                             <div class="risk-card-header">
-                                <h3><i data-lucide="map-pin"></i> High Risk Region</h3>
+                                <h3><i class="fas fa-map-marker-alt"></i> High Risk Region</h3>
                             </div>
                             <div class="risk-value" id="high-risk-region" style="font-size: 1.2rem;">-</div>
                             <div class="risk-label">Most affected area</div>
@@ -483,7 +483,7 @@
                     <!-- Peak Seasons Chart -->
                     <div class="forecast-chart" style="margin-bottom: 20px;">
                         <div class="chart-header">
-                            <h3><i data-lucide="calendar-alt"></i> Peak Disease Seasons</h3>
+                            <h3><i class="fas fa-calendar-alt"></i> Peak Disease Seasons</h3>
                         </div>
                         <div class="chart-container" id="peak-season-chart" style="height: 300px;">
                             <canvas id="peakSeasonChart"></canvas>
@@ -493,7 +493,7 @@
                     <!-- Regional Rankings -->
                     <div class="forecast-chart" style="margin-bottom: 20px;">
                         <div class="chart-header">
-                            <h3><i data-lucide="trophy"></i> Regional Disease Rankings</h3>
+                            <h3><i class="fas fa-trophy"></i> Regional Disease Rankings</h3>
                         </div>
                         <div id="regional-rankings" style="max-height: 300px; overflow-y: auto;">
                             <!-- Rankings will be loaded here -->
@@ -503,7 +503,7 @@
                     <!-- Disease Trends -->
                     <div class="forecast-chart" style="margin-bottom: 20px;">
                         <div class="chart-header">
-                            <h3><i data-lucide="line-chart"></i> Disease Trends (Last 12 Months)</h3>
+                            <h3><i class="fas fa-chart-line"></i> Disease Trends (Last 12 Months)</h3>
                         </div>
                         <div id="disease-trends" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
                             <!-- Trends will be loaded here -->
@@ -513,7 +513,7 @@
                     <!-- Weather Correlations -->
                     <div class="forecast-chart">
                         <div class="chart-header">
-                            <h3><i data-lucide="cloud-sun"></i> Weather-Disease Correlations</h3>
+                            <h3><i class="fas fa-cloud-sun"></i> Weather-Disease Correlations</h3>
                         </div>
                         <div id="weather-correlations" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
                             <!-- Correlations will be loaded here -->
@@ -590,22 +590,22 @@
 
             container.innerHTML = `
                 <div class="weather-item">
-                    <i data-lucide="thermometer-half"></i>
+                    <i class="fas fa-thermometer-half"></i>
                     <div class="value">${avgTemp.toFixed(1)}°C</div>
                     <div class="label">Avg Temp</div>
                 </div>
                 <div class="weather-item">
-                    <i data-lucide="tint"></i>
+                    <i class="fas fa-tint"></i>
                     <div class="value">${avgHumidity.toFixed(0)}%</div>
                     <div class="label">Avg Humidity</div>
                 </div>
                 <div class="weather-item">
-                    <i data-lucide="cloud-rain"></i>
+                    <i class="fas fa-cloud-rain"></i>
                     <div class="value">${totalRainfall.toFixed(1)}mm</div>
                     <div class="label">Total Rain</div>
                 </div>
                 <div class="weather-item">
-                    <i data-lucide="wind"></i>
+                    <i class="fas fa-wind"></i>
                     <div class="value">${avgWind.toFixed(1)}km/h</div>
                     <div class="label">Avg Wind</div>
                 </div>
@@ -644,7 +644,7 @@
                             <div class="risk-meter-fill" style="width: ${riskScore}%"></div>
                         </div>
                         <div class="risk-label">
-                            <i data-lucide="calendar-alt"></i> Next 7 days average: 
+                            <i class="fas fa-calendar-alt"></i> Next 7 days average: 
                             ${calculateAverageRisk(diseasePredictions.slice(0, 7)).toFixed(0)}%
                         </div>
                     </div>
@@ -734,7 +734,7 @@
             
             container.innerHTML = recommendations.map(rec => `
                 <div class="recommendation-item">
-                    <i data-lucide="check-circle"></i>
+                    <i class="fas fa-check-circle"></i>
                     <p>${rec}</p>
                 </div>
             `).join('');
@@ -743,7 +743,7 @@
         function showError(message) {
             document.getElementById('error-container').innerHTML = `
                 <div class="error-message">
-                    <i data-lucide="exclamation-triangle"></i> ${message}
+                    <i class="fas fa-exclamation-triangle"></i> ${message}
                 </div>
             `;
         }

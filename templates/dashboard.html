@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Agri-Vision</title>
     <link rel="stylesheet" href="/static/css/style.css">
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
@@ -374,11 +374,11 @@
     <nav class="navbar">
         <div class="container">
             <a href="/" class="logo">
-                <i data-lucide="leaf"></i>
+                <i class="fas fa-leaf"></i>
                 <span>Agri-Vision</span>
             </a>
             <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
-                <i data-lucide="menu"></i>
+                <i class="fas fa-bars"></i>
             </button>
             <ul class="nav-menu" id="nav-menu">
                 <li><a href="/">Home</a></li>
@@ -396,7 +396,7 @@
                     {% if current_user.is_researcher() %}
                         <li><a href="/model-admin">Admin</a></li>
                     {% endif %}
-                    <li><a href="/logout" style="color: #ef4444;"><i data-lucide="log-out"></i> Logout</a></li>
+                    <li><a href="/logout" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 {% else %}
                     <li><a href="/demo">Demo</a></li>
                     <li><a href="/login" class="btn btn-primary">Login</a></li>
@@ -409,18 +409,18 @@
     <div class="dashboard-container">
         <div class="dashboard-header">
             <div>
-                <h1><i data-lucide="line-chart"></i> Advanced Dashboard</h1>
+                <h1><i class="fas fa-chart-line"></i> Advanced Dashboard</h1>
                 <p>Real-time analytics and insights for your cotton crops</p>
             </div>
             <div>
                 <button onclick="refreshDashboard()" class="upload-btn" style="padding: 10px 20px;">
-                    <i data-lucide="sync-alt"></i> Refresh
+                    <i class="fas fa-sync-alt"></i> Refresh
                 </button>
             </div>
         </div>
         
         <div id="loading" class="loading">
-            <i data-lucide="loader-2" class="lucide-spin"></i>
+            <i class="fas fa-spinner"></i>
             <p>Loading dashboard data...</p>
         </div>
         
@@ -428,65 +428,65 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon" style="background: #dbeafe; color: #2563eb;">
-                        <i data-lucide="image"></i>
+                        <i class="fas fa-image"></i>
                     </div>
                     <div class="stat-value" id="total-analyses">0</div>
                     <div class="stat-label">Total Analyses</div>
-                    <div class="stat-change positive"><i data-lucide="arrow-up"></i> +12% this week</div>
+                    <div class="stat-change positive"><i class="fas fa-arrow-up"></i> +12% this week</div>
                 </div>
                 
                 <div class="stat-card">
                     <div class="stat-icon" style="background: #dcfce7; color: #16a34a;">
-                        <i data-lucide="heart"></i>
+                        <i class="fas fa-heart"></i>
                     </div>
                     <div class="stat-value" id="healthy-plants">0</div>
                     <div class="stat-label">Healthy Plants</div>
-                    <div class="stat-change positive"><i data-lucide="arrow-up"></i> +8% this week</div>
+                    <div class="stat-change positive"><i class="fas fa-arrow-up"></i> +8% this week</div>
                 </div>
                 
                 <div class="stat-card">
                     <div class="stat-icon" style="background: #fee2e2; color: #dc2626;">
-                        <i data-lucide="exclamation-triangle"></i>
+                        <i class="fas fa-exclamation-triangle"></i>
                     </div>
                     <div class="stat-value" id="diseased-plants">0</div>
                     <div class="stat-label">Diseased Plants</div>
-                    <div class="stat-change negative"><i data-lucide="arrow-down"></i> -5% this week</div>
+                    <div class="stat-change negative"><i class="fas fa-arrow-down"></i> -5% this week</div>
                 </div>
                 
                 <div class="stat-card">
                     <div class="stat-icon" style="background: #fef3c7; color: #d97706;">
-                        <i data-lucide="chart-bar"></i>
+                        <i class="fas fa-chart-bar"></i>
                     </div>
                     <div class="stat-value" id="avg-health">0%</div>
                     <div class="stat-label">Avg Health Score</div>
-                    <div class="stat-change positive"><i data-lucide="arrow-up"></i> +3% this week</div>
+                    <div class="stat-change positive"><i class="fas fa-arrow-up"></i> +3% this week</div>
                 </div>
             </div>
             
             <div class="charts-grid">
                 <div class="chart-card">
-                    <h3><i data-lucide="chart-pie"></i> Disease Distribution</h3>
+                    <h3><i class="fas fa-chart-pie"></i> Disease Distribution</h3>
                     <div class="chart-container">
                         <canvas id="diseaseChart"></canvas>
                     </div>
                 </div>
                 
                 <div class="chart-card">
-                    <h3><i data-lucide="line-chart"></i> Disease Trends (Last 7 Days)</h3>
+                    <h3><i class="fas fa-chart-line"></i> Disease Trends (Last 7 Days)</h3>
                     <div class="chart-container">
                         <canvas id="trendChart"></canvas>
                     </div>
                 </div>
                 
                 <div class="chart-card">
-                    <h3><i data-lucide="chart-bar"></i> Growth Stage Distribution</h3>
+                    <h3><i class="fas fa-chart-bar"></i> Growth Stage Distribution</h3>
                     <div class="chart-container">
                         <canvas id="growthChart"></canvas>
                     </div>
                 </div>
                 
                 <div class="chart-card">
-                    <h3><i data-lucide="map-pin"></i> Regional Analysis</h3>
+                    <h3><i class="fas fa-map-marker-alt"></i> Regional Analysis</h3>
                     <div class="chart-container">
                         <canvas id="regionChart"></canvas>
                     </div>
@@ -494,7 +494,7 @@
             </div>
             
             <div class="recent-activity">
-                <h3><i data-lucide="history"></i> Recent Activity</h3>
+                <h3><i class="fas fa-history"></i> Recent Activity</h3>
                 <div id="activity-list">
                     <!-- Activity items will be loaded here -->
                 </div>

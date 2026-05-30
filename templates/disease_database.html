@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Disease Database - Agri-Vision</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .disease-db-container {
             max-width: 1400px;
@@ -310,11 +310,11 @@
     <nav class="navbar" id="navbar">
         <div class="nav-container">
             <a href="/" class="nav-brand">
-                <i data-lucide="leaf"></i>
+                <i class="fas fa-seedling"></i>
                 <span>Agri-Vision</span>
             </a>
             <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
-                <i data-lucide="menu"></i>
+                <i class="fas fa-bars"></i>
             </button>
             <ul class="nav-menu" id="nav-menu">
                 <li><a href="/">Home</a></li>
@@ -322,7 +322,6 @@
                     <li><a href="/analyze">Analyze</a></li>
                     <li><a href="/batch">Batch</a></li>
                     <li><a href="/disease-map">Disease Map</a></li>
-                    <li><a href="/dashboard">Dashboard</a></li>
                     <li><a href="/reports">Reports</a></li>
                     <li><a href="/history">History</a></li>
                     <li><a href="/disease-database" class="active">Disease Database</a></li>
@@ -331,7 +330,7 @@
                     {% if current_user.is_researcher() %}
                         <li><a href="/model-admin">Admin</a></li>
                     {% endif %}
-                    <li><a href="/logout" style="color: #ef4444;"><i data-lucide="log-out"></i> Logout</a></li>
+                    <li><a href="/logout" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 {% else %}
                     <li><a href="/demo">Demo</a></li>
                     <li><a href="/login" class="btn btn-primary">Login</a></li>
@@ -343,18 +342,18 @@
 
     <div class="disease-db-container">
         <div class="disease-db-header">
-            <h1><i data-lucide="book-medical"></i> Cotton Disease Database</h1>
+            <h1><i class="fas fa-book-medical"></i> Cotton Disease Database</h1>
             <p>Comprehensive information about cotton diseases, symptoms, and treatments</p>
         </div>
 
         <div class="filters-section">
             <div class="filters-grid">
                 <div class="filter-group">
-                    <label><i data-lucide="search"></i> Search Diseases</label>
+                    <label><i class="fas fa-search"></i> Search Diseases</label>
                     <input type="text" id="search-input" placeholder="Search by name...">
                 </div>
                 <div class="filter-group">
-                    <label><i data-lucide="exclamation-triangle"></i> Severity</label>
+                    <label><i class="fas fa-exclamation-triangle"></i> Severity</label>
                     <select id="severity-filter">
                         <option value="">All Severities</option>
                         <option value="low">Low</option>
@@ -364,7 +363,7 @@
                     </select>
                 </div>
                 <div class="filter-group">
-                    <label><i data-lucide="leaf"></i> Affected Part</label>
+                    <label><i class="fas fa-leaf"></i> Affected Part</label>
                     <select id="affected-part-filter">
                         <option value="">All Parts</option>
                         <option value="leaves">Leaves</option>
@@ -378,7 +377,7 @@
 
         <div id="diseases-container" class="diseases-grid">
             <div class="loading">
-                <i data-lucide="loader-2" class="lucide-spin"></i>
+                <i class="fas fa-spinner"></i>
                 <p>Loading diseases...</p>
             </div>
         </div>
@@ -420,7 +419,7 @@
                 console.error('Error loading diseases:', error);
                 document.getElementById('diseases-container').innerHTML = `
                     <div class="no-results">
-                        <i data-lucide="alert-circle"></i>
+                        <i class="fas fa-exclamation-circle"></i>
                         <p>Error loading diseases. Please try again.</p>
                     </div>
                 `;
@@ -433,7 +432,7 @@
             if (diseases.length === 0) {
                 container.innerHTML = `
                     <div class="no-results">
-                        <i data-lucide="search"></i>
+                        <i class="fas fa-search"></i>
                         <p>No diseases found matching your criteria.</p>
                     </div>
                 `;
@@ -451,8 +450,8 @@
                     <div class="disease-card-body">
                         <p>${disease.description}</p>
                         <div class="disease-meta">
-                            <span><i data-lucide="leaf"></i> ${disease.affected_parts || 'Various'}</span>
-                            <span><i data-lucide="gauge"></i> ${disease.spread_rate} spread</span>
+                            <span><i class="fas fa-leaf"></i> ${disease.affected_parts || 'Various'}</span>
+                            <span><i class="fas fa-tachometer-alt"></i> ${disease.spread_rate} spread</span>
                         </div>
                     </div>
                 </div>
@@ -477,8 +476,8 @@
                             ${treatment.timing ? `<p><strong>Timing:</strong> ${treatment.timing}</p>` : ''}
                             ${treatment.application_method ? `<p><strong>Application:</strong> ${treatment.application_method}</p>` : ''}
                             <div class="treatment-meta">
-                                <span><i data-lucide="check-circle"></i> Effectiveness: ${treatment.effectiveness}</span>
-                                <span><i data-lucide="dollar-sign"></i> Cost: ${treatment.cost}</span>
+                                <span><i class="fas fa-check-circle"></i> Effectiveness: ${treatment.effectiveness}</span>
+                                <span><i class="fas fa-dollar-sign"></i> Cost: ${treatment.cost}</span>
                             </div>
                         </div>
                     `).join('');
@@ -488,33 +487,33 @@
 
                 document.getElementById('modal-body').innerHTML = `
                     <div class="modal-section">
-                        <h3><i data-lucide="info"></i> Description</h3>
+                        <h3><i class="fas fa-info-circle"></i> Description</h3>
                         <p>${disease.description}</p>
                     </div>
                     
                     ${disease.scientific_name ? `
                     <div class="modal-section">
-                        <h3><i data-lucide="flask-conical"></i> Scientific Name</h3>
+                        <h3><i class="fas fa-flask"></i> Scientific Name</h3>
                         <p><em>${disease.scientific_name}</em></p>
                     </div>
                     ` : ''}
                     
                     ${disease.causes ? `
                     <div class="modal-section">
-                        <h3><i data-lucide="bug"></i> Causes</h3>
+                        <h3><i class="fas fa-bug"></i> Causes</h3>
                         <p>${disease.causes}</p>
                     </div>
                     ` : ''}
                     
                     ${disease.symptoms ? `
                     <div class="modal-section">
-                        <h3><i data-lucide="stethoscope"></i> Symptoms</h3>
+                        <h3><i class="fas fa-stethoscope"></i> Symptoms</h3>
                         <p>${disease.symptoms}</p>
                     </div>
                     ` : ''}
                     
                     <div class="modal-section">
-                        <h3><i data-lucide="line-chart"></i> Disease Characteristics</h3>
+                        <h3><i class="fas fa-chart-line"></i> Disease Characteristics</h3>
                         <p><strong>Severity:</strong> <span class="severity-badge severity-${disease.severity}">${disease.severity.toUpperCase()}</span></p>
                         <p><strong>Spread Rate:</strong> ${disease.spread_rate}</p>
                         <p><strong>Affected Parts:</strong> ${disease.affected_parts || 'Various'}</p>
@@ -522,20 +521,20 @@
                     
                     ${disease.favorable_conditions ? `
                     <div class="modal-section">
-                        <h3><i data-lucide="cloud-sun"></i> Favorable Conditions</h3>
+                        <h3><i class="fas fa-cloud-sun"></i> Favorable Conditions</h3>
                         <p>${disease.favorable_conditions}</p>
                     </div>
                     ` : ''}
                     
                     ${disease.prevention ? `
                     <div class="modal-section">
-                        <h3><i data-lucide="shield"></i> Prevention</h3>
+                        <h3><i class="fas fa-shield-alt"></i> Prevention</h3>
                         <p>${disease.prevention}</p>
                     </div>
                     ` : ''}
                     
                     <div class="modal-section">
-                        <h3><i data-lucide="pills"></i> Treatments</h3>
+                        <h3><i class="fas fa-pills"></i> Treatments</h3>
                         <div class="treatments-list">
                             ${treatmentsHtml}
                         </div>

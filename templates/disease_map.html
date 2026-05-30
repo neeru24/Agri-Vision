@@ -6,7 +6,7 @@
     <title>Disease Map - Agri-Vision</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             margin: 0;
@@ -178,7 +178,7 @@
     <nav class="navbar">
         <div class="container">
             <a href="/" class="logo">
-                <i data-lucide="leaf"></i>
+                <i class="fas fa-leaf"></i>
                 <span>Agri-Vision</span>
             </a>
             <ul class="nav-menu">
@@ -188,12 +188,11 @@
                     <li><a href="/batch">Batch</a></li>
                     <li><a href="/history">History</a></li>
                     <li><a href="/disease-map" class="active">Disease Map</a></li>
-                    <li><a href="/dashboard">Dashboard</a></li>
                     <li><a href="/profile">Profile</a></li>
                     {% if current_user.is_researcher() %}
                         <li><a href="/model-admin">Admin</a></li>
                     {% endif %}
-                    <li><a href="/logout" style="color: #ef4444;"><i data-lucide="log-out"></i> Logout</a></li>
+                    <li><a href="/logout" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 {% else %}
                     <li><a href="/demo">Demo</a></li>
                     <li><a href="/login" class="btn btn-primary">Login</a></li>
@@ -207,7 +206,7 @@
         <div id="map"></div>
         
         <div class="map-controls">
-            <h3><i data-lucide="filter"></i> Filters</h3>
+            <h3><i class="fas fa-filter"></i> Filters</h3>
             
             <div class="filter-group">
                 <label for="disease-filter">Disease Type</label>
@@ -246,11 +245,11 @@
             </div>
             
             <button class="btn-refresh" onclick="refreshMap()">
-                <i data-lucide="sync-alt"></i> Refresh Map
+                <i class="fas fa-sync-alt"></i> Refresh Map
             </button>
             
             <div class="legend">
-                <h4><i data-lucide="info"></i> Legend</h4>
+                <h4><i class="fas fa-info-circle"></i> Legend</h4>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #22c55e;"></div>
                     <span>Healthy</span>
@@ -279,7 +278,7 @@
         </div>
         
         <div class="stats-panel">
-            <h3><i data-lucide="chart-bar"></i> Statistics</h3>
+            <h3><i class="fas fa-chart-bar"></i> Statistics</h3>
             <div class="stat-item">
                 <span class="stat-label">Total Analyses</span>
                 <span class="stat-value" id="total-analyses">0</span>
@@ -303,7 +302,7 @@
         </div>
         
         <div class="loading" id="loading">
-            <i data-lucide="loader-2" class="lucide-spin"></i>
+            <i class="fas fa-spinner"></i>
             <p style="margin-top: 10px; color: #666;">Loading map data...</p>
         </div>
     </div>

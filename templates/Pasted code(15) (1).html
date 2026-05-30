@@ -21,7 +21,7 @@
     <!-- PDF.js for PDF to Image conversion -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <!-- Three.js CDN for interactive 3D model simulation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
     <style>
         /* ═══════════════════════════════════════
            CHATBOT WIDGET — Full Premium CSS
@@ -283,81 +283,6 @@
                 opacity: 0.7;
             }
         }
-
-        /* Mobile Navigation Styles */
-        .nav-toggle {
-            display: block !important;
-            background: #667eea !important;
-            border: none !important;
-            color: white !important;
-            font-size: 24px !important;
-            cursor: pointer !important;
-            padding: 10px 15px !important;
-            border-radius: 8px !important;
-            z-index: 1001 !important;
-            transition: all 0.3s ease !important;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
-        }
-
-        .nav-toggle:hover {
-            background: #5568d3 !important;
-            transform: scale(1.05) !important;
-        }
-
-        @media (min-width: 769px) {
-            .nav-toggle {
-                display: none !important;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .nav-menu {
-                display: flex !important;
-                position: fixed !important;
-                top: 0 !important;
-                right: -100% !important;
-                width: 280px !important;
-                height: 100vh !important;
-                background: #ffffff !important;
-                flex-direction: column !important;
-                padding: 80px 20px 20px !important;
-                box-shadow: -5px 0 15px rgba(0,0,0,0.1) !important;
-                transition: right 0.3s ease !important;
-                z-index: 1000 !important;
-                gap: 10px !important;
-                list-style: none !important;
-                margin: 0 !important;
-            }
-
-            .nav-menu.active {
-                right: 0 !important;
-            }
-
-            .nav-menu li {
-                width: 100% !important;
-                margin: 0 !important;
-            }
-
-            .nav-menu li a {
-                display: block !important;
-                padding: 15px 20px !important;
-                border-radius: 8px !important;
-                transition: background 0.2s !important;
-                color: #333 !important;
-                text-decoration: none !important;
-                font-weight: 600 !important;
-            }
-
-            .nav-menu li a:hover {
-                background: #f0f0f0 !important;
-            }
-
-            .nav-menu .btn {
-                width: 100% !important;
-                text-align: center !important;
-                margin-top: 10px !important;
-            }
-        }
     </style>
 </head>
 
@@ -376,17 +301,16 @@
                     Agri-Vision
                 </span>
             </a>
-
-            <ul class="nav-menu" id="nav-menu">
+            <ul class="nav-menu">
                 <li><a href="/" data-i18n="home">Home</a></li>
-                <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
-                    <i class="fas fa-bars"></i>
-                </button>
                 {% if current_user.is_authenticated %}
                     <li><a href="/analyze">Analyze</a></li>
+                    <li><a href="/batch" style="font-weight: bold; color: #667eea;">📦 Batch</a></li>
+                    <li><a href="/disease-map" style="font-weight: bold; color: #667eea;">🗺️ Disease Map</a></li>
                     <li><a href="/dashboard" style="font-weight: bold; color: #667eea;">📊 Dashboard</a></li>
                     <li><a href="/reports" style="font-weight: bold; color: #667eea;">📄 Reports</a></li>
                     <li><a href="/history">History</a></li>
+                    <li><a href="/profile">Profile</a></li>
                     {% if current_user.is_researcher() %}
                         <li><a href="/model-admin" style="font-weight: bold; color: #667eea;">🤖 Admin</a></li>
                     {% endif %}
@@ -1318,51 +1242,6 @@
             <i class="fas fa-arrow-up"></i>
         </button>
         <script>
-    // Mobile Navigation Toggle
-    const navToggle = document.getElementById('nav-toggle');
-    const navMenu = document.getElementById('nav-menu');
-
-    console.log('Nav toggle:', navToggle);
-    console.log('Nav menu:', navMenu);
-
-    if (navToggle && navMenu) {
-        navToggle.addEventListener('click', () => {
-            console.log('Toggle clicked, current classes:', navMenu.classList);
-            navMenu.classList.toggle('active');
-            console.log('After toggle, classes:', navMenu.classList);
-            const icon = navToggle.querySelector('i');
-            if (navMenu.classList.contains('active')) {
-                icon.classList.remove('fa-bars');
-                icon.classList.add('fa-times');
-            } else {
-                icon.classList.remove('fa-times');
-                icon.classList.add('fa-bars');
-            }
-        });
-
-        // Close menu when clicking on a link
-        navMenu.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                navMenu.classList.remove('active');
-                const icon = navToggle.querySelector('i');
-                icon.classList.remove('fa-times');
-                icon.classList.add('fa-bars');
-            });
-        });
-
-        // Close menu when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!navMenu.contains(e.target) && !navToggle.contains(e.target)) {
-                navMenu.classList.remove('active');
-                const icon = navToggle.querySelector('i');
-                icon.classList.remove('fa-times');
-                icon.classList.add('fa-bars');
-            }
-        });
-    } else {
-        console.error('Navigation elements not found!');
-    }
-
     const scrollBtn =
         document.getElementById("scrollTopBtn");
 

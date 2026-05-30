@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile - Agri-Vision</title>
     <link rel="stylesheet" href="/static/css/style.css">
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .profile-container {
             max-width: 1200px;
@@ -223,7 +223,7 @@
     <nav class="navbar">
         <div class="container">
             <a href="/" class="logo">
-                <i data-lucide="leaf"></i>
+                <i class="fas fa-leaf"></i>
                 <span>Agri-Vision</span>
             </a>
             <ul class="nav-menu">
@@ -232,7 +232,7 @@
                 <li><a href="/batch">Batch</a></li>
                 <li><a href="/history">History</a></li>
                 <li><a href="/profile" class="active">Profile</a></li>
-                <li><a href="/logout" style="color: #ef4444;"><i data-lucide="log-out"></i> Logout</a></li>
+                <li><a href="/logout" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </div>
     </nav>
@@ -240,14 +240,14 @@
     <div class="profile-container">
         <div class="profile-header">
             <div class="profile-avatar">
-                <i data-lucide="user"></i>
+                <i class="fas fa-user"></i>
             </div>
             <div class="profile-info">
                 <h1>{{ current_user.full_name }}</h1>
-                <p><i data-lucide="mail"></i> {{ current_user.email }}</p>
-                <p><i data-lucide="calendar"></i> Member since: {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
+                <p><i class="fas fa-envelope"></i> {{ current_user.email }}</p>
+                <p><i class="fas fa-calendar"></i> Member since: {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
                 <div class="profile-badge">
-                    <i data-lucide="user-tag"></i> {{ current_user.role|capitalize }}
+                    <i class="fas fa-user-tag"></i> {{ current_user.role|capitalize }}
                 </div>
             </div>
         </div>
@@ -268,11 +268,11 @@
         </div>
         
         <div class="settings-section">
-            <h2><i data-lucide="settings"></i> Account Settings</h2>
+            <h2><i class="fas fa-cog"></i> Account Settings</h2>
             <div class="settings-list">
                 <div class="settings-item">
                     <div class="settings-item-info">
-                        <i data-lucide="key"></i>
+                        <i class="fas fa-key"></i>
                         <div>
                             <strong>Change Password</strong>
                             <span>Update your password for security</span>
@@ -282,7 +282,7 @@
                 </div>
                 <div class="settings-item">
                     <div class="settings-item-info">
-                        <i data-lucide="mail"></i>
+                        <i class="fas fa-envelope"></i>
                         <div>
                             <strong>Update Email</strong>
                             <span>Change your email address</span>
@@ -292,7 +292,7 @@
                 </div>
                 <div class="settings-item">
                     <div class="settings-item-info">
-                        <i data-lucide="trash"></i>
+                        <i class="fas fa-trash"></i>
                         <div>
                             <strong>Delete Account</strong>
                             <span>Permanently delete your account</span>
@@ -304,12 +304,12 @@
         </div>
         
         <div class="recent-activity">
-            <h2><i data-lucide="history"></i> Recent Activity</h2>
+            <h2><i class="fas fa-history"></i> Recent Activity</h2>
             {% if current_user.analyses %}
                 {% for analysis in current_user.analyses[-5:]|reverse %}
                 <div class="activity-item">
                     <div class="activity-icon">
-                        <i data-lucide="leaf"></i>
+                        <i class="fas fa-leaf"></i>
                     </div>
                     <div class="activity-info">
                         <strong>Image Analysis</strong>
