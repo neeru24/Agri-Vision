@@ -44,6 +44,12 @@ def client(app_with_db):
         yield client
 
 
+@pytest.fixture(autouse=True)
+def disable_rate_limiting(monkeypatch):
+    """Disable rate limiting for all tests since Redis may be active."""
+    monkeypatch.setattr(app.limiter, "limit", lambda *args, **kwargs: lambda f: f)
+
+
 @pytest.fixture
 def valid_image():
     img_byte_arr = io.BytesIO()
