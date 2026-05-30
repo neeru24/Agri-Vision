@@ -9,7 +9,7 @@ def app():
     """Configures the Flask app for testing."""
     flask_app.config.update({
         "TESTING": True,
-        # Max content length is kept at 10MB to test oversized file uploads
+        "MAX_CONTENT_LENGTH": 10 * 1024 * 1024,  # 10MB to test oversized file uploads
     })
     return flask_app
 
@@ -20,8 +20,13 @@ def client(app):
 
 @pytest.fixture
 def valid_image():
-    """Generates a valid green 100x100 PNG image in-memory."""
-    img = Image.new('RGB', (100, 100), color='green')
+    """Generates a valid 300x300 PNG image with sufficient detail to pass quality checks."""
+    import numpy as np
+    pixels = np.random.randint(50, 200, (300, 300, 3), dtype=np.uint8)
+    pixels[50:250, 50:250] = np.random.randint(30, 150, (200, 200, 3), dtype=np.uint8)
+    pixels[100:200, 100:200] = np.random.randint(60, 180, (100, 100, 3), dtype=np.uint8)
+    pixels[120:180, 120:180] = np.random.randint(10, 100, (60, 60, 3), dtype=np.uint8)
+    img = Image.fromarray(pixels, 'RGB')
     img_byte_arr = io.BytesIO()
     img.save(img_byte_arr, format='PNG')
     img_byte_arr.seek(0)

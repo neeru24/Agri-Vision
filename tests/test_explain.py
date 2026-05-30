@@ -19,7 +19,12 @@ def client():
 @pytest.fixture
 def valid_image():
     img_byte_arr = io.BytesIO()
-    Image.new("RGB", (100, 100), color="green").save(img_byte_arr, format="PNG")
+    import numpy as np
+    pixels = np.random.randint(50, 200, (300, 300, 3), dtype=np.uint8)
+    pixels[50:250, 50:250] = np.random.randint(30, 150, (200, 200, 3), dtype=np.uint8)
+    pixels[100:200, 100:200] = np.random.randint(60, 180, (100, 100, 3), dtype=np.uint8)
+    pixels[120:180, 120:180] = np.random.randint(10, 100, (60, 60, 3), dtype=np.uint8)
+    Image.fromarray(pixels).save(img_byte_arr, format="PNG")
     img_byte_arr.seek(0)
     return img_byte_arr
 
@@ -78,7 +83,6 @@ def test_grad_cam_cache(monkeypatch):
     monkeypatch.setattr(app.model_manager, "resnet_model", model)
     monkeypatch.setattr(app.model_manager, "yolo_model", None)
     monkeypatch.setattr(app.model_manager, "loaded", True)
-    monkeypatch.setattr(app, "resnet_model", model)
     
     dummy_img = np.zeros((64, 64, 3), dtype=np.uint8)
     image_hash = hashlib.sha256(dummy_img.tobytes()).hexdigest()
@@ -108,7 +112,6 @@ def test_grad_cam_failure_does_not_break_prediction(monkeypatch):
     monkeypatch.setattr(app.model_manager, "resnet_model", model)
     monkeypatch.setattr(app.model_manager, "yolo_model", None)
     monkeypatch.setattr(app.model_manager, "loaded", True)
-    monkeypatch.setattr(app, "resnet_model", model)
     monkeypatch.setattr(app, "generate_gradcam_explanation", fail_gradcam)
 
     res = app.analyze_image(np.zeros((64, 64, 3), dtype=np.uint8))

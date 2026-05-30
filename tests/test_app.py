@@ -18,6 +18,7 @@ import app
 def app_with_db():
     app.app.config["TESTING"] = True
     app.app.config["LOGIN_DISABLED"] = True
+    app.app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 50MB for oversized test
     app.app.config["UPLOAD_FOLDER"] = "./static/uploads"
     app.app.config["SECRET_KEY"] = "test-secret"
     app.app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
@@ -47,7 +48,14 @@ def client(app_with_db):
 @pytest.fixture
 def valid_image():
     img_byte_arr = io.BytesIO()
-    Image.new("RGB", (100, 100), color="green").save(img_byte_arr, format="PNG")
+    import numpy as np
+    pixels = np.random.randint(50, 200, (300, 300, 3), dtype=np.uint8)
+    # Add some structure to increase entropy and reduce blur
+    pixels[50:250, 50:250] = np.random.randint(30, 150, (200, 200, 3), dtype=np.uint8)
+    pixels[100:200, 100:200] = np.random.randint(60, 180, (100, 100, 3), dtype=np.uint8)
+    pixels[120:180, 120:180] = np.random.randint(10, 100, (60, 60, 3), dtype=np.uint8)
+    img = Image.fromarray(pixels)
+    img.save(img_byte_arr, format="PNG")
     img_byte_arr.seek(0)
     return img_byte_arr
 
@@ -59,7 +67,7 @@ def invalid_file():
 
 @pytest.fixture
 def oversized_file():
-    return io.BytesIO(b"0" * (11 * 1024 * 1024))  # 11MB file to test limit
+    return io.BytesIO(b"0" * (51 * 1024 * 1024))  # 51MB file to test limit
 
 
 # Mocking deep learning models for active path checks
@@ -109,7 +117,6 @@ def test_preprocess_image_for_resnet():
 def test_infer_disease_fallback(monkeypatch):
     monkeypatch.setattr(app.model_manager, "resnet_model", None)
     monkeypatch.setattr(app.model_manager, "loaded", True)
-    monkeypatch.setattr(app, "resnet_model", None)
     dummy_img = np.zeros((100, 100, 3), dtype=np.uint8)
     res = app.infer_disease(dummy_img)
     assert "predicted_class" in res
@@ -121,7 +128,6 @@ def test_infer_disease_fallback(monkeypatch):
 def test_infer_disease_active(monkeypatch):
     monkeypatch.setattr(app.model_manager, "resnet_model", MockResNetModel())
     monkeypatch.setattr(app.model_manager, "loaded", True)
-    monkeypatch.setattr(app, "resnet_model", MockResNetModel())
     dummy_img = np.zeros((100, 100, 3), dtype=np.uint8)
     res = app.infer_disease(dummy_img)
     assert res["predicted_class"] == "Healthy"
@@ -510,17 +516,19 @@ def test_datetimeformat_filter():
 
 # Boundary coverage checks for fallback triggers
 def test_load_models_coverage(monkeypatch):
-    orig_resnet = app.resnet_model
-    orig_yolo = app.yolo_model
-    app.resnet_model = None
-    app.yolo_model = None
+    orig_resnet = app.model_manager.resnet_model
+    orig_yolo = app.model_manager.yolo_model
+    app.model_manager.resnet_model = None
+    app.model_manager.yolo_model = None
+    app.model_manager.loaded = False
 
     try:
-        resnet, yolo = app.load_models()
-        assert app.resnet_model is not None or app.resnet_model is None
+        resnet, yolo = app.model_manager.load_models()
+        assert resnet is not None or resnet is None
     finally:
-        app.resnet_model = orig_resnet
-        app.yolo_model = orig_yolo
+        app.model_manager.resnet_model = orig_resnet
+        app.model_manager.yolo_model = orig_yolo
+        app.model_manager.loaded = True
 
 
 def test_post_analyze_invalid_image_none(client, monkeypatch, valid_image):
