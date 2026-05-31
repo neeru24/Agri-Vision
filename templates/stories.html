@@ -53,65 +53,125 @@
 {% block content %}
 
 <style>
+    .stories-page {
+        margin-top: 130px;
+        margin-bottom: 70px;
+    }
+
+    .stories-section {
+        width: 100%;
+    }
+
+    .stories-header {
+        max-width: 720px;
+        margin: 0 auto 3rem;
+        text-align: center;
+    }
+
+    .stories-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.9rem;
+        color: var(--emerald-green, #2e8b57);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+    }
+
+    .badge-dot {
+        width: 0.6rem;
+        height: 0.6rem;
+        border-radius: 50%;
+        background: var(--emerald-green, #2e8b57);
+        box-shadow: 0 0 0 0.25rem rgba(46, 139, 87, 0.12);
+    }
+
+    .stories-header h1 {
+        margin-bottom: 0.75rem;
+        color: var(--deep-forest);
+        font-weight: 800;
+    }
+
+    .stories-header p {
+        margin: 0;
+        color: var(--text-muted, #6b7280);
+    }
+
+    .stories-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+        gap: 1.5rem;
+        align-items: stretch;
+    }
+
     .story-card {
         cursor: pointer;
-        transition: all 0.3s ease;
+        display: flex;
+        min-height: 100%;
+        border: 1px solid rgba(46, 139, 87, 0.14);
         border-radius: 18px;
+        background: var(--card-bg);
+        box-shadow: var(--soft-shadow);
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        overflow: hidden;
     }
 
     .story-card:hover {
         transform: translateY(-6px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+        border-color: rgba(46, 139, 87, 0.36);
+        box-shadow: 0 16px 34px rgba(46, 139, 87, 0.16);
     }
 
-    .modal-content {
-        height: auto !important;
-        min-height: auto !important;
-        border-radius: 18px;
+    .story-card .card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        width: 100%;
+        padding: 1.5rem;
     }
 
-    .modal-body p {
-        height: auto !important;
-        line-height: 1.7;
+    .story-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
     }
 
-    .modal-content {
-        border-radius: 18px;
-        background-color: var(--card-bg);
-        color: var(--text-primary);
-        border: 1px solid rgba(255,255,255,0.08);
+    .story-name {
+        color: var(--deep-forest);
+        font-size: 1.15rem;
+        font-weight: 800;
+        line-height: 1.25;
     }
 
-    .modal-header {
-        border-bottom: 1px solid rgba(255,255,255,0.08);
+    .story-location {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        color: var(--text-muted, #6b7280);
+        font-size: 0.92rem;
     }
 
-    .modal-body {
-        color: var(--text-primary);
+    .story-yield-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        width: fit-content;
+        padding: 0.55rem 0.75rem;
+        border: 1px solid rgba(46, 139, 87, 0.18);
+        border-radius: 999px;
+        background: rgba(46, 139, 87, 0.08);
     }
-
-    .modal-title {
-        color: var(--text-primary);
-    }
-    .dark-theme .btn-close {
-        filter: invert(1);
-    }
-</style>
-
-<div class="container" style="margin-top: 130px; margin-bottom: 70px;">
-
-    <!-- Header -->
-    <div class="text-center mb-5 stories-header">
-        <h1 class="fw-bold">Farmer Success Stories</h1>
 
     .yield-icon {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background: rgba(46,139,87,0.18);
-        display: flex;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 50%;
+        background: rgba(46, 139, 87, 0.18);
+        color: var(--emerald-green, #2e8b57);
         font-size: 0.68rem;
     }
 
@@ -125,9 +185,9 @@
     .yield-value {
         font-size: 0.92rem;
         font-weight: 800;
+        color: var(--deep-forest);
     }
 
-    /* ─── Divider ─────────────────────────────────────────── */
     .story-divider {
         height: 1px;
         background: linear-gradient(
@@ -140,18 +200,17 @@
         margin: 0;
     }
 
-    /* ─── Card: Testimonial Quote ─────────────────────────── */
     .story-quote {
+        flex: 1;
         font-size: 0.91rem;
         line-height: 1.7;
-        color: #5c5c5c;;
+        color: var(--text-muted, #5c5c5c);
         font-style: italic;
         position: relative;
         padding-left: 18px;
         margin: 0;
     }
 
-    /* Left accent bar — mirrors feature-card icon accent */
     .story-quote::before {
         content: '';
         position: absolute;
@@ -168,7 +227,34 @@
         opacity: 0.55;
     }
 
-    /* ─── Dark Theme Overrides ────────────────────────────── */
+    .modal-content {
+        height: auto !important;
+        min-height: auto !important;
+        border-radius: 18px;
+        background-color: var(--card-bg);
+        color: var(--text-main);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .modal-body p {
+        height: auto !important;
+        line-height: 1.7;
+    }
+
+    .modal-header {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .modal-body,
+    .modal-title {
+        color: var(--text-main);
+    }
+
+    .dark-theme .btn-close,
+    [data-theme="dark"] .btn-close {
+        filter: invert(1);
+    }
+
     [data-theme="dark"] .story-card {
         background: rgba(18, 30, 20, 0.72);
         border-color: rgba(46,139,87,0.22);
@@ -184,6 +270,10 @@
     }
 
     [data-theme="dark"] .story-name {
+        color: #f0fdf4;
+    }
+
+    [data-theme="dark"] .yield-value {
         color: #f0fdf4;
     }
 
@@ -203,12 +293,8 @@
         );
     }
 
-    /* ─── Reduced Motion ──────────────────────────────────── */
     @media (prefers-reduced-motion: reduce) {
         .story-card {
-            animation: none;
-            opacity: 1;
-            transform: none;
             transition: box-shadow 0.2s ease, border-color 0.2s ease;
         }
         .story-card:hover {
@@ -218,276 +304,172 @@
             animation: none;
         }
     }
+
+    @media (max-width: 576px) {
+        .stories-page {
+            margin-top: 110px;
+        }
+
+        .story-card .card-body {
+            padding: 1.25rem;
+        }
+    }
 </style>
 
-<section class="stories-section">
-    <!-- ── Section Header ── -->
-    <div class="stories-header">
-        <div class="stories-eyebrow">
-            <span class="badge-dot"></span>
-            REAL RESULTS · REAL FARMERS
+<div class="container stories-page">
+    <section class="stories-section">
+        <div class="stories-header">
+            <div class="stories-eyebrow">
+                <span class="badge-dot"></span>
+                REAL RESULTS - REAL FARMERS
+            </div>
+            <h1>Farmer Success Stories</h1>
+            <p>
+                Real stories from farmers using Agri-Vision to improve crop health and productivity.
+            </p>
         </div>
-        <h1>Farmer Success Stories</h1>
-        <p>
-            Real stories from farmers using Agri-Vision to improve crop health and productivity.
-        </p>
-    </div>
 
-    <!-- Stories Grid -->
-    <div class="row g-4 justify-content-center align-items-stretch stories-grid">
-
-        <!-- Farmer 1 -->
-        <div class="col-lg-4 col-md-6 d-flex">
+        <div class="stories-grid">
             <div class="card h-100 story-card"
                  data-bs-toggle="modal"
                  data-bs-target="#story1Modal">
-
                 <div class="card-body">
-                    <h3 class="fw-bold mb-2" style="color: var(--deep-forest);">
-                        Ramesh Kumar
-                    </h3>
-
-                    <p class="mb-2 lead-text">
-                        Andhra Pradesh
-                    </p>
-
-                    <div class="mb-2">
-                        <span class="fw-semibold stat-label">
-                            Yield Improvement:
-                        </span>
-
-                        <span class="fw-bold stat-value">
-                            30%
+                    <div class="story-meta">
+                        <span class="story-name">Ramesh Kumar</span>
+                        <span class="story-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            Andhra Pradesh
                         </span>
                     </div>
-
-                    <p class="mb-0" style="color: var(--deep-forest);">
-                        “Agri-Vision helped me identify crop diseases early and save my tomato farm.”
+                    <div class="story-yield-badge">
+                        <span class="yield-icon"><i class="fas fa-arrow-up"></i></span>
+                        <span class="yield-label">Yield:</span>
+                        <span class="yield-value">+30%</span>
+                    </div>
+                    <hr class="story-divider">
+                    <p class="story-quote">
+                        "Agri-Vision helped me identify crop diseases early and save my tomato farm."
                     </p>
                 </div>
             </div>
-            <div class="story-meta">
-                <span class="story-name">Ramesh Kumar</span>
-                <span class="story-location">
-                    <i class="fas fa-map-marker-alt"></i>
-                    Andhra Pradesh
-                </span>
-            </div>
-            <div class="story-yield-badge">
-                <span class="yield-icon"><i class="fas fa-arrow-up"></i></span>
-                <span class="yield-label">Yield:</span>
-                <span class="yield-value">+30%</span>
-            </div>
-            <hr class="story-divider">
-            <p class="story-quote">
-                "Agri-Vision helped me identify crop diseases early and save my tomato farm."
-            </p>
-        </div>
 
-        <!-- Farmer 2 -->
-        <div class="col-lg-4 col-md-6 d-flex">
             <div class="card h-100 story-card"
                  data-bs-toggle="modal"
                  data-bs-target="#story2Modal">
-
                 <div class="card-body">
-                    <h3 class="fw-bold mb-2" style="color: var(--deep-forest);">
-                        Lakshmi Devi
-                    </h3>
-
-                    <p class="mb-2 lead-text">
-                        Karnataka
-                    </p>
-
-                    <div class="mb-3">
-                        <span class="fw-semibold stat-label">
-                            Yield Improvement:
-                        </span>
-
-                        <span class="fw-bold stat-value">
-                            25%
+                    <div class="story-meta">
+                        <span class="story-name">Lakshmi Devi</span>
+                        <span class="story-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            Karnataka
                         </span>
                     </div>
-
-                    <p class="mb-0" style="color: var(--deep-forest);">
-                        “The AI suggestions improved crop monitoring and increased productivity.”
+                    <div class="story-yield-badge">
+                        <span class="yield-icon"><i class="fas fa-arrow-up"></i></span>
+                        <span class="yield-label">Yield:</span>
+                        <span class="yield-value">+25%</span>
+                    </div>
+                    <hr class="story-divider">
+                    <p class="story-quote">
+                        "The AI suggestions improved crop monitoring and increased productivity."
                     </p>
                 </div>
             </div>
-            <hr class="story-divider">
-            <p class="story-quote">
-                "The AI suggestions improved crop monitoring and increased productivity."
-            </p>
-        </div>
 
-        <!-- Farmer 3 -->
-        <div class="col-lg-4 col-md-6 d-flex">
             <div class="card h-100 story-card"
                  data-bs-toggle="modal"
                  data-bs-target="#story3Modal">
-
                 <div class="card-body">
-                    <h3 class="fw-bold mb-2" style="color: var(--deep-forest);">
-                        Suresh Patel
-                    </h3>
-
-                    <p class="mb-2 lead-text">
-                        Gujarat
-                    </p>
-
-                    <div class="mb-3">
-                        <span class="fw-semibold stat-label">
-                            Yield Improvement:
-                        </span>
-
-                        <span class="fw-bold stat-value">
-                            40%
+                    <div class="story-meta">
+                        <span class="story-name">Suresh Patel</span>
+                        <span class="story-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            Gujarat
                         </span>
                     </div>
-
-                    <p class="mb-0" style="color: var(--deep-forest);">
-                        “Using Agri-Vision reduced crop loss and improved overall farm health.”
+                    <div class="story-yield-badge">
+                        <span class="yield-icon"><i class="fas fa-arrow-up"></i></span>
+                        <span class="yield-label">Yield:</span>
+                        <span class="yield-value">+40%</span>
+                    </div>
+                    <hr class="story-divider">
+                    <p class="story-quote">
+                        "Using Agri-Vision reduced crop loss and improved overall farm health."
                     </p>
                 </div>
             </div>
-            <div class="story-meta">
-                <span class="story-name">Suresh Patel</span>
-                <span class="story-location">
-                    <i class="fas fa-map-marker-alt"></i>
-                    Gujarat
-                </span>
-            </div>
-            <div class="story-yield-badge">
-                <span class="yield-icon"><i class="fas fa-arrow-up"></i></span>
-                <span class="yield-label">Yield:</span>
-                <span class="yield-value">+40%</span>
-            </div>
-            <hr class="story-divider">
-            <p class="story-quote">
-                "Using Agri-Vision reduced crop loss and improved overall farm health."
-            </p>
-        </div>
 
-        <!-- Farmer 4 -->
-        <div class="col-lg-4 col-md-6 d-flex">
             <div class="card h-100 story-card"
                  data-bs-toggle="modal"
                  data-bs-target="#story4Modal">
-
                 <div class="card-body">
-                    <h3 class="fw-bold mb-2" style="color: var(--deep-forest);">
-                        Rahul Verma
-                    </h3>
-
-                    <p class="mb-2 lead-text">
-                        Punjab
-                    </p>
-
-                    <div class="mb-3">
-                        <span class="fw-semibold stat-label">
-                            Yield Improvement:
-                        </span>
-
-                        <span class="fw-bold stat-value">
-                            45%
+                    <div class="story-meta">
+                        <span class="story-name">Rahul Verma</span>
+                        <span class="story-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            Punjab
                         </span>
                     </div>
-
-                    <p class="mb-0" style="color: var(--deep-forest);">
-                        “The smart recommendations increased productivity and significantly reduced crop damage.”
+                    <div class="story-yield-badge">
+                        <span class="yield-icon"><i class="fas fa-arrow-up"></i></span>
+                        <span class="yield-label">Yield:</span>
+                        <span class="yield-value">+45%</span>
+                    </div>
+                    <hr class="story-divider">
+                    <p class="story-quote">
+                        "The smart recommendations increased productivity and significantly reduced crop damage."
                     </p>
                 </div>
             </div>
-            <div class="story-yield-badge">
-                <span class="yield-icon"><i class="fas fa-arrow-up"></i></span>
-                <span class="yield-label">Yield:</span>
-                <span class="yield-value">+45%</span>
-            </div>
-            <hr class="story-divider">
-            <p class="story-quote">
-                "The smart recommendations increased productivity and significantly reduced crop damage."
-            </p>
-        </div>
 
-        <!-- Farmer 5 -->
-        <div class="col-lg-4 col-md-6 d-flex">
             <div class="card h-100 story-card"
                  data-bs-toggle="modal"
                  data-bs-target="#story5Modal">
-
                 <div class="card-body">
-                    <h3 class="fw-bold mb-2" style="color: var(--deep-forest);">
-                        Arjin Reddy
-                    </h3>
-
-                    <p class="mb-2 lead-text">
-                        Telangana
-                    </p>
-
-                    <div class="mb-3">
-                        <span class="fw-semibold stat-label">
-                            Yield Improvement:
-                        </span>
-
-                        <span class="fw-bold stat-value">
-                            28%
+                    <div class="story-meta">
+                        <span class="story-name">Arjin Reddy</span>
+                        <span class="story-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            Telangana
                         </span>
                     </div>
-
-                    <p class="mb-0" style="color: var(--deep-forest);">
-                        “The AI insights made irrigation planning easier and reduced unnecessary water usage.”
+                    <div class="story-yield-badge">
+                        <span class="yield-icon"><i class="fas fa-arrow-up"></i></span>
+                        <span class="yield-label">Yield:</span>
+                        <span class="yield-value">+28%</span>
+                    </div>
+                    <hr class="story-divider">
+                    <p class="story-quote">
+                        "The AI insights made irrigation planning easier and reduced unnecessary water usage."
                     </p>
                 </div>
             </div>
-            <div class="story-yield-badge">
-                <span class="yield-icon"><i class="fas fa-arrow-up"></i></span>
-                <span class="yield-label">Yield:</span>
-                <span class="yield-value">+28%</span>
-            </div>
-            <hr class="story-divider">
-            <p class="story-quote">
-                "The AI insights made irrigation planning easier and reduced unnecessary water usage."
-            </p>
-        </div>
 
-        <!-- Farmer 6 -->
-        <div class="col-lg-4 col-md-6 d-flex">
             <div class="card h-100 story-card"
                  data-bs-toggle="modal"
                  data-bs-target="#story6Modal">
-
                 <div class="card-body">
-                    <h3 class="fw-bold mb-2" style="color: var(--deep-forest);">
-                        Priya Sharma
-                    </h3>
-
-                    <p class="mb-2 lead-text">
-                        Maharashtra
-                    </p>
-
-                    <div class="mb-3">
-                        <span class="fw-semibold stat-label">
-                            Yield Improvement:
-                        </span>
-
-                        <span class="fw-bold stat-value">
-                            35%
+                    <div class="story-meta">
+                        <span class="story-name">Priya Sharma</span>
+                        <span class="story-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            Maharashtra
                         </span>
                     </div>
-
-                    <p class="mb-0" style="color: var(--deep-forest);">
-                        “Agri-Vision helped me monitor crop health in real time and improved my farming decisions.”
+                    <div class="story-yield-badge">
+                        <span class="yield-icon"><i class="fas fa-arrow-up"></i></span>
+                        <span class="yield-label">Yield:</span>
+                        <span class="yield-value">+35%</span>
+                    </div>
+                    <hr class="story-divider">
+                    <p class="story-quote">
+                        "Agri-Vision helped me monitor crop health in real time and improved my farming decisions."
                     </p>
                 </div>
             </div>
-            <hr class="story-divider">
-            <p class="story-quote">
-                "Agri-Vision helped me monitor crop health in real time and improved my farming decisions."
-            </p>
         </div>
-
-    </div>
-</section>
+    </section>
+</div>
 
 <!-- ================= MODALS ================= -->
 
