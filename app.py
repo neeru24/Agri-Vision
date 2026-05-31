@@ -23,6 +23,7 @@ import torch
 import torch.nn.functional as F
 from dotenv import load_dotenv
 from flasgger import Swagger
+import redis
 from flask import (
     Flask,
     Response,
@@ -36,6 +37,8 @@ from flask import (
     Request,
 )
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from PIL import Image
 from torchvision import transforms
 from ultralytics import YOLO
