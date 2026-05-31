@@ -19,6 +19,7 @@ from io import BytesIO
 import base64
 import cv2
 import numpy as np
+import redis
 import torch
 import torch.nn.functional as F
 from dotenv import load_dotenv
@@ -36,6 +37,8 @@ from flask import (
     Request,
 )
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from PIL import Image
 from torchvision import transforms
 from ultralytics import YOLO
