@@ -485,7 +485,12 @@
                             </span>
                         </a>
                         
-                        <a href="/demo" class="btn btn-secondary">
+                        <a
+                            id="hero-demo-link"
+                            href="{{ url_for('demo') }}"
+                            class="btn btn-secondary"
+                            aria-label="View the interactive Agri-Vision demo"
+                        >
                             <i class="fas fa-play-circle"></i>
 
                             <span data-i18n="demo_btn">
