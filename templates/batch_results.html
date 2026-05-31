@@ -334,9 +334,29 @@
         
         <h3 style="margin-bottom: 20px;"><i class="fas fa-images"></i> Individual Results</h3>
         <div class="results-grid" id="resultsGrid">
-            <div class="empty-state">
-                <i class="fas fa-spinner fa-spin"></i>
-                <p>Loading results...</p>
+            <div style="grid-column: 1 / -1;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem;">
+                    <div class="skeleton-stat-card">
+                        <div class="skeleton skeleton-icon"></div>
+                        <div class="skeleton skeleton-text-sm"></div>
+                        <div class="skeleton skeleton-text-lg" style="margin-top: 8px;"></div>
+                    </div>
+                    <div class="skeleton-stat-card">
+                        <div class="skeleton skeleton-icon"></div>
+                        <div class="skeleton skeleton-text-sm"></div>
+                        <div class="skeleton skeleton-text-lg" style="margin-top: 8px;"></div>
+                    </div>
+                    <div class="skeleton-stat-card">
+                        <div class="skeleton skeleton-icon"></div>
+                        <div class="skeleton skeleton-text-sm"></div>
+                        <div class="skeleton skeleton-text-lg" style="margin-top: 8px;"></div>
+                    </div>
+                    <div class="skeleton-stat-card">
+                        <div class="skeleton skeleton-icon"></div>
+                        <div class="skeleton skeleton-text-sm"></div>
+                        <div class="skeleton skeleton-text-lg" style="margin-top: 8px;"></div>
+                    </div>
+                </div>
             </div>
         </div>
         
