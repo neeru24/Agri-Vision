@@ -23,9 +23,11 @@ import torch
 import torch.nn.functional as F
 from dotenv import load_dotenv
 from flasgger import Swagger
+import redis
 from flask import (
     Flask,
     Response,
+    current_app,
     flash,
     jsonify,
     redirect,
@@ -36,6 +38,8 @@ from flask import (
     Request,
 )
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from PIL import Image
 from torchvision import transforms
 from ultralytics import YOLO
@@ -93,6 +97,19 @@ login_manager.login_message_category = 'info'
 def load_user(user_id):
     from models import User
     return User.query.get(user_id)
+
+
+def api_login_required(view_func):
+    """Return JSON auth failures for API clients instead of redirecting to login."""
+    from functools import wraps
+
+    @wraps(view_func)
+    def wrapped_view(*args, **kwargs):
+        if current_app.config.get("LOGIN_DISABLED") or current_user.is_authenticated:
+            return view_func(*args, **kwargs)
+        return jsonify({"status": "error", "error": "Authentication required"}), 401
+
+    return wrapped_view
 
 # --- Security Configuration ---
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
@@ -1321,6 +1338,7 @@ def analyze():
 
 
 @app.route("/api/explain", methods=["POST"])
+@api_login_required
 def api_explain():
     if "file" not in request.files:
         return jsonify({"status": "error", "error": "No file uploaded"}), 400
@@ -1359,6 +1377,7 @@ def api_explain():
 
 
 @app.route("/comparison", methods=["GET", "POST"])
+@login_required
 def comparison():
     error_message = None
     old_filename, new_filename, old_image, new_image = None, None, None, None
@@ -1650,6 +1669,7 @@ def api_weather():
 
 
 @app.route("/api/analyze", methods=["POST"])
+@api_login_required
 def api_analyze():
     if 'file' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400

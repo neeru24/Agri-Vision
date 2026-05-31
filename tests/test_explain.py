@@ -13,8 +13,11 @@ import app
 @pytest.fixture
 def client():
     app.app.config["TESTING"] = True
+    previous_login_disabled = app.app.config.get("LOGIN_DISABLED")
+    app.app.config["LOGIN_DISABLED"] = True
     with app.app.test_client() as client:
         yield client
+    app.app.config["LOGIN_DISABLED"] = previous_login_disabled
 
 @pytest.fixture
 def valid_image():

@@ -29,8 +29,11 @@ import app
 def client():
     """Flask test client."""
     app.app.config["TESTING"] = True
+    previous_login_disabled = app.app.config.get("LOGIN_DISABLED")
+    app.app.config["LOGIN_DISABLED"] = True
     with app.app.test_client() as c:
         yield c
+    app.app.config["LOGIN_DISABLED"] = previous_login_disabled
 
 
 @pytest.fixture

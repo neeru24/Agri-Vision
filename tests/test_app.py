@@ -1,6 +1,7 @@
 import base64
 import io
 import json
+from flask import g
 from flask_login import login_user
 from models import User, db
 
@@ -42,6 +43,19 @@ def client(app_with_db):
             sess['_user_id'] = '1'
             sess['_fresh'] = True
         yield client
+
+
+@pytest.fixture
+def unauthenticated_client(app_with_db):
+    previous_login_disabled = app_with_db.config.get("LOGIN_DISABLED")
+    app_with_db.config["LOGIN_DISABLED"] = False
+    if hasattr(g, "_login_user"):
+        delattr(g, "_login_user")
+    with app_with_db.test_client() as client:
+        with client.session_transaction() as sess:
+            sess.clear()
+        yield client
+    app_with_db.config["LOGIN_DISABLED"] = previous_login_disabled
 
 
 @pytest.fixture
@@ -268,6 +282,12 @@ def test_get_comparison_route(client):
     assert b"Last Week Field Image" in resp.data
 
 
+def test_comparison_requires_login(unauthenticated_client):
+    resp = unauthenticated_client.get("/comparison")
+    assert resp.status_code == 302
+    assert "/login" in resp.headers["Location"]
+
+
 def test_build_comparison_result_improved():
     old_results = {
         "disease": {
@@ -471,6 +491,34 @@ def test_post_analyze_oversized_file(client, oversized_file):
 
 
 # Rest API validation checks
+def test_post_api_analyze_requires_auth(unauthenticated_client):
+    resp = unauthenticated_client.post(
+        "/api/analyze",
+        data={},
+        content_type="multipart/form-data",
+    )
+
+    assert resp.status_code == 401
+    assert resp.get_json() == {
+        "status": "error",
+        "error": "Authentication required",
+    }
+
+
+def test_post_api_explain_requires_auth(unauthenticated_client):
+    resp = unauthenticated_client.post(
+        "/api/explain",
+        data={},
+        content_type="multipart/form-data",
+    )
+
+    assert resp.status_code == 401
+    assert resp.get_json() == {
+        "status": "error",
+        "error": "Authentication required",
+    }
+
+
 def test_post_api_analyze_valid(client, valid_image):
     data = {"file": (valid_image, "test_cotton.png")}
     resp = client.post("/api/analyze", data=data, content_type="multipart/form-data")
