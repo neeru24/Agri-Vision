@@ -42,6 +42,7 @@ def allow_synthetic_test_images(monkeypatch):
         app_module,
         "safe_validate_image_quality",
         lambda _image: ({"is_blocking": False, "warnings": []}, False),
+        raising=False,
     )
 
 @pytest.fixture
