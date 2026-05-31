@@ -74,6 +74,14 @@ class MockResNetModel:
         return self
 
 
+class RaisingResNetModel:
+    def __call__(self, x):
+        raise RuntimeError("simulated inference failure")
+
+    def eval(self):
+        return self
+
+
 class MockYOLOBox:
     def __init__(self, class_id, confidence, xyxy):
         self.cls = [torch.tensor(class_id)]
@@ -116,6 +124,41 @@ def test_infer_disease_fallback(monkeypatch):
     assert res["predicted_class"] in app.disease_classes
     assert 0.0 <= res["confidence"] <= 1.0
     assert 0.0 <= res["health_score"] <= 100.0
+
+
+def assert_valid_disease_fallback_response(res):
+    assert res["predicted_class"] in app.disease_classes
+    assert 0 <= res["predicted_class_idx"] < len(app.disease_classes)
+    assert 0.0 <= res["confidence"] <= 1.0
+    assert 0.0 <= res["health_score"] <= 100.0
+    assert set(res["all_confidences"]) == set(app.disease_classes)
+    assert len(res["raw"]) == 1
+    assert len(res["raw"][0]) == len(app.disease_classes)
+    assert sum(res["all_confidences"].values()) == pytest.approx(1.0)
+
+
+def test_infer_disease_missing_model_fallback_is_deterministic(monkeypatch):
+    monkeypatch.setattr(app.model_manager, "resnet_model", None)
+    monkeypatch.setattr(app.model_manager, "loaded", True)
+
+    dummy_img = np.zeros((100, 100, 3), dtype=np.uint8)
+    first = app.infer_disease(dummy_img)
+    second = app.infer_disease(dummy_img)
+
+    assert_valid_disease_fallback_response(first)
+    assert first == second
+
+
+def test_infer_disease_exception_uses_deterministic_fallback(monkeypatch):
+    monkeypatch.setattr(app.model_manager, "resnet_model", RaisingResNetModel())
+    monkeypatch.setattr(app.model_manager, "loaded", True)
+
+    dummy_img = np.full((100, 100, 3), 127, dtype=np.uint8)
+    first = app.infer_disease(dummy_img)
+    second = app.infer_disease(dummy_img)
+
+    assert_valid_disease_fallback_response(first)
+    assert first == second
 
 
 def test_infer_disease_active(monkeypatch):
@@ -634,4 +677,3 @@ def test_api_chat_fallback_response(client):
     assert resp.status_code == 200
     data = json.loads(resp.data)
     assert "Agri-Vision AI assistant" in data["reply"]
-
