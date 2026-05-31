@@ -42,6 +42,7 @@ from ultralytics import YOLO
 import json
 from jinja2 import Environment, FileSystemLoader
 from model_registry import registry
+from services.recommendation_engine import get_recommendations as get_treatment_recommendations
 from services.weather_service import generate_weather_recommendations
 from services.yield_service import estimate_yield
 
@@ -92,7 +93,10 @@ app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
 app.jinja_env.auto_reload = True
 app.jinja_env.cache = {}
 
-secret_key = os.getenv("SECRET_KEY") or "dev_secret_123"
+secret_key = os.getenv("SECRET_KEY")
+if not secret_key and os.getenv("FLASK_ENV") == "production":
+    raise SystemExit("SECRET_KEY must be set in production.")
+secret_key = secret_key or "dev_secret_123"
 app.secret_key = secret_key
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
 app.config["MAX_FORM_MEMORY_SIZE"] = 25 * 1024 * 1024
@@ -432,6 +436,32 @@ class GradCAM:
             self.activations = None
 
 
+def generate_gradcam_explanation(
+    image: np.ndarray,
+    disease_result: Dict[str, Any],
+    resnet_model: torch.nn.Module,
+) -> Tuple[Optional[str], Optional[str]]:
+    input_tensor = preprocess_image_for_resnet(image)
+    with GradCAM(resnet_model, resnet_model.layer4[-1]) as grad_cam:
+        grad_cam_overlay = grad_cam(input_tensor, disease_result["predicted_class_idx"], image)
+        heatmap_np = getattr(grad_cam, "heatmap_np", None)
+
+    grad_cam_image_b64 = encode_image_for_display(grad_cam_overlay) if grad_cam_overlay is not None else None
+    heatmap_only_b64 = None
+    if heatmap_np is not None:
+        pure_heatmap_rgb = generate_pure_heatmap(image, heatmap_np)
+        heatmap_only_b64 = encode_image_for_display(pure_heatmap_rgb)
+    return grad_cam_image_b64, heatmap_only_b64
+
+
+def build_treatment_recommendations(disease_result: Dict[str, Any]) -> Dict[str, Any]:
+    return get_treatment_recommendations(
+        "cotton",
+        disease_result.get("predicted_class", ""),
+        confidence=disease_result.get("confidence"),
+    )
+
+
 # -------------------------------------------------------------------
 # INFERENCE PIPELINE
 # -------------------------------------------------------------------
@@ -721,24 +751,21 @@ def analyze_image(image: np.ndarray) -> Dict[str, Any]:
         
         grad_cam_image_b64 = None
         heatmap_only_b64 = None
-        
+        explainability_status = "unavailable"
+
         if cached_result is not None:
             grad_cam_image_b64, heatmap_only_b64 = cached_result
+            explainability_status = "cached"
             logger.info("Using cached Grad-CAM heatmaps")
         else:
             if resnet_model is not None and disease.get("predicted_class_idx") is not None:
                 try:
-                    input_tensor = preprocess_image_for_resnet(image)
-                    with GradCAM(resnet_model, resnet_model.layer4[-1]) as grad_cam:
-                        grad_cam_overlay = grad_cam(input_tensor, disease["predicted_class_idx"], image)
-                        heatmap_np = getattr(grad_cam, "heatmap_np", None)
-                    if grad_cam_overlay is not None:
-                        grad_cam_image_b64 = encode_image_for_display(grad_cam_overlay)
-                    if heatmap_np is not None:
-                        pure_heatmap_rgb = generate_pure_heatmap(image, heatmap_np)
-                        heatmap_only_b64 = encode_image_for_display(pure_heatmap_rgb)
+                    grad_cam_image_b64, heatmap_only_b64 = generate_gradcam_explanation(image, disease, resnet_model)
+                    if grad_cam_image_b64 and heatmap_only_b64:
+                        explainability_status = "generated"
                 except Exception as exc:
                     logger.error("Error generating Grad-CAM: %s", exc)
+                    explainability_status = "failed"
 
             if grad_cam_image_b64 is None or heatmap_only_b64 is None:
                 try:
@@ -748,9 +775,11 @@ def analyze_image(image: np.ndarray) -> Dict[str, Any]:
                     
                     pure_heatmap_rgb = generate_pure_heatmap(image, mock_heatmap)
                     heatmap_only_b64 = encode_image_for_display(pure_heatmap_rgb)
+                    if explainability_status == "unavailable":
+                        explainability_status = "fallback"
                 except Exception as exc:
                     logger.error("Error generating fallback heatmap: %s", exc)
-            
+
             if grad_cam_image_b64 and heatmap_only_b64:
                 set_cached_grad_cam(image_hash, grad_cam_image_b64, heatmap_only_b64)
 
@@ -761,6 +790,7 @@ def analyze_image(image: np.ndarray) -> Dict[str, Any]:
         severity = calculate_disease_severity(disease["health_score"])
         yield_est = estimate_yield(disease, growth, weather=None, field_acres=1.0)
         adv_recs = generate_advanced_recommendations(disease, growth)
+        treatment_recs = build_treatment_recommendations(disease)
         insights = generate_farmer_insights(disease, growth)
 
         result = {
@@ -772,7 +802,12 @@ def analyze_image(image: np.ndarray) -> Dict[str, Any]:
             "disease_severity": severity,
             "yield_estimate": yield_est,
             "advanced_recommendations": adv_recs,
+            "treatment_recommendations": treatment_recs,
             "farmer_insights": insights,
+            "explainability": {
+                "available": explainability_status in {"cached", "generated", "fallback"},
+                "status": explainability_status,
+            },
         }
 
         if growth.get("main_class") is None:
@@ -905,6 +940,7 @@ def admin_dashboard():
 # --- Model Management Admin Endpoints ---
 
 @app.route('/admin/models', methods=['GET'])
+@login_required
 def list_models():
     """List all registered models with their metadata"""
     model_type = request.args.get('type')
@@ -1085,6 +1121,7 @@ def set_rollback_threshold():
 
 
 @app.route('/admin/models/export/pdf', methods=['GET'])
+@login_required
 def export_pdf():
     """Export model metrics as PDF"""
     try:
@@ -1453,7 +1490,8 @@ def demo():
     
         # Generate advanced recommendations
         adv_recs = generate_advanced_recommendations(demo_disease, demo_growth)
-    
+        treatment_recs = build_treatment_recommendations(demo_disease)
+
         # Generate farmer insights
         insights = generate_farmer_insights(demo_disease, demo_growth)
 
@@ -1465,6 +1503,7 @@ def demo():
         "disease_severity": severity,
         "yield_estimate": yield_est,
         "advanced_recommendations": adv_recs,
+        "treatment_recommendations": treatment_recs,
         "farmer_insights": insights
         }
         return render_template(
