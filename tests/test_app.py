@@ -21,12 +21,12 @@ def app_with_db():
     app.app.config["UPLOAD_FOLDER"] = "./static/uploads"
     app.app.config["SECRET_KEY"] = "test-secret"
     app.app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
-    
+
     with app.app.app_context():
         db.create_all()
         test_user = User(
-            id=1, 
-            email="test@example.com", 
+            id=1,
+            email="test@example.com",
             full_name="Test User",
             password_hash="pbkdf2:sha256:260000$test$test"
         )
@@ -206,6 +206,14 @@ def test_home_page_en(client):
     assert b"Agri" in resp.data or b"Vision" in resp.data
 
 
+def test_home_page_hero_demo_cta_links_to_demo(client):
+    resp = client.get("/")
+    assert resp.status_code == 200
+    assert b'id="hero-demo-link"' in resp.data
+    assert b'href="/demo"' in resp.data
+    assert b"View Demo" in resp.data
+
+
 def test_home_page_te(client):
     resp = client.get("/?lang=te")
     assert resp.status_code == 200
@@ -376,7 +384,7 @@ def test_post_comparison_duplicate_image(client):
     # Create the same image twice
     image_content = io.BytesIO()
     Image.new("RGB", (100, 100), color="blue").save(image_content, format="PNG")
-    
+
     # We need two separate BytesIO objects with the same content for the request
     image_one = io.BytesIO(image_content.getvalue())
     image_two = io.BytesIO(image_content.getvalue())
@@ -385,7 +393,7 @@ def test_post_comparison_duplicate_image(client):
         "last_week_image": (image_one, "field_1.png"),
         "current_week_image": (image_two, "field_2.png"),
     }
-    
+
     resp = client.post("/comparison", data=data, content_type="multipart/form-data")
     assert resp.status_code == 200
     assert b"Duplicate field images detected" in resp.data

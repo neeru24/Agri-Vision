@@ -393,7 +393,7 @@
                     <li>
                         <a href="/logout" style="color: #ef4444;">
                             <i class="fas fa-sign-out-alt"></i>
-                        
+
                             <span data-i18n="logout">
                                 Logout
                             </span>
@@ -455,27 +455,27 @@
             <div class="hero-container">
                 <div class="hero-content">
                     <div class="hero-badge-wrapper">
-                        <span class="hero-badge" data-i18n="hero_badge">                                  
+                        <span class="hero-badge" data-i18n="hero_badge">
                             AI-DRIVEN COTTON INTEGRATION
                         </span>
                     </div>
-                
+
                     <h1 class="typewriter">
                         <span class="line1" data-i18n="hero_title_1">
                             AI-Powered
                         </span>
-                    
+
                         <span class="line2" data-i18n="hero_title_2">
                             Cotton Crop Intelligence
                         </span>
                     </h1>
-                
+
                     <p data-i18n="hero_desc">
                         Analyze crop maturity, detect plant health issues,
                         and optimize harvest timing using smart real-time
                         deep learning analytics.
                     </p>
-                
+
                     <div class="hero-cta">
                         <a href="/analyze" class="btn btn-primary">
                             <i class="fas fa-camera"></i>
@@ -484,8 +484,13 @@
                                 Analyze Image
                             </span>
                         </a>
-                        
-                        <a href="/demo" class="btn btn-secondary">
+
+                        <a
+                            id="hero-demo-link"
+                            href="{{ url_for('demo') }}"
+                            class="btn btn-secondary"
+                            aria-label="View the interactive Agri-Vision demo"
+                        >
                             <i class="fas fa-play-circle"></i>
 
                             <span data-i18n="demo_btn">
@@ -542,7 +547,7 @@
                     </div>
                 </div>
             </div>
-                
+
         </section>
 
         <section class="features-section reveal-stagger">
@@ -618,7 +623,7 @@
             <div class="footer-brand">
                 <h2 class="footer-title"><i class="fas fa-leaf"></i> Agri-Vision</h2>
                 <p class="footer-subtitle" data-i18n="footer_subtitle">
-                    Empowering cotton farmers with AI-driven insights.                    
+                    Empowering cotton farmers with AI-driven insights.
                 </p>
             </div>
             <!-- =========================================================
@@ -704,63 +709,63 @@
     document.addEventListener("DOMContentLoaded", () => {
         const themeToggleBtn =
             document.getElementById("theme-toggle");
-    
+
         function updateThemeIcon(theme) {
-        
+
             const icon =
                 themeToggleBtn.querySelector("i");
-        
+
             if (theme === "dark") {
-            
+
                 icon.classList.remove("fa-moon");
                 icon.classList.add("fa-sun");
-            
+
             } else {
-            
+
                 icon.classList.remove("fa-sun");
                 icon.classList.add("fa-moon");
             }
         }
-    
+
         // Load saved theme
         const savedTheme =
             localStorage.getItem("theme") || "light";
-    
+
         document.documentElement.setAttribute(
             "data-theme",
             savedTheme
         );
-    
+
         updateThemeIcon(savedTheme);
-    
+
         // Toggle theme
         themeToggleBtn.addEventListener("click", () => {
-        
+
             const currentTheme =
                 document.documentElement.getAttribute(
                     "data-theme"
                 );
-        
+
             const newTheme =
                 currentTheme === "dark"
                 ? "light"
                 : "dark";
-        
+
             document.documentElement.setAttribute(
                 "data-theme",
                 newTheme
             );
-        
+
             localStorage.setItem(
                 "theme",
                 newTheme
             );
-        
+
             updateThemeIcon(newTheme);
         });
-    
+
     });
-    
+
     </script>
     <script>
         // Navbar scroll effect
@@ -808,7 +813,7 @@
 
             // Setup the Three.js 3D rendering scene
             const scene = new THREE.Scene();
-            
+
             // Setup camera positioned to fit the globe beautifully
             const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
             camera.position.set(0, 0, 8.5);
@@ -872,7 +877,7 @@
                 dotPositions[i*3+2] = z * globeRadius;
             }
             dotGeo.setAttribute('position', new THREE.BufferAttribute(dotPositions, 3));
-            
+
             // Create a soft radial gradient canvas for glowing dots
             const pCanvas = document.createElement('canvas');
             pCanvas.width = 16; pCanvas.height = 16;
@@ -946,7 +951,7 @@
 
             farms.forEach((farm) => {
                 const pos = latLongToVector3(farm.lat, farm.lon, globeRadius);
-                
+
                 // Create coordinate beacon sphere
                 const sphereGeo = new THREE.SphereGeometry(0.08, 12, 12);
                 const sphereMat = new THREE.MeshBasicMaterial({ color: colors.beaconColor });
@@ -996,7 +1001,7 @@
                 const curve = new THREE.QuadraticBezierCurve3(p1, ctrlPos, p2);
                 const pts = curve.getPoints(24);
                 const arcGeo = new THREE.BufferGeometry().setFromPoints(pts);
-                
+
                 const arcMat = new THREE.LineBasicMaterial({
                     color: colors.arcColor,
                     transparent: true,
@@ -1075,13 +1080,13 @@
                 if (isDragging) {
                     const deltaX = e.clientX - prevMousePos.x;
                     const deltaY = e.clientY - prevMousePos.y;
-                    
+
                     globeGroup.rotation.y += deltaX * 0.006;
                     globeGroup.rotation.x += deltaY * 0.006;
-                    
+
                     // Limit vertical rotation to prevent flipping upside down
                     globeGroup.rotation.x = Math.max(-Math.PI/2.5, Math.min(Math.PI/2.5, globeGroup.rotation.x));
-                    
+
                     prevMousePos = { x: e.clientX, y: e.clientY };
                     userInteractionTimeout = Date.now() + 8000;
                 } else {
@@ -1099,7 +1104,7 @@
             // Sync 3D telemetry status to HTML panels
             function syncHtmlDashboard() {
                 activeFarm = farms[activeFarmIndex];
-                
+
                 // Update active farm metrics and text
                 const fCard = document.getElementById('telemetry-farm-card');
                 const fTitle = document.getElementById('telemetry-farm-title');
@@ -1124,7 +1129,7 @@
                 if (fYield) fYield.innerHTML = `<i class="fas fa-chart-bar"></i> ${activeFarm.yield} | <span style="color:var(--emerald-green);font-weight:700;">${activeFarm.moisture}</span>`;
                 if (sTitle) sTitle.textContent = activeFarm.country + " Uplink";
                 if (sSub) sSub.textContent = activeFarm.ping;
-                
+
                 if (sIcon) {
                     sIcon.className = `fas ${activeFarm.icon} telemetry-icon-spin`;
                 }
@@ -1136,7 +1141,7 @@
             // Update Three.js element colors to match site theme
             function updateThreeTheme() {
                 colors = getThemeColors();
-                
+
                 // Smooth light transition based on theme setting
                 ambientLight.intensity = colors.isDark ? 0.4 : 0.85;
                 dotMat.color.setHex(colors.gridColor);
@@ -1301,7 +1306,7 @@
                     Hello! I'm your Agri-Vision AI assistant.
                     Ask me anything about cotton crops,
                     farming practices, pests, or disease prevention.
-                    </div>                
+                    </div>
                 </div>
                 <form id="chat-form" class="chat-input-container" autocomplete="off">
                     <input type="text" id="chat-input" data-i18n-placeholder="chat_placeholder" placeholder="Type a message..." autocomplete="off" aria-label="Chat message">

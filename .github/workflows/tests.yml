@@ -5,9 +5,9 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-permissions: 
-  contents: write 
-  pull-requests: write 
+permissions:
+  contents: write
+  pull-requests: write
   issues: write
 jobs:
   test:
@@ -28,6 +28,8 @@ jobs:
         pip install -r requirements.txt
 
     - name: Run Tests with Pytest & Coverage
+      env:
+        FLASK_ENV: testing
+        SECRET_KEY: ci-test-secret-key
       run: |
-        # Force re-triggering CI
         python -m pytest

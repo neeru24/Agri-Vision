@@ -42,7 +42,6 @@ from ultralytics import YOLO
 import json
 from jinja2 import Environment, FileSystemLoader
 from model_registry import registry
-from services.recommendation_engine import get_recommendations as get_treatment_recommendations
 from services.weather_service import generate_weather_recommendations
 from services.yield_service import estimate_yield
 
@@ -56,6 +55,34 @@ app = Flask(__name__, static_folder="static", template_folder="templates")
 # --- Database Configuration ---
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///agri_vision.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Try dynamic package loading to prevent crash on automated CI testing rigs
+try:
+    import redis
+    from flask_limiter import Limiter
+    from flask_limiter.util import get_remote_address
+
+    redis_host = os.getenv("REDIS_HOST", "localhost")
+    redis_port = int(os.getenv("REDIS_PORT", "6379"))
+    redis_db = int(os.getenv("REDIS_DB", "0"))
+    redis_client = redis.Redis(host=redis_host, port=redis_port, db=redis_db, decode_responses=True)
+    redis_client.ping()
+    logger.info("redis connected for caching and rate limiting")
+    limiter = Limiter(
+        get_remote_address,
+        app=app,
+        storage_uri=f"redis://{redis_host}:{redis_port}",
+        strategy="fixed-window",
+    )
+except Exception as err:
+    logger.warning(f"caching layer bypass active: {err}")
+    redis_client = None
+
+    class DummyLimiter:
+        def limit(self, *args, **kwargs):
+            return lambda f: f
+
+    limiter = DummyLimiter()
 from models import db
 db.init_app(app)
 
@@ -94,9 +121,11 @@ app.jinja_env.auto_reload = True
 app.jinja_env.cache = {}
 
 secret_key = os.getenv("SECRET_KEY")
-if not secret_key and os.getenv("FLASK_ENV") == "production":
-    raise SystemExit("SECRET_KEY must be set in production.")
-secret_key = secret_key or "dev_secret_123"
+if not secret_key:
+    if os.getenv("FLASK_ENV") == "production":
+        logger.critical("SECRET_KEY must be configured in production.")
+        raise SystemExit("SECRET_KEY must be configured in production.")
+    secret_key = "dev_secret_123"
 app.secret_key = secret_key
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
 app.config["MAX_FORM_MEMORY_SIZE"] = 25 * 1024 * 1024
@@ -436,32 +465,6 @@ class GradCAM:
             self.activations = None
 
 
-def generate_gradcam_explanation(
-    image: np.ndarray,
-    disease_result: Dict[str, Any],
-    resnet_model: torch.nn.Module,
-) -> Tuple[Optional[str], Optional[str]]:
-    input_tensor = preprocess_image_for_resnet(image)
-    with GradCAM(resnet_model, resnet_model.layer4[-1]) as grad_cam:
-        grad_cam_overlay = grad_cam(input_tensor, disease_result["predicted_class_idx"], image)
-        heatmap_np = getattr(grad_cam, "heatmap_np", None)
-
-    grad_cam_image_b64 = encode_image_for_display(grad_cam_overlay) if grad_cam_overlay is not None else None
-    heatmap_only_b64 = None
-    if heatmap_np is not None:
-        pure_heatmap_rgb = generate_pure_heatmap(image, heatmap_np)
-        heatmap_only_b64 = encode_image_for_display(pure_heatmap_rgb)
-    return grad_cam_image_b64, heatmap_only_b64
-
-
-def build_treatment_recommendations(disease_result: Dict[str, Any]) -> Dict[str, Any]:
-    return get_treatment_recommendations(
-        "cotton",
-        disease_result.get("predicted_class", ""),
-        confidence=disease_result.get("confidence"),
-    )
-
-
 # -------------------------------------------------------------------
 # INFERENCE PIPELINE
 # -------------------------------------------------------------------
@@ -487,7 +490,7 @@ def infer_disease(image):
         class_idx = int(prediction.item())
         confidence_value = float(confidence.item())
         predicted_class = disease_classes[class_idx]
-        healthy_idx = disease_classes.index("Healthy")  
+        healthy_idx = disease_classes.index("Healthy")
         health_score = float(probs_np[0][healthy_idx]) * 100
 
 
@@ -566,7 +569,7 @@ def generate_recommendations(disease_result: Dict[str, Any], growth_result: Dict
         "Target Spot": ["Monitor for spread, reduce leaf wetness.", "Apply suitable fungicide if required."],
     }
     recs.extend(instr_map.get(dclass, ["Practice general crop hygiene."]))
-    
+
     if disease_result["health_score"] < 50:
         recs.append("Consult an agricultural expert urgently for low health score.")
         recs.append("Consult an agricultural expert if symptoms persist.")
@@ -647,9 +650,18 @@ def generate_advanced_recommendations(disease_result: Dict[str, Any], growth_res
         adv_recs["pest_prevention"] = "Apply specific anti-worm biological controls like Bacillus thuringiensis (Bt)."
     elif dclass == "Cotton Boll Rot":
         adv_recs["irrigation_timing"] = "Stop irrigation immediately to allow soil and plant base to dry."
-        
+
     return adv_recs
 
+
+def generate_treatment_recommendations(disease_result: Dict[str, Any]) -> Dict[str, Any]:
+    from services.recommendation_engine import get_recommendations
+
+    return get_recommendations(
+        "cotton",
+        disease_result.get("predicted_class"),
+        confidence=disease_result.get("confidence"),
+    )
 
 
 def encode_image_for_display(image: np.ndarray) -> str:
@@ -704,10 +716,29 @@ def set_cached_grad_cam(image_hash: str, overlay_b64: str, heatmap_only_b64: str
         GRAD_CAM_CACHE[image_hash] = (overlay_b64, heatmap_only_b64)
 
 
+def generate_gradcam_explanation(
+    resnet_model: torch.nn.Module,
+    image: np.ndarray,
+    disease_result: Dict[str, Any],
+) -> Tuple[Optional[str], Optional[str]]:
+    input_tensor = preprocess_image_for_resnet(image)
+    with GradCAM(resnet_model, resnet_model.layer4[-1]) as grad_cam:
+        grad_cam_overlay = grad_cam(input_tensor, disease_result["predicted_class_idx"], image)
+        heatmap_np = getattr(grad_cam, "heatmap_np", None)
+
+    grad_cam_image_b64 = encode_image_for_display(grad_cam_overlay) if grad_cam_overlay is not None else None
+    heatmap_only_b64 = None
+    if heatmap_np is not None:
+        pure_heatmap_rgb = generate_pure_heatmap(image, heatmap_np)
+        heatmap_only_b64 = encode_image_for_display(pure_heatmap_rgb)
+
+    return grad_cam_image_b64, heatmap_only_b64
+
+
 def analyze_image(image: np.ndarray) -> Dict[str, Any]:
     import time
     start_time = time.time()
-    
+
     resnet_model, yolo_model = model_manager.load_models()
     try:
         try:
@@ -732,7 +763,7 @@ def analyze_image(image: np.ndarray) -> Dict[str, Any]:
                     inference_time=inference_time,
                     success=True
                 )
-            
+
             # Update YOLO metrics
             if growth and growth.get("confidence"):
                 registry.update_metrics(
@@ -748,35 +779,39 @@ def analyze_image(image: np.ndarray) -> Dict[str, Any]:
         # Check cache first
         image_hash = hashlib.sha256(image.tobytes()).hexdigest()
         cached_result = get_cached_grad_cam(image_hash)
-        
+
         grad_cam_image_b64 = None
         heatmap_only_b64 = None
-        explainability_status = "unavailable"
+        explainability = {"available": False, "status": "unavailable"}
 
         if cached_result is not None:
             grad_cam_image_b64, heatmap_only_b64 = cached_result
-            explainability_status = "cached"
+            explainability = {"available": True, "status": "cached"}
             logger.info("Using cached Grad-CAM heatmaps")
         else:
             if resnet_model is not None and disease.get("predicted_class_idx") is not None:
                 try:
-                    grad_cam_image_b64, heatmap_only_b64 = generate_gradcam_explanation(image, disease, resnet_model)
+                    grad_cam_image_b64, heatmap_only_b64 = generate_gradcam_explanation(
+                        resnet_model,
+                        image,
+                        disease,
+                    )
                     if grad_cam_image_b64 and heatmap_only_b64:
-                        explainability_status = "generated"
+                        explainability = {"available": True, "status": "generated"}
                 except Exception as exc:
                     logger.error("Error generating Grad-CAM: %s", exc)
-                    explainability_status = "failed"
+                    explainability = {"available": False, "status": "failed"}
 
             if grad_cam_image_b64 is None or heatmap_only_b64 is None:
                 try:
                     mock_heatmap = generate_mock_heatmap(image)
                     mock_overlay = apply_heatmap_on_image(image, mock_heatmap)
                     grad_cam_image_b64 = encode_image_for_display(mock_overlay)
-                    
+
                     pure_heatmap_rgb = generate_pure_heatmap(image, mock_heatmap)
                     heatmap_only_b64 = encode_image_for_display(pure_heatmap_rgb)
-                    if explainability_status == "unavailable":
-                        explainability_status = "fallback"
+                    if explainability["status"] == "unavailable":
+                        explainability = {"available": False, "status": "fallback"}
                 except Exception as exc:
                     logger.error("Error generating fallback heatmap: %s", exc)
 
@@ -790,24 +825,21 @@ def analyze_image(image: np.ndarray) -> Dict[str, Any]:
         severity = calculate_disease_severity(disease["health_score"])
         yield_est = estimate_yield(disease, growth, weather=None, field_acres=1.0)
         adv_recs = generate_advanced_recommendations(disease, growth)
-        treatment_recs = build_treatment_recommendations(disease)
+        treatment_recs = generate_treatment_recommendations(disease)
         insights = generate_farmer_insights(disease, growth)
 
         result = {
             "disease": disease,
             "growth": growth,
             "recommendations": recs,
+            "treatment_recommendations": treatment_recs,
             "grad_cam_image_b64": grad_cam_image_b64,
             "heatmap_only_b64": heatmap_only_b64,
+            "explainability": explainability,
             "disease_severity": severity,
             "yield_estimate": yield_est,
             "advanced_recommendations": adv_recs,
-            "treatment_recommendations": treatment_recs,
             "farmer_insights": insights,
-            "explainability": {
-                "available": explainability_status in {"cached", "generated", "fallback"},
-                "status": explainability_status,
-            },
         }
 
         if growth.get("main_class") is None:
@@ -880,6 +912,13 @@ def build_comparison_result(old_results: Dict[str, Any], new_results: Dict[str, 
     }
 
 
+# --- Security Headers ---
+@app.after_request
+def apply_security_headers(response):
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
 # -------------------------------------------------------------------
 # FLASK ROUTES
 # -------------------------------------------------------------------
@@ -982,7 +1021,7 @@ def register_model():
         for field in required_fields:
             if field not in data:
                 return jsonify({"error": f"Missing required field: {field}"}), 400
-        
+
         metadata = registry.register_model(
             model_type=data['model_type'],
             version=data['version'],
@@ -1013,7 +1052,7 @@ def activate_model():
         for field in required_fields:
             if field not in data:
                 return jsonify({"error": f"Missing required field: {field}"}), 400
-        
+
         registry.set_active_model(data['model_type'], data['version'])
         return jsonify({
             "status": "success",
@@ -1034,7 +1073,7 @@ def delete_model():
         for field in required_fields:
             if field not in data:
                 return jsonify({"error": f"Missing required field: {field}"}), 400
-        
+
         registry.delete_model(data['model_type'], data['version'])
         return jsonify({
             "status": "success",
@@ -1071,7 +1110,7 @@ def set_ab_ratio():
         for field in required_fields:
             if field not in data:
                 return jsonify({"error": f"Missing required field: {field}"}), 400
-        
+
         registry.set_ab_test_ratio(data['model_type'], data['version'], data['ratio'])
         return jsonify({
             "status": "success",
@@ -1104,10 +1143,10 @@ def set_rollback_threshold():
         threshold = data.get('threshold')
         if threshold is None:
             return jsonify({"error": "Missing required field: threshold"}), 400
-        
+
         if not 0.0 <= threshold <= 1.0:
             return jsonify({"error": "Threshold must be between 0.0 and 1.0"}), 400
-        
+
         registry.rollback_threshold = threshold
         registry.save_config()
         return jsonify({
@@ -1132,7 +1171,7 @@ def export_pdf():
         from io import BytesIO
 
         models = registry.list_models()
-        
+
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=letter)
         elements = []
@@ -1150,7 +1189,7 @@ def export_pdf():
 
         # Table data
         table_data = [['Model Type', 'Version', 'Accuracy', 'Requests', 'Success Rate', 'Avg Confidence', 'Avg Time', 'Status']]
-        
+
         if models:
             for model_type in models:
                 for model in models[model_type]:
@@ -1179,10 +1218,10 @@ def export_pdf():
             ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
             ('GRID', (0, 0), (-1, -1), 1, colors.black)
         ]))
-        
+
         elements.append(table)
         doc.build(elements)
-        
+
         buffer.seek(0)
         return send_file(
             buffer,
@@ -1289,26 +1328,26 @@ def analyze():
 def api_explain():
     if "file" not in request.files:
         return jsonify({"status": "error", "error": "No file uploaded"}), 400
-    
+
     file = request.files["file"]
     if file.filename == "":
         return jsonify({"status": "error", "error": "No file selected"}), 400
-        
+
     if not is_allowed_image(file.filename):
         return jsonify({"status": "error", "error": "Invalid file type. Please upload an image."}), 400
-        
+
     try:
         _, image, image_rgb = read_uploaded_image(file)
         compressed_rgb = resize_image(image_rgb, MAX_INFERENCE_DIMENSION)
-        
+
         # We just need to call analyze_image to generate the Grad-CAM and get results
         results = analyze_image(compressed_rgb)
-        
+
         if "error" in results:
             return jsonify({"status": "error", "error": results["error"]}), 500
-            
+
         disease_result = results.get("disease", {})
-        
+
         return jsonify({
             "status": "success",
             "heatmap_b64": results.get("grad_cam_image_b64"),
@@ -1345,10 +1384,10 @@ def comparison():
         try:
             last_week_file = request.files["last_week_image"]
             current_week_file = request.files["current_week_image"]
-            
+
             last_week_hash = calculate_file_hash(last_week_file)
             current_week_hash = calculate_file_hash(current_week_file)
-            
+
             if last_week_hash == current_week_hash:
                 error_message = "Duplicate field images detected. Please upload two different images for meaningful comparison analysis."
                 return render_template("comparison.html", error_message=error_message)
@@ -1433,28 +1472,28 @@ def demo():
         "boxes": demo_growth_boxes,
         "raw": demo_growth_boxes,
         }
-    
+
         # Generate high-quality synthetic cotton BGR image representing field crop
         synthetic_bgr = np.zeros((384, 512, 3), dtype=np.uint8)
-    
+
         # Fill background with a rich soft earthy background
         synthetic_bgr[:, :] = [30, 40, 45]
-    
+
         # Draw deep-green leaf foliage (multiple overlapping green circles)
         cv2.circle(synthetic_bgr, (200, 220), 120, (34, 139, 34), -1) # Forest Green
         cv2.circle(synthetic_bgr, (320, 260), 100, (46, 139, 87), -1) # Sea Green
         cv2.circle(synthetic_bgr, (120, 280), 90, (34, 120, 34), -1) # Darker Green
-    
+
         # Draw organic branch structure
         cv2.line(synthetic_bgr, (256, 384), (256, 200), (42, 75, 124), 12)
         cv2.line(synthetic_bgr, (256, 260), (140, 180), (42, 75, 124), 8)
         cv2.line(synthetic_bgr, (256, 220), (380, 150), (42, 75, 124), 8)
-    
+
         # Draw localized crop anomalies (reddish-brown leaf spots / target spot disease representation)
         cv2.circle(synthetic_bgr, (220, 200), 15, (40, 50, 139), -1)
         cv2.circle(synthetic_bgr, (215, 195), 5, (20, 30, 80), -1)
         cv2.circle(synthetic_bgr, (180, 240), 10, (40, 50, 139), -1)
-    
+
         # Draw Matured Cotton Boll within [120, 80, 210, 155] (center is (165, 117.5))
         cv2.ellipse(synthetic_bgr, (165, 117), (40, 30), 0, 0, 360, (50, 180, 100), -1)
         cv2.ellipse(synthetic_bgr, (165, 117), (40, 30), 0, 0, 360, (40, 140, 80), 2)
@@ -1466,31 +1505,31 @@ def demo():
         cv2.circle(synthetic_bgr, (345, 150), 20, (255, 255, 255), -1)
         cv2.circle(synthetic_bgr, (345, 180), 20, (230, 230, 230), -1)
         cv2.ellipse(synthetic_bgr, (345, 185), (35, 15), 0, 0, 360, (30, 50, 90), -1)
-    
+
         # Convert from BGR to RGB
         synthetic_rgb = cv2.cvtColor(synthetic_bgr, cv2.COLOR_BGR2RGB)
-    
+
         # Generate mock heatmap
         mock_heatmap = generate_mock_heatmap(synthetic_rgb)
         mock_overlay = apply_heatmap_on_image(synthetic_rgb, mock_heatmap)
-    
+
         # Base64 encode both original synthetic image and XAI overlay
         image_b64 = encode_image_for_display(synthetic_rgb)
         grad_cam_image_b64 = encode_image_for_display(mock_overlay)
-    
+
         # Set top-level and nested properties for robustness
         demo_disease["heatmap_b64"] = grad_cam_image_b64
-    
+
         # Calculate Severity
         severity = calculate_disease_severity(demo_disease["health_score"])
-    
+
         # Use estimate_yield from service
         from services.yield_service import estimate_yield
         yield_est = estimate_yield(demo_disease, demo_growth, weather=None, field_acres=1.0)
-    
+
         # Generate advanced recommendations
         adv_recs = generate_advanced_recommendations(demo_disease, demo_growth)
-        treatment_recs = build_treatment_recommendations(demo_disease)
+        treatment_recs = generate_treatment_recommendations(demo_disease)
 
         # Generate farmer insights
         insights = generate_farmer_insights(demo_disease, demo_growth)
@@ -1499,11 +1538,11 @@ def demo():
         "disease": demo_disease,
         "growth": demo_growth,
         "recommendations": generate_recommendations(demo_disease, demo_growth),
+        "treatment_recommendations": treatment_recs,
         "grad_cam_image_b64": grad_cam_image_b64,
         "disease_severity": severity,
         "yield_estimate": yield_est,
         "advanced_recommendations": adv_recs,
-        "treatment_recommendations": treatment_recs,
         "farmer_insights": insights
         }
         return render_template(
@@ -1618,9 +1657,9 @@ def api_weather():
 def api_analyze():
     if 'file' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400
-    
+
     file = request.files['file']
-    
+
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 400
     try:
@@ -1648,30 +1687,30 @@ def api_analyze_stream():
     file = request.files['file']
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 400
-    
+
     def generate():
         try:
             # Send progress updates
             yield f"data: {json.dumps({'status': 'uploading', 'progress': 25})}\n\n"
-            
+
             file_bytes = np.frombuffer(file.read(), np.uint8)
             image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
             if image is None:
                 yield f"data: {json.dumps({'status': 'error', 'message': 'Invalid image file'})}\n\n"
                 return
-            
+
             yield f"data: {json.dumps({'status': 'analyzing', 'progress': 50})}\n\n"
-            
+
             image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             results = analyze_image(image_rgb)
-            
+
             yield f"data: {json.dumps({'status': 'generating', 'progress': 75})}\n\n"
-            
+
             yield f"data: {json.dumps({'status': 'complete', 'progress': 100, 'results': results})}\n\n"
         except Exception as e:
             logger.error(f"Streaming analysis error: {e}")
             yield f"data: {json.dumps({'status': 'error', 'message': str(e)})}\n\n"
-    
+
     return Response(stream_with_context(generate()), mimetype='text/event-stream')
 
 
@@ -1683,20 +1722,20 @@ def api_batch_upload():
     try:
         if 'files' not in request.files:
             return jsonify({'error': 'No files uploaded'}), 400
-        
+
         files = request.files.getlist('files')
         if not files or files[0].filename == '':
             return jsonify({'error': 'No files selected'}), 400
-        
+
         # Validate files
         valid_files = []
         for file in files:
             if file and allowed_file(file.filename):
                 valid_files.append(file)
-        
+
         if not valid_files:
             return jsonify({'error': 'No valid image files'}), 400
-        
+
         # Create batch job
         from models import BatchJob, db
         job = BatchJob(
@@ -1705,13 +1744,13 @@ def api_batch_upload():
         )
         db.session.add(job)
         db.session.commit()
-        
+
         # Prepare image data for Celery
         images_data = []
         for file in valid_files:
             file_data = file.read()
             images_data.append((file.filename, file_data))
-        
+
         # Start batch processing (try to import Celery)
         try:
             from celery_tasks import process_batch_job
@@ -1723,7 +1762,7 @@ def api_batch_upload():
             # Process synchronously if Celery is not available
             job.status = 'processing'
             db.session.commit()
-            
+
             # Process images one by one
             import cv2
             import numpy as np
@@ -1734,7 +1773,7 @@ def api_batch_upload():
                     if image is not None:
                         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                         results = analyze_image(image_rgb)
-                        
+
                         # Save result
                         from models import AnalysisResult
                         result = AnalysisResult(
@@ -1761,11 +1800,11 @@ def api_batch_upload():
                         error_message=str(e)
                     )
                     db.session.add(result)
-            
+
             job.status = 'completed'
             job.completed_at = datetime.utcnow()
             db.session.commit()
-        
+
         return jsonify({
             'status': 'success',
             'job_id': job.id,
@@ -1773,7 +1812,7 @@ def api_batch_upload():
             'celery_enabled': celery_enabled,
             'message': f'Batch job {job.id} started with {len(valid_files)} images'
         })
-        
+
     except Exception as e:
         logger.error(f"Batch upload error: {e}")
         return jsonify({'error': str(e)}), 500
@@ -1783,21 +1822,21 @@ def api_batch_upload():
 def api_batch_status(job_id):
     """Get status of a batch job"""
     from models import BatchJob, db
-    
+
     job = BatchJob.query.get(job_id)
     if not job:
         return jsonify({'error': 'Batch job not found'}), 404
-    
+
     # Update completed count from results
     job.completed_images = len([r for r in job.results if r.status == 'complete'])
     job.failed_images = len([r for r in job.results if r.status == 'error'])
-    
+
     # Check if all tasks are done
     if job.completed_images + job.failed_images >= job.total_images:
         job.status = 'completed'
         job.completed_at = datetime.utcnow()
         db.session.commit()
-    
+
     return jsonify(job.to_dict())
 
 
@@ -1805,14 +1844,14 @@ def api_batch_status(job_id):
 def api_batch_results(job_id):
     """Get all results for a batch job"""
     from models import BatchJob, db
-    
+
     job = BatchJob.query.get(job_id)
     if not job:
         return jsonify({'error': 'Batch job not found'}), 404
-    
+
     results = [r.to_dict() for r in job.results]
     results.sort(key=lambda x: x['image_index'])
-    
+
     return jsonify({
         'job_id': job.id,
         'status': job.status,
@@ -1828,7 +1867,7 @@ def export_batch_csv(job_id):
     from models import BatchJob
     import csv
     from io import StringIO
-    
+
     job = BatchJob.query.get(job_id)
     if not job:
         return jsonify({'error': 'Batch job not found'}), 404
@@ -1836,20 +1875,20 @@ def export_batch_csv(job_id):
     si = StringIO()
     cw = csv.writer(si)
     cw.writerow(['Image Name', 'Status', 'Disease', 'Confidence', 'Health Score', 'Growth Stage'])
-    
+
     # Sort results by image index
     results = sorted(job.results, key=lambda x: x.image_index)
-    
+
     for r in results:
         results_data = r.results_json or {}
         disease = results_data.get('disease', {})
         growth = results_data.get('growth', {})
-        
+
         disease_class = disease.get('predicted_class', 'N/A')
         confidence = f"{disease.get('confidence', 0):.3f}" if disease.get('confidence') is not None else 'N/A'
         health_score = f"{disease.get('health_score', 0):.1f}" if disease.get('health_score') is not None else 'N/A'
         growth_class = growth.get('main_class', 'N/A')
-        
+
         cw.writerow([
             r.image_name,
             r.status,
@@ -1858,10 +1897,10 @@ def export_batch_csv(job_id):
             health_score,
             growth_class
         ])
-        
+
     output = si.getvalue()
     si.close()
-    
+
     return Response(
         output,
         mimetype="text/csv",
@@ -1904,19 +1943,19 @@ def export_batch_pdf(job_id):
 
     # Table data
     table_data = [['Image Name', 'Status', 'Disease', 'Confidence', 'Health Score', 'Growth Stage']]
-    
+
     results = sorted(job.results, key=lambda x: x.image_index)
-    
+
     for r in results:
         results_data = r.results_json or {}
         disease = results_data.get('disease', {})
         growth = results_data.get('growth', {})
-        
+
         disease_class = disease.get('predicted_class', 'N/A')
         confidence = f"{disease.get('confidence', 0)*100:.1f}%" if disease.get('confidence') is not None else 'N/A'
         health_score = f"{disease.get('health_score', 0):.1f}%" if disease.get('health_score') is not None else 'N/A'
         growth_class = growth.get('main_class', 'N/A')
-        
+
         table_data.append([
             r.image_name,
             r.status.upper(),
@@ -1940,10 +1979,10 @@ def export_batch_pdf(job_id):
         ('FONTSIZE', (0, 1), (-1, -1), 9),
         ('WORDWRAP', (0, 0), (-1, -1), 'CJK'),
     ]))
-    
+
     elements.append(table)
     doc.build(elements)
-    
+
     buffer.seek(0)
     return send_file(
         buffer,
@@ -1976,29 +2015,29 @@ def login():
     """Login page"""
     if current_user.is_authenticated:
         return redirect(url_for('index'))
-    
+
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
         remember = request.form.get('remember')
-        
+
         from models import User
         user = User.query.filter_by(email=email).first()
-        
+
         if user and user.check_password(password):
             if not user.is_active:
                 flash('Your account has been deactivated. Please contact support.', 'danger')
                 return render_template('login.html')
-            
+
             login_user(user, remember=remember)
             user.last_login = datetime.utcnow()
             db.session.commit()
-            
+
             next_page = request.args.get('next')
             return redirect(next_page) if next_page else redirect(url_for('index'))
         else:
             flash('Invalid email or password', 'danger')
-    
+
     return render_template('login.html')
 
 
@@ -2007,32 +2046,32 @@ def register():
     """Registration page"""
     if current_user.is_authenticated:
         return redirect(url_for('index'))
-    
+
     if request.method == 'POST':
         full_name = request.form.get('full_name')
         email = request.form.get('email')
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
         role = request.form.get('role', 'farmer')
-        
+
         # Validation
         if not full_name or not email or not password:
             flash('All fields are required', 'danger')
             return render_template('register.html')
-        
+
         if password != confirm_password:
             flash('Passwords do not match', 'danger')
             return render_template('register.html')
-        
+
         if len(password) < 8:
             flash('Password must be at least 8 characters', 'danger')
             return render_template('register.html')
-        
+
         from models import User
         if User.query.filter_by(email=email).first():
             flash('Email already registered', 'danger')
             return render_template('register.html')
-        
+
         # Create user
         user = User(
             email=email,
@@ -2040,13 +2079,13 @@ def register():
             role=role
         )
         user.set_password(password)
-        
+
         db.session.add(user)
         db.session.commit()
-        
+
         flash('Account created successfully! Please login.', 'success')
         return redirect(url_for('login'))
-    
+
     return render_template('register.html')
 
 
@@ -2091,18 +2130,18 @@ def api_disease_map():
     """API endpoint for disease map data"""
     from models import AnalysisHistory
     from datetime import datetime, timedelta
-    
+
     # Get filter parameters
     disease_filter = request.args.get('disease', 'all')
     time_filter = request.args.get('time', 'all')
     confidence_filter = float(request.args.get('confidence', 0))
-    
+
     # Build query - get all analyses first, then filter for location
     if current_user.is_researcher():
         query = AnalysisHistory.query
     else:
         query = AnalysisHistory.query.filter_by(user_id=current_user.id)
-    
+
     # Apply time filter
     if time_filter == 'today':
         query = query.filter(AnalysisHistory.created_at >= datetime.utcnow().replace(hour=0, minute=0, second=0))
@@ -2112,10 +2151,10 @@ def api_disease_map():
         query = query.filter(AnalysisHistory.created_at >= datetime.utcnow() - timedelta(days=30))
     elif time_filter == 'year':
         query = query.filter(AnalysisHistory.created_at >= datetime.utcnow() - timedelta(days=365))
-    
+
     # Get analyses
     analyses = query.all()
-    
+
     # Filter for location data in Python (more flexible)
     filtered_analyses = []
     for a in analyses:
@@ -2123,23 +2162,23 @@ def api_disease_map():
         if disease_filter != 'all':
             if not a.disease_result or a.disease_result.get('predicted_class') != disease_filter:
                 continue
-        
+
         # Apply confidence filter
         if confidence_filter > 0:
             if not a.confidence or a.confidence < confidence_filter / 100:
                 continue
-        
+
         # Only include analyses with location data
         if a.latitude and a.longitude:
             filtered_analyses.append(a)
-    
+
     # Calculate statistics
     total_analyses = len(filtered_analyses)
     healthy_count = sum(1 for a in filtered_analyses if a.disease_result and a.disease_result.get('predicted_class') == 'healthy')
     diseased_count = total_analyses - healthy_count
     avg_health_score = sum(a.health_score for a in filtered_analyses if a.health_score) / len([a for a in filtered_analyses if a.health_score]) if filtered_analyses else 0
     regions = set(a.region for a in filtered_analyses if a.region)
-    
+
     return jsonify({
         'analyses': [a.to_dict() for a in filtered_analyses],
         'stats': {
@@ -2168,31 +2207,31 @@ def api_dashboard_stats():
     from models import AnalysisHistory
     from datetime import datetime, timedelta
     from collections import defaultdict
-    
+
     # Get all analyses for current user
     if current_user.is_researcher():
         analyses = AnalysisHistory.query.all()
     else:
         analyses = AnalysisHistory.query.filter_by(user_id=current_user.id).all()
-    
+
     # Calculate basic statistics
     total_analyses = len(analyses)
     healthy_count = sum(1 for a in analyses if a.disease_result and a.disease_result.get('predicted_class') == 'healthy')
     diseased_count = total_analyses - healthy_count
     avg_health_score = sum(a.health_score for a in analyses if a.health_score) / len([a for a in analyses if a.health_score]) if analyses else 0
-    
+
     # Disease distribution
     disease_counts = defaultdict(int)
     for a in analyses:
         if a.disease_result:
             disease = a.disease_result.get('predicted_class', 'unknown')
             disease_counts[disease] += 1
-    
+
     disease_distribution = {
         'labels': [d.replace('_', ' ').title() for d in disease_counts.keys()],
         'values': list(disease_counts.values())
     }
-    
+
     # Disease trends (last 7 days)
     trend_labels = []
     trend_data = defaultdict(list)
@@ -2200,13 +2239,13 @@ def api_dashboard_stats():
         date = datetime.utcnow() - timedelta(days=6-i)
         date_str = date.strftime('%Y-%m-%d')
         trend_labels.append(date.strftime('%b %d'))
-        
+
         day_analyses = [a for a in analyses if a.created_at.date() == date.date()]
         for a in day_analyses:
             if a.disease_result:
                 disease = a.disease_result.get('predicted_class', 'unknown')
                 trend_data[disease].append(1)
-    
+
     # Create trend datasets
     trend_datasets = []
     colors = ['#22c55e', '#ef4444', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4']
@@ -2218,7 +2257,7 @@ def api_dashboard_stats():
             day_analyses = [a for a in analyses if a.created_at.date() == date.date()]
             count = sum(1 for a in day_analyses if a.disease_result and a.disease_result.get('predicted_class') == disease)
             daily_counts.append(count)
-        
+
         trend_datasets.append({
             'label': disease.replace('_', ' ').title(),
             'data': daily_counts,
@@ -2227,35 +2266,35 @@ def api_dashboard_stats():
             'fill': False,
             'tension': 0.4
         })
-    
+
     disease_trends = {
         'labels': trend_labels,
         'datasets': trend_datasets
     }
-    
+
     # Growth stage distribution
     growth_counts = defaultdict(int)
     for a in analyses:
         if a.growth_result:
             stage = a.growth_result.get('main_class', 'unknown')
             growth_counts[stage] += 1
-    
+
     growth_distribution = {
         'labels': [g.replace('_', ' ').title() for g in growth_counts.keys()],
         'values': list(growth_counts.values())
     }
-    
+
     # Regional data
     region_counts = defaultdict(int)
     for a in analyses:
         if a.region:
             region_counts[a.region] += 1
-    
+
     regional_data = {
         'labels': list(region_counts.keys()),
         'values': list(region_counts.values())
     }
-    
+
     # Recent activity
     recent_analyses = sorted(analyses, key=lambda x: x.created_at, reverse=True)[:10]
     recent_activity = []
@@ -2263,7 +2302,7 @@ def api_dashboard_stats():
         disease = a.disease_result.get('predicted_class', 'unknown') if a.disease_result else 'unknown'
         activity_type = 'disease' if disease != 'healthy' else 'healthy'
         icon = 'exclamation-triangle' if disease != 'healthy' else 'check-circle'
-        
+
         recent_activity.append({
             'type': activity_type,
             'icon': icon,
@@ -2271,7 +2310,7 @@ def api_dashboard_stats():
             'description': f'Confidence: {(a.confidence * 100):.1f}%' if a.confidence else 'No confidence data',
             'time': a.created_at.strftime('%b %d, %Y %H:%M')
         })
-    
+
     return jsonify({
         'stats': {
             'total_analyses': total_analyses,
@@ -2301,13 +2340,13 @@ def reports():
 def api_analyses():
     """API endpoint to get list of analyses for report generation"""
     from models import AnalysisHistory
-    
+
     # Get analyses for current user
     if current_user.is_researcher():
         analyses = AnalysisHistory.query.order_by(AnalysisHistory.created_at.desc()).limit(50).all()
     else:
         analyses = AnalysisHistory.query.filter_by(user_id=current_user.id).order_by(AnalysisHistory.created_at.desc()).limit(50).all()
-    
+
     analyses_list = []
     for a in analyses:
         disease = a.disease_result.get('predicted_class', 'unknown') if a.disease_result else 'unknown'
@@ -2317,7 +2356,7 @@ def api_analyses():
             'date': a.created_at.strftime('%Y-%m-%d %H:%M'),
             'health_score': a.health_score
         })
-    
+
     return jsonify({'analyses': analyses_list})
 
 
@@ -2327,21 +2366,21 @@ def generate_report(analysis_id):
     """Generate PDF report for a single analysis"""
     from models import AnalysisHistory
     from io import BytesIO
-    
+
     try:
         from services.report_service import ReportGenerator
     except ImportError as e:
         logger.error(f"Failed to import ReportGenerator: {e}")
         return jsonify({'error': f'Report service not available: {str(e)}'}), 500
-    
+
     analysis = AnalysisHistory.query.get(analysis_id)
     if not analysis:
         return jsonify({'error': 'Analysis not found'}), 404
-    
+
     # Check permission
     if not current_user.is_researcher() and analysis.user_id != current_user.id:
         return jsonify({'error': 'Access denied'}), 403
-    
+
     try:
         generator = ReportGenerator()
         report_data = {
@@ -2350,15 +2389,15 @@ def generate_report(analysis_id):
             'health_score': analysis.health_score,
             'confidence': analysis.confidence
         }
-        
+
         user_info = {
             'full_name': current_user.full_name,
             'email': current_user.email,
             'role': current_user.role
         }
-        
+
         pdf_bytes = generator.generate_analysis_report(report_data, user_info)
-        
+
         return send_file(
             BytesIO(pdf_bytes),
             mimetype='application/pdf',
@@ -2379,17 +2418,17 @@ def generate_summary_report():
     from models import AnalysisHistory
     from datetime import datetime, timedelta
     from io import BytesIO
-    
+
     try:
         from services.report_service import ReportGenerator
     except ImportError as e:
         logger.error(f"Failed to import ReportGenerator: {e}")
         return jsonify({'error': f'Report service not available: {str(e)}'}), 500
-    
+
     # Get date range
     days = request.args.get('days', 30, type=int)
     start_date = datetime.utcnow() - timedelta(days=days)
-    
+
     # Get analyses
     if current_user.is_researcher():
         analyses = AnalysisHistory.query.filter(AnalysisHistory.created_at >= start_date).all()
@@ -2398,20 +2437,20 @@ def generate_summary_report():
             AnalysisHistory.user_id == current_user.id,
             AnalysisHistory.created_at >= start_date
         ).all()
-    
+
     try:
         generator = ReportGenerator()
         analyses_data = [a.to_dict() for a in analyses]
-        
+
         user_info = {
             'full_name': current_user.full_name,
             'email': current_user.email,
             'role': current_user.role
         }
-        
+
         date_range = f"Last {days} days"
         pdf_bytes = generator.generate_summary_report(analyses_data, user_info, date_range)
-        
+
         return send_file(
             BytesIO(pdf_bytes),
             mimetype='application/pdf',
@@ -2445,24 +2484,24 @@ def symptom_checker():
 def api_diseases():
     """API endpoint to get list of diseases"""
     from models import Disease
-    
+
     search = request.args.get('search', '')
     severity = request.args.get('severity', '')
     affected_part = request.args.get('affected_part', '')
-    
+
     query = Disease.query
-    
+
     if search:
         query = query.filter(Disease.name.ilike(f'%{search}%'))
-    
+
     if severity:
         query = query.filter(Disease.severity == severity)
-    
+
     if affected_part:
         query = query.filter(Disease.affected_parts.ilike(f'%{affected_part}%'))
-    
+
     diseases = query.order_by(Disease.name).all()
-    
+
     return jsonify({
         'diseases': [d.to_dict() for d in diseases],
         'count': len(diseases)
@@ -2473,11 +2512,11 @@ def api_diseases():
 def api_disease_detail(disease_id):
     """API endpoint to get disease details"""
     from models import Disease
-    
+
     disease = Disease.query.get(disease_id)
     if not disease:
         return jsonify({'error': 'Disease not found'}), 404
-    
+
     return jsonify(disease.to_dict())
 
 
@@ -2485,16 +2524,16 @@ def api_disease_detail(disease_id):
 def api_symptoms():
     """API endpoint to get list of symptoms"""
     from models import Symptom
-    
+
     category = request.args.get('category', '')
-    
+
     query = Symptom.query
-    
+
     if category:
         query = query.filter(Symptom.category == category)
-    
+
     symptoms = query.order_by(Symptom.category, Symptom.name).all()
-    
+
     return jsonify({
         'symptoms': [s.to_dict() for s in symptoms],
         'count': len(symptoms)
@@ -2505,26 +2544,26 @@ def api_symptoms():
 def api_symptom_check():
     """API endpoint to check symptoms and suggest diseases"""
     from models import Symptom, Disease, DiseaseSymptom
-    
+
     data = request.get_json()
     symptom_ids = data.get('symptom_ids', [])
-    
+
     if not symptom_ids:
         return jsonify({'error': 'No symptoms provided'}), 400
-    
+
     # Get diseases associated with the symptoms
     disease_scores = {}
-    
+
     for symptom_id in symptom_ids:
         associations = DiseaseSymptom.query.filter_by(symptom_id=symptom_id).all()
         for assoc in associations:
             if assoc.disease_id not in disease_scores:
                 disease_scores[assoc.disease_id] = 0
             disease_scores[assoc.disease_id] += assoc.confidence
-    
+
     # Sort by score
     sorted_diseases = sorted(disease_scores.items(), key=lambda x: x[1], reverse=True)
-    
+
     # Get top matches
     results = []
     for disease_id, score in sorted_diseases[:5]:
@@ -2534,7 +2573,7 @@ def api_symptom_check():
                 'disease': disease.to_dict(),
                 'match_score': round(score * 100, 1)
             })
-    
+
     return jsonify({
         'results': results,
         'symptom_count': len(symptom_ids)
@@ -2555,26 +2594,26 @@ def api_weather_forecast():
     """API endpoint to get weather forecast for a location"""
     from services.weather_service import get_weather_forecast
     from services.disease_prediction_service import DiseasePredictor
-    
+
     lat = request.args.get('lat', type=float)
     lon = request.args.get('lon', type=float)
     location_name = request.args.get('location', 'Unknown')
     days = request.args.get('days', 14, type=int)
-    
+
     if not lat or not lon:
         return jsonify({'error': 'Latitude and longitude required'}), 400
-    
+
     try:
         # Get weather forecast
         forecast_data = get_weather_forecast(lat, lon, days)
-        
+
         if not forecast_data:
             return jsonify({'error': 'Failed to fetch weather forecast'}), 500
-        
+
         # Get disease predictions
         predictor = DiseasePredictor()
         predictions = predictor.get_all_disease_predictions(forecast_data['forecast'])
-        
+
         return jsonify({
             'location': location_name,
             'lat': lat,
@@ -2592,35 +2631,35 @@ def api_disease_prediction(disease_name):
     """API endpoint to get prediction for a specific disease"""
     from services.weather_service import get_weather_forecast
     from services.disease_prediction_service import DiseasePredictor
-    
+
     lat = request.args.get('lat', type=float)
     lon = request.args.get('lon', type=float)
     days = request.args.get('days', 14, type=int)
-    
+
     if not lat or not lon:
         return jsonify({'error': 'Latitude and longitude required'}), 400
-    
+
     try:
         # Get weather forecast
         forecast_data = get_weather_forecast(lat, lon, days)
-        
+
         if not forecast_data:
             return jsonify({'error': 'Failed to fetch weather forecast'}), 500
-        
+
         # Get prediction for specific disease
         predictor = DiseasePredictor()
         predictions = predictor.predict_disease_risk(forecast_data['forecast'], disease_name)
-        
+
         # Get high risk days
         high_risk_days = predictor.get_high_risk_days(predictions)
-        
+
         # Get recommendations
         if predictions:
             latest_risk = predictions[0]['risk_level']
             recommendations = predictor.generate_recommendations(disease_name, latest_risk)
         else:
             recommendations = []
-        
+
         return jsonify({
             'disease': disease_name,
             'predictions': predictions,
@@ -2637,30 +2676,30 @@ def api_historical_patterns():
     """API endpoint to analyze historical disease patterns"""
     from models import DiseaseOccurrence
     from services.disease_prediction_service import HistoricalPatternAnalyzer
-    
+
     location = request.args.get('location', '')
     disease_id = request.args.get('disease_id', type=int)
-    
+
     try:
         query = DiseaseOccurrence.query
-        
+
         if location:
             query = query.filter(DiseaseOccurrence.location_name.ilike(f'%{location}%'))
-        
+
         if disease_id:
             query = query.filter(DiseaseOccurrence.disease_id == disease_id)
-        
+
         occurrences = query.order_by(DiseaseOccurrence.occurrence_date.desc()).limit(1000).all()
         occurrences_data = [o.to_dict() for o in occurrences]
-        
+
         analyzer = HistoricalPatternAnalyzer()
-        
+
         # Analyze seasonal patterns
         seasonal_patterns = analyzer.analyze_seasonal_patterns(occurrences_data)
-        
+
         # Analyze regional patterns
         regional_patterns = analyzer.get_regional_patterns(occurrences_data)
-        
+
         return jsonify({
             'seasonal_patterns': seasonal_patterns,
             'regional_patterns': regional_patterns,
@@ -2676,9 +2715,9 @@ def api_historical_patterns():
 def api_report_disease_occurrence():
     """API endpoint to report a disease occurrence (for ML training)"""
     from models import DiseaseOccurrence, Disease
-    
+
     data = request.get_json()
-    
+
     disease_id = data.get('disease_id')
     location_name = data.get('location_name')
     latitude = data.get('latitude')
@@ -2687,23 +2726,23 @@ def api_report_disease_occurrence():
     severity = data.get('severity', 'moderate')
     affected_area = data.get('affected_area')
     notes = data.get('notes')
-    
+
     if not disease_id or not location_name or not occurrence_date:
         return jsonify({'error': 'disease_id, location_name, and occurrence_date required'}), 400
-    
+
     try:
         # Validate disease exists
         disease = Disease.query.get(disease_id)
         if not disease:
             return jsonify({'error': 'Disease not found'}), 404
-        
+
         # Parse date
         from datetime import datetime
         try:
             occurrence_date = datetime.strptime(occurrence_date, '%Y-%m-%d').date()
         except ValueError:
             return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
-        
+
         # Create occurrence record
         occurrence = DiseaseOccurrence(
             disease_id=disease_id,
@@ -2716,10 +2755,10 @@ def api_report_disease_occurrence():
             reported_by=current_user.id,
             notes=notes
         )
-        
+
         db.session.add(occurrence)
         db.session.commit()
-        
+
         return jsonify({
             'message': 'Disease occurrence reported successfully',
             'occurrence_id': occurrence.id
@@ -2753,7 +2792,7 @@ if __name__ == '__main__':
         logger.info("Database tables created")
 
     ensure_models_loaded()
-    
+
     # Register models in the registry
     try:
         registry.register_model(
@@ -2775,6 +2814,6 @@ if __name__ == '__main__':
         logger.info("Models registered in model registry")
     except Exception as e:
         logger.error(f"Error registering models: {e}")
-    
+
     is_debug = os.getenv("FLASK_DEBUG", "False").lower() in ("true", "1", "t")
     app.run(debug=is_debug, host="0.0.0.0", port=5000)
