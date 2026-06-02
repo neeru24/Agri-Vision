@@ -243,8 +243,7 @@ class ModelRegistry:
             if model_type == "resnet":
                 model = torch.load(
                     metadata.path,
-                    map_location=torch.device('cpu'),
-                    weights_only=True,
+                    map_location=torch.device('cpu')
                 )
             elif model_type == "yolo":
                 model = YOLO(metadata.path)

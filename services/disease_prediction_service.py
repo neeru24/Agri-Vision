@@ -15,116 +15,89 @@ class DiseasePredictor:
     
     def __init__(self):
         # Disease-specific weather thresholds (based on agricultural research)
-        # Keys match the disease class names used in app.py for consistency
-        self.disease_thresholds = self._build_thresholds()
-
-    @staticmethod
-    def _build_thresholds():
-        return {
-            'Aphids': {
-                'temp_min': 20, 'temp_max': 30,
-                'humidity_min': 50, 'rainfall_min': 0,
-                'temp_weight': 0.4, 'humidity_weight': 0.3, 'rainfall_weight': 0.3
+        self.disease_thresholds = {
+            'bacterial_blight': {
+                'temp_min': 25,
+                'temp_max': 35,
+                'humidity_min': 70,
+                'rainfall_min': 5,
+                'temp_weight': 0.3,
+                'humidity_weight': 0.4,
+                'rainfall_weight': 0.3
             },
-            'Army worm': {
-                'temp_min': 25, 'temp_max': 35,
-                'humidity_min': 55, 'rainfall_min': 0,
-                'temp_weight': 0.4, 'humidity_weight': 0.3, 'rainfall_weight': 0.3
+            'fusarium_wilt': {
+                'temp_min': 25,
+                'temp_max': 30,
+                'humidity_min': 60,
+                'rainfall_min': 0,
+                'temp_weight': 0.4,
+                'humidity_weight': 0.3,
+                'rainfall_weight': 0.3
             },
-            'Bacterial blight': {
-                'temp_min': 25, 'temp_max': 35,
-                'humidity_min': 70, 'rainfall_min': 5,
-                'temp_weight': 0.3, 'humidity_weight': 0.4, 'rainfall_weight': 0.3
+            'verticillium_wilt': {
+                'temp_min': 20,
+                'temp_max': 25,
+                'humidity_min': 60,
+                'rainfall_min': 0,
+                'temp_weight': 0.4,
+                'humidity_weight': 0.3,
+                'rainfall_weight': 0.3
             },
-            'Cotton Boll Rot': {
-                'temp_min': 25, 'temp_max': 32,
-                'humidity_min': 80, 'rainfall_min': 10,
-                'temp_weight': 0.3, 'humidity_weight': 0.4, 'rainfall_weight': 0.3
+            'powdery_mildew': {
+                'temp_min': 20,
+                'temp_max': 28,
+                'humidity_min': 60,
+                'rainfall_min': 0,
+                'temp_weight': 0.3,
+                'humidity_weight': 0.5,
+                'rainfall_weight': 0.2
             },
-            'Green Cotton Boll': {
-                'temp_min': 22, 'temp_max': 35,
-                'humidity_min': 50, 'rainfall_min': 0,
-                'temp_weight': 0.3, 'humidity_weight': 0.4, 'rainfall_weight': 0.3
+            'cotton_root_rot': {
+                'temp_min': 28,
+                'temp_max': 35,
+                'humidity_min': 50,
+                'rainfall_min': 10,
+                'temp_weight': 0.3,
+                'humidity_weight': 0.3,
+                'rainfall_weight': 0.4
             },
-            'Healthy': {
-                'temp_min': 0, 'temp_max': 100,
-                'humidity_min': 0, 'rainfall_min': 0,
-                'temp_weight': 0.0, 'humidity_weight': 0.0, 'rainfall_weight': 0.0
+            'alternaria_leaf_spot': {
+                'temp_min': 20,
+                'temp_max': 30,
+                'humidity_min': 70,
+                'rainfall_min': 5,
+                'temp_weight': 0.3,
+                'humidity_weight': 0.4,
+                'rainfall_weight': 0.3
             },
-            'Powdery mildew': {
-                'temp_min': 20, 'temp_max': 28,
-                'humidity_min': 60, 'rainfall_min': 0,
-                'temp_weight': 0.3, 'humidity_weight': 0.5, 'rainfall_weight': 0.2
+            'cotton_boll_rot': {
+                'temp_min': 25,
+                'temp_max': 32,
+                'humidity_min': 80,
+                'rainfall_min': 10,
+                'temp_weight': 0.3,
+                'humidity_weight': 0.4,
+                'rainfall_weight': 0.3
             },
-            'Target Spot': {
-                'temp_min': 22, 'temp_max': 32,
-                'humidity_min': 70, 'rainfall_min': 5,
-                'temp_weight': 0.3, 'humidity_weight': 0.4, 'rainfall_weight': 0.3
-            },
-            'Fusarium wilt': {
-                'temp_min': 25, 'temp_max': 30,
-                'humidity_min': 60, 'rainfall_min': 0,
-                'temp_weight': 0.4, 'humidity_weight': 0.3, 'rainfall_weight': 0.3
-            },
-            'Verticillium wilt': {
-                'temp_min': 20, 'temp_max': 25,
-                'humidity_min': 60, 'rainfall_min': 0,
-                'temp_weight': 0.4, 'humidity_weight': 0.3, 'rainfall_weight': 0.3
-            },
-            'Cotton root rot': {
-                'temp_min': 28, 'temp_max': 35,
-                'humidity_min': 50, 'rainfall_min': 10,
-                'temp_weight': 0.3, 'humidity_weight': 0.3, 'rainfall_weight': 0.4
-            },
-            'Alternaria leaf spot': {
-                'temp_min': 20, 'temp_max': 30,
-                'humidity_min': 70, 'rainfall_min': 5,
-                'temp_weight': 0.3, 'humidity_weight': 0.4, 'rainfall_weight': 0.3
-            },
-            'Red leaf spot': {
-                'temp_min': 22, 'temp_max': 30,
-                'humidity_min': 65, 'rainfall_min': 5,
-                'temp_weight': 0.3, 'humidity_weight': 0.4, 'rainfall_weight': 0.3
-            },
+            'red_leaf_spot': {
+                'temp_min': 22,
+                'temp_max': 30,
+                'humidity_min': 65,
+                'rainfall_min': 5,
+                'temp_weight': 0.3,
+                'humidity_weight': 0.4,
+                'rainfall_weight': 0.3
+            }
         }
     
-    @staticmethod
-    def _normalize_name(name: str) -> str:
-        """Convert a disease name from any common format to the canonical form used in thresholds."""
-        if not name:
-            return name
-        normalized = name.strip().replace('_', ' ').replace('-', ' ')
-        return ' '.join(
-            word if word.islower() and len(word) <= 2 else word.capitalize()
-            for word in normalized.split()
-        )
-
-    @staticmethod
-    def _fuzzy_match(name: str, known_keys: set) -> Optional[str]:
-        """
-        Try to match a disease name against known keys with flexible matching.
-        Returns the matched key or None.
-        """
-        canonical = DiseasePredictor._normalize_name(name)
-        if canonical in known_keys:
-            return canonical
-        lower_name = canonical.lower()
-        for key in known_keys:
-            if key.lower() == lower_name:
-                return key
-            if key.replace(' ', '').lower() == canonical.replace(' ', '').lower():
-                return key
-        return None
-
     def calculate_risk_score(self, weather_data: Dict, disease_name: str) -> float:
         """
         Calculate disease risk score (0-100) based on weather conditions
         """
-        matched_key = self._fuzzy_match(disease_name, set(self.disease_thresholds.keys()))
-        if matched_key is None:
+        if disease_name not in self.disease_thresholds:
             return 0
         
-        thresholds = self.disease_thresholds[matched_key]
+        thresholds = self.disease_thresholds[disease_name]
         
         temp = weather_data.get('temperature_avg', weather_data.get('temperature', 0))
         humidity = weather_data.get('humidity', 0)
@@ -228,20 +201,19 @@ class DiseasePredictor:
         Generate preventive recommendations based on disease and risk level
         """
         recommendations = []
-        display_name = self._normalize_name(disease_name)
         
         if risk_level in ['high', 'severe']:
-            recommendations.append(f"Immediate action required for {display_name}.")
+            recommendations.append(f"Immediate action required for {disease_name.replace('_', ' ').title()}.")
             recommendations.append("Apply preventive fungicides if conditions persist.")
             recommendations.append("Monitor fields daily for early symptoms.")
             recommendations.append("Consider drainage improvements if rainfall is high.")
         elif risk_level == 'moderate':
-            recommendations.append(f"Monitor for {display_name} development.")
+            recommendations.append(f"Monitor for {disease_name.replace('_', ' ').title()} development.")
             recommendations.append("Ensure proper field ventilation and spacing.")
             recommendations.append("Avoid overhead irrigation during high humidity.")
             recommendations.append("Have treatment options ready if conditions worsen.")
         else:
-            recommendations.append(f"Low risk for {display_name}.")
+            recommendations.append(f"Low risk for {disease_name.replace('_', ' ').title()}.")
             recommendations.append("Continue regular monitoring.")
             recommendations.append("Maintain good cultural practices.")
         
@@ -470,13 +442,10 @@ class HistoricalPatternAnalyzer:
         """
         Get peak season for a specific disease
         """
-        if not self.trained:
-            return None
-        matched_key = DiseasePredictor._fuzzy_match(disease_name, set(self.seasonal_patterns.keys()))
-        if matched_key is None:
+        if not self.trained or disease_name not in self.seasonal_patterns:
             return None
         
-        monthly_data = self.seasonal_patterns[matched_key]
+        monthly_data = self.seasonal_patterns[disease_name]
         peak_month = max(monthly_data, key=monthly_data.get)
         
         return {
@@ -512,13 +481,10 @@ class HistoricalPatternAnalyzer:
         """
         Get disease trend over specified number of months
         """
-        if not self.trained:
-            return {}
-        matched_key = DiseasePredictor._fuzzy_match(disease_name, set(self.seasonal_patterns.keys()))
-        if matched_key is None:
+        if not self.trained or disease_name not in self.seasonal_patterns:
             return {}
         
-        monthly_data = self.seasonal_patterns[matched_key]
+        monthly_data = self.seasonal_patterns[disease_name]
         
         # Calculate trend (increasing, decreasing, stable)
         recent_months = list(monthly_data.values())[-months:]

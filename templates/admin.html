@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Management Dashboard - Agri-Vision</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .admin-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .admin-header h1 {
+            margin: 0 0 10px 0;
+        }
+        .admin-header p {
+            margin: 0;
+            opacity: 0.9;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            color: #666;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        .stat-card .value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+        }
+        .stat-card.active {
+            border: 3px solid #10b981;
+        }
+        .models-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .models-section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .model-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        .model-card.active {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+        .model-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .model-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .model-version {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        .model-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .model-badge.active {
+            background: #10b981;
+            color: white;
+        }
+        .model-badge.inactive {
+            background: #6c757d;
+            color: white;
+        }
+        .model-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .metric {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .metric-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        .model-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        .ab-testing-section {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .ab-testing-section h2 {
+            margin-top: 0;
+        }
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #10b981;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .charts-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .charts-section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .chart-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            height: 300px;
+        }
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .comparison-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .comparison-section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .comparison-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        .comparison-table tr:hover {
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/analyze">Analyze</a>
+        <a href="/admin" class="active">Admin</a>
+    </nav>
+
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>🤖 Model Management Dashboard</h1>
+            <p>Manage model versions, A/B testing, and performance metrics</p>
+        </div>
+
+        <div id="error-container"></div>
+
+        <!-- Stats Section -->
+        <div class="stats-grid">
+            <div class="stat-card active">
+                <h3>Active Models</h3>
+                <div class="value" id="active-models-count">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Requests</h3>
+                <div class="value" id="total-requests">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Avg Confidence</h3>
+                <div class="value" id="avg-confidence">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Rollback Threshold</h3>
+                <div class="value" id="rollback-threshold">-</div>
+            </div>
+        </div>
+
+        <!-- A/B Testing Section -->
+        <div class="ab-testing-section">
+            <h2>🧪 A/B Testing Control</h2>
+            <p>Enable A/B testing to route traffic between different model versions</p>
+            <div class="toggle-switch">
+                <label class="switch">
+                    <input type="checkbox" id="ab-testing-toggle" onchange="toggleABTesting()">
+                    <span class="slider"></span>
+                </label>
+                <span id="ab-testing-status">Disabled</span>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <h2>📊 Real-Time Analytics</h2>
+            <div class="export-buttons">
+                <button class="btn btn-primary" onclick="exportCSV()">Export CSV</button>
+                <button class="btn btn-primary" onclick="exportPDF()">Export PDF</button>
+            </div>
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <canvas id="requestsChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="confidenceChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="successRateChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="inferenceTimeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Comparison Section -->
+        <div class="comparison-section">
+            <h2>🔄 Model Version Comparison</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Model Type</th>
+                        <th>Version</th>
+                        <th>Accuracy</th>
+                        <th>Requests</th>
+                        <th>Success Rate</th>
+                        <th>Avg Confidence</th>
+                        <th>Avg Inference Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="comparison-table-body">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ResNet Models Section -->
+        <div class="models-section">
+            <h2>🔬 Disease Classification Models (ResNet)</h2>
+            <div id="resnet-models">
+                <div class="loading">Loading models...</div>
+            </div>
+        </div>
+
+        <!-- YOLO Models Section -->
+        <div class="models-section">
+            <h2>🌱 Growth Stage Detection Models (YOLO)</h2>
+            <div id="yolo-models">
+                <div class="loading">Loading models...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentData = null;
+        let requestsChart, confidenceChart, successRateChart, inferenceTimeChart;
+        let historicalData = {
+            labels: [],
+            requests: [],
+            confidence: [],
+            successRate: [],
+            inferenceTime: []
+        };
+
+        // Load initial data
+        loadModels();
+        initCharts();
+
+        // Auto-refresh every 10 seconds
+        setInterval(loadModels, 10000);
+
+        function initCharts() {
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            };
+
+            // Requests Chart
+            requestsChart = new Chart(document.getElementById('requestsChart'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Total Requests',
+                        data: [],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: chartOptions
+            });
+
+            // Confidence Chart
+            confidenceChart = new Chart(document.getElementById('confidenceChart'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Avg Confidence (%)',
+                        data: [],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: chartOptions
+            });
+
+            // Success Rate Chart
+            successRateChart = new Chart(document.getElementById('successRateChart'), {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Success Rate (%)',
+                        data: [],
+                        backgroundColor: '#f59e0b',
+                        borderColor: '#d97706',
+                        borderWidth: 1
+                    }]
+                },
+                options: chartOptions
+            });
+
+            // Inference Time Chart
+            inferenceTimeChart = new Chart(document.getElementById('inferenceTimeChart'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Avg Inference Time (s)',
+                        data: [],
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: chartOptions
+            });
+        }
+
+        async function loadModels() {
+            try {
+                const response = await fetch('/admin/models');
+                const data = await response.json();
+                currentData = data;
+                renderModels(data);
+                updateStats(data);
+                updateCharts(data);
+                updateComparisonTable(data);
+            } catch (error) {
+                showError('Failed to load models: ' + error.message);
+            }
+        }
+
+        function updateCharts(data) {
+            const now = new Date().toLocaleTimeString();
+            
+            // Calculate aggregated metrics
+            let totalRequests = 0;
+            let totalConfidence = 0;
+            let totalSuccessRate = 0;
+            let totalInferenceTime = 0;
+            let modelCount = 0;
+
+            if (data.models) {
+                Object.keys(data.models).forEach(type => {
+                    data.models[type].forEach(model => {
+                        const metrics = model.performance_metrics;
+                        totalRequests += metrics.total_requests;
+                        totalConfidence += metrics.avg_confidence;
+                        totalInferenceTime += metrics.avg_inference_time;
+                        if (metrics.total_requests > 0) {
+                            totalSuccessRate += (metrics.successful_predictions / metrics.total_requests);
+                        }
+                        modelCount++;
+                    });
+                });
+            }
+
+            // Calculate incremental requests (change since last update)
+            const lastRequests = historicalData.requests.length > 0 ? historicalData.requests[historicalData.requests.length - 1] : 0;
+            const incrementalRequests = totalRequests - lastRequests;
+
+            // Update historical data
+            historicalData.labels.push(now);
+            historicalData.requests.push(incrementalRequests >= 0 ? incrementalRequests : totalRequests);
+            historicalData.confidence.push(modelCount > 0 ? (totalConfidence / modelCount) * 100 : 0);
+            historicalData.successRate.push(modelCount > 0 ? (totalSuccessRate / modelCount) * 100 : 0);
+            historicalData.inferenceTime.push(modelCount > 0 ? totalInferenceTime / modelCount : 0);
+
+            // Keep only last 20 data points
+            if (historicalData.labels.length > 20) {
+                historicalData.labels.shift();
+                historicalData.requests.shift();
+                historicalData.confidence.shift();
+                historicalData.successRate.shift();
+                historicalData.inferenceTime.shift();
+            }
+
+            // Update charts
+            requestsChart.data.labels = historicalData.labels;
+            requestsChart.data.datasets[0].data = historicalData.requests;
+            requestsChart.data.datasets[0].label = 'New Requests';
+            requestsChart.update();
+
+            confidenceChart.data.labels = historicalData.labels;
+            confidenceChart.data.datasets[0].data = historicalData.confidence;
+            confidenceChart.update();
+
+            successRateChart.data.labels = historicalData.labels;
+            successRateChart.data.datasets[0].data = historicalData.successRate;
+            successRateChart.update();
+
+            inferenceTimeChart.data.labels = historicalData.labels;
+            inferenceTimeChart.data.datasets[0].data = historicalData.inferenceTime;
+            inferenceTimeChart.update();
+        }
+
+        function updateComparisonTable(data) {
+            const tbody = document.getElementById('comparison-table-body');
+            let html = '';
+
+            if (data.models) {
+                Object.keys(data.models).forEach(type => {
+                    data.models[type].forEach(model => {
+                        const metrics = model.performance_metrics;
+                        const successRate = metrics.total_requests > 0 
+                            ? ((metrics.successful_predictions / metrics.total_requests) * 100).toFixed(1) 
+                            : '0.0';
+                        
+                        html += `
+                            <tr>
+                                <td>${type.charAt(0).toUpperCase() + type.slice(1)}</td>
+                                <td>${model.version}</td>
+                                <td>${(model.accuracy * 100).toFixed(2)}%</td>
+                                <td>${metrics.total_requests}</td>
+                                <td>${successRate}%</td>
+                                <td>${(metrics.avg_confidence * 100).toFixed(1)}%</td>
+                                <td>${metrics.avg_inference_time.toFixed(3)}s</td>
+                                <td>
+                                    <span class="model-badge ${model.is_active ? 'active' : 'inactive'}">
+                                        ${model.is_active ? 'Active' : 'Inactive'}
+                                    </span>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                });
+            }
+
+            tbody.innerHTML = html;
+        }
+
+        function exportCSV() {
+            if (!currentData || !currentData.models) {
+                alert('No data to export');
+                return;
+            }
+
+            let csv = 'Model Type,Version,Accuracy,Requests,Success Rate,Avg Confidence,Avg Inference Time,Status\n';
+
+            Object.keys(currentData.models).forEach(type => {
+                currentData.models[type].forEach(model => {
+                    const metrics = model.performance_metrics;
+                    const successRate = metrics.total_requests > 0 
+                        ? ((metrics.successful_predictions / metrics.total_requests) * 100).toFixed(1) 
+                        : '0.0';
+                    
+                    csv += `${type},${model.version},${(model.accuracy * 100).toFixed(2)},${metrics.total_requests},${successRate}%,${(metrics.avg_confidence * 100).toFixed(1)}%,${metrics.avg_inference_time.toFixed(3)},${model.is_active ? 'Active' : 'Inactive'}\n`;
+                });
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `model_metrics_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        function exportPDF() {
+            window.location.href = '/admin/models/export/pdf';
+        }
+
+        function renderModels(data) {
+            // Render ResNet models
+            const resnetContainer = document.getElementById('resnet-models');
+            if (data.models && data.models.resnet) {
+                resnetContainer.innerHTML = data.models.resnet.map(model => createModelCard(model, 'resnet')).join('');
+            }
+
+            // Render YOLO models
+            const yoloContainer = document.getElementById('yolo-models');
+            if (data.models && data.models.yolo) {
+                yoloContainer.innerHTML = data.models.yolo.map(model => createModelCard(model, 'yolo')).join('');
+            }
+
+            // Update A/B testing toggle
+            document.getElementById('ab-testing-toggle').checked = data.ab_test_enabled;
+            document.getElementById('ab-testing-status').textContent = data.ab_test_enabled ? 'Enabled' : 'Disabled';
+            document.getElementById('rollback-threshold').textContent = (data.rollback_threshold * 100).toFixed(0) + '%';
+        }
+
+        function createModelCard(model, modelType) {
+            const isActive = model.is_active;
+            const metrics = model.performance_metrics;
+            
+            return `
+                <div class="model-card ${isActive ? 'active' : ''}">
+                    <div class="model-header">
+                        <div class="model-version">${model.version}</div>
+                        <span class="model-badge ${isActive ? 'active' : 'inactive'}">
+                            ${isActive ? 'Active' : 'Inactive'}
+                        </span>
+                    </div>
+                    <div style="color: #666; margin-bottom: 10px;">
+                        <strong>Accuracy:</strong> ${(model.accuracy * 100).toFixed(2)}% | 
+                        <strong>Dataset:</strong> ${model.dataset_version} |
+                        <strong>A/B Ratio:</strong> ${(model.ab_test_ratio * 100).toFixed(0)}%
+                    </div>
+                    <div class="model-metrics">
+                        <div class="metric">
+                            <div class="metric-label">Requests</div>
+                            <div class="metric-value">${metrics.total_requests}</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Success Rate</div>
+                            <div class="metric-value">${metrics.total_requests > 0 ? ((metrics.successful_predictions / metrics.total_requests) * 100).toFixed(1) : 0}%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Avg Confidence</div>
+                            <div class="metric-value">${(metrics.avg_confidence * 100).toFixed(1)}%</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Avg Time</div>
+                            <div class="metric-value">${metrics.avg_inference_time.toFixed(3)}s</div>
+                        </div>
+                    </div>
+                    <div class="model-actions">
+                        ${!isActive ? `<button class="btn btn-success" onclick="activateModel('${modelType}', '${model.version}')">Activate</button>` : ''}
+                        <button class="btn btn-primary" onclick="setABRatio('${modelType}', '${model.version}')">Set A/B Ratio</button>
+                        ${!isActive ? `<button class="btn btn-danger" onclick="deleteModel('${modelType}', '${model.version}')">Delete</button>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateStats(data) {
+            let totalRequests = 0;
+            let totalConfidence = 0;
+            let confidenceCount = 0;
+            let activeCount = 0;
+
+            if (data.models) {
+                Object.keys(data.models).forEach(type => {
+                    data.models[type].forEach(model => {
+                        totalRequests += model.performance_metrics.total_requests;
+                        if (model.performance_metrics.total_requests > 0) {
+                            totalConfidence += model.performance_metrics.avg_confidence;
+                            confidenceCount++;
+                        }
+                        if (model.is_active) activeCount++;
+                    });
+                });
+
+                document.getElementById('active-models-count').textContent = activeCount;
+                document.getElementById('total-requests').textContent = totalRequests;
+                document.getElementById('avg-confidence').textContent = confidenceCount > 0 ? 
+                    ((totalConfidence / confidenceCount) * 100).toFixed(1) + '%' : 'N/A';
+            }
+        }
+
+        async function toggleABTesting() {
+            const enabled = document.getElementById('ab-testing-toggle').checked;
+            try {
+                const response = await fetch('/admin/models/ab-testing', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled })
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    loadModels();
+                } else {
+                    showError('Failed to toggle A/B testing');
+                }
+            } catch (error) {
+                showError('Error: ' + error.message);
+            }
+        }
+
+        async function activateModel(modelType, version) {
+            if (!confirm(`Activate ${modelType} version ${version}?`)) return;
+            
+            try {
+                const response = await fetch('/admin/models/activate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model_type: modelType, version })
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    loadModels();
+                } else {
+                    showError('Failed to activate model');
+                }
+            } catch (error) {
+                showError('Error: ' + error.message);
+            }
+        }
+
+        async function setABRatio(modelType, version) {
+            const ratio = prompt(`Enter A/B test ratio for ${modelType} ${version} (0.0 to 1.0):`);
+            if (ratio === null || ratio === '') return;
+            
+            const ratioValue = parseFloat(ratio);
+            if (isNaN(ratioValue) || ratioValue < 0 || ratioValue > 1) {
+                alert('Please enter a valid ratio between 0.0 and 1.0');
+                return;
+            }
+
+            try {
+                const response = await fetch('/admin/models/ab-ratio', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model_type: modelType, version, ratio: ratioValue })
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    loadModels();
+                } else {
+                    showError('Failed to set A/B ratio');
+                }
+            } catch (error) {
+                showError('Error: ' + error.message);
+            }
+        }
+
+        async function deleteModel(modelType, version) {
+            if (!confirm(`Delete ${modelType} version ${version}? This cannot be undone.`)) return;
+            
+            try {
+                const response = await fetch('/admin/models/delete', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model_type: modelType, version })
+                });
+                const data = await response.json();
+                if (data.status === 'success') {
+                    loadModels();
+                } else {
+                    showError('Failed to delete model');
+                }
+            } catch (error) {
+                showError('Error: ' + error.message);
+            }
+        }
+
+        function showError(message) {
+            const container = document.getElementById('error-container');
+            container.innerHTML = `<div class="error">${message}</div>`;
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

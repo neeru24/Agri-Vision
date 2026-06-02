@@ -1,3 +1,6 @@
+{% extends "base.html" %}
+
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agri-Vision | AI-Powered Cotton Crop Intelligence</title>
     <link rel="icon" type="image/png" sizes="512x512" href="/static/favicon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
     <script>
         (function() {
             try {
@@ -13,9 +17,16 @@
                 if (localTheme === 'dark' || (!localTheme && sysTheme)) {
                     document.documentElement.setAttribute('data-theme', 'dark');
                 }
+                
+                // SSR-safe inline initialization for language
+                var localLang = localStorage.getItem('i18n_lang');
+                if (localLang) {
+                    document.documentElement.lang = localLang;
+                }
             } catch (e) {}
         })();
     </script>
+    <script src="{{ url_for('static', filename='js/i18n.js') }}" defer></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- PDF.js for PDF to Image conversion -->
@@ -160,17 +171,11 @@
             line-height: 1.4;
             white-space: pre-wrap;
         }
-        .ai-message {
-            background: var(--bg-chat-ai, #e8f5e9);
-            color: var(--text-color, #333333);
-            align-self: flex-start;
-            border-bottom-left-radius: 4px;
-        }
         .user-message {
-            background: var(--emerald-green, #2e8b57);
-            color: #ffffff;
-            align-self: flex-end;
-            border-bottom-right-radius: 4px;
+           background: linear-gradient(135deg, #2e8b57, #3cb371);
+           color: #ffffff;
+           align-self: flex-end;
+           border-bottom-right-radius: 4px;
         }
 
         /* 8. Error message card */
@@ -238,16 +243,17 @@
         }
 
         /* 11. Dark theme overrides */
-        [data-theme="dark"] {
-            --bg-chat-ai: rgba(92, 209, 139, 0.15);
-        }
-        [data-theme="dark"] .ai-message {
-            color: #e0e0e0;
-        }
-        [data-theme="dark"] .user-message {
-            color: #121212;
+        .ai-message {
+         background: #e8f5e9;
+         color: #222222;
+         align-self: flex-start;
+         border-bottom-left-radius: 4px;
         }
 
+        [data-theme="dark"] .ai-message {
+          background: #2b3d33;
+          color: #ffffff;
+        }        
         /* 12. Mobile responsive */
         @media (max-width: 480px) {
             .chatbot-widget {
@@ -283,6 +289,14 @@
                 opacity: 0.7;
             }
         }
+<<<<<<< HEAD
+        [data-theme="dark"] .user-message {
+          background: linear-gradient(135deg, #16a34a, #14532d) !important;
+          color: #ffffff !important;
+          border: 1px solid rgba(255,255,255,0.08);
+          box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+        }
+=======
 
         /* Mobile Navigation Styles */
         .nav-toggle {
@@ -357,8 +371,131 @@
                 text-align: center !important;
                 margin-top: 10px !important;
             }
+
+            /* Language Dropdown */
+            .language-dropdown {
+            padding: 10px 14px;
+            border-radius: 25px;
+            border: none;
+            outline: none;
+            background: #22c55e;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.3s ease;
+            }
+
+            .language-dropdown:hover {
+            background: #16a34a;
+            }
+
+            .language-dropdown option {
+            background: white;
+            color: black;
+            }
         }
+
+        /* ===== GOOGLE TRANSLATE CLEAN STABLE STYLE ===== */
+
+        #google_translate_element {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Hide Google branding */
+        .goog-logo-link,
+        .goog-te-banner-frame,
+        .goog-te-gadget-icon {
+            display: none !important;
+        }
+
+        /* Prevent top bar spacing */
+        body {
+            top: 0 !important;
+        }
+
+        /* Main widget container */
+        .goog-te-gadget {
+            color: transparent !important;
+        }
+
+        /* Language dropdown */
+        .goog-te-combo {
+            background: rgba(255,255,255,0.95) !important;
+
+            border: 2px solid rgba(34,197,94,0.18) !important;
+
+            border-radius: 12px !important;
+
+            padding: 6px 12px !important;
+
+            width: 150px !important;
+            height: 38px !important;
+
+            font-size: 13px !important;
+            font-weight: 600 !important;
+
+            color: #166534 !important;
+
+            cursor: pointer !important;
+
+            outline: none !important;
+
+            box-shadow: 0 2px 8px rgba(34,197,94,0.08) !important;
+
+            transition: all 0.25s ease !important;
+        }
+
+        /* Hover effect */
+        .goog-te-combo:hover {
+            border-color: #22c55e !important;
+
+            box-shadow: 0 4px 14px rgba(34,197,94,0.16) !important;
+        }
+
+        /* Dropdown items */
+        .goog-te-combo option {
+            background: white !important;
+            color: #111827 !important;
+        }
+
+        /* Navbar alignment */
+        .translate-wrapper {
+            display: flex;
+            align-items: center;
+            margin-left: 8px;
+        }
+    /* Custom arrow */
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .goog-te-combo {
+                min-width: 120px !important;
+                padding: 8px 14px !important;
+                font-size: 13px !important;
+            }
+        }
+
+>>>>>>> 0d24408e2cda98d92efd5a9f69935bc9bc9dfb87
     </style>
+<script type="text/javascript">
+function googleTranslateElementInit() {
+    new google.translate.TranslateElement(
+        {
+            pageLanguage: 'en',
+            includedLanguages: 'en,hi,ta,te',
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+        },
+        'google_translate_element'
+    );
+}
+</script>
+
+<script type="text/javascript"
+src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
+</script>
 </head>
 
 <body>
@@ -366,8 +503,6 @@
     <div class="print-frame no-print"></div>
 
     <!-- Navigation -->
-
-
     <nav class="navbar" id="navbar">
         <div class="nav-container">
             <a href="/" class="nav-brand">
@@ -376,73 +511,59 @@
                     Agri-Vision
                 </span>
             </a>
+            <ul class="nav-menu">
+                <li><a href="/" data-i18n="navbar.home">Home</a></li>
+                <li><a href="/analyze" data-i18n="navbar.analyze">Analyze</a></li>
+                <li><a href="/batch" style="font-weight: bold; color: #667eea;" data-i18n="navbar.batch">📦 Batch</a></li>
+                <li><a href="/comparison" data-i18n="navbar.comparison">Field Comparison</a></li>
 
-            <ul class="nav-menu" id="nav-menu">
-                <li><a href="/" data-i18n="home">Home</a></li>
-                <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
-                    <i class="fas fa-bars"></i>
-                </button>
-                {% if current_user.is_authenticated %}
-                    <li><a href="/analyze">Analyze</a></li>
-                    <li><a href="/dashboard" > Dashboard</a></li>
-                    <li><a href="/stories">Stories</a></li>
-                    <li><a href="/history">History</a></li>
-                    {% if current_user.is_researcher() %}
-                        <li><a href="/model-admin" style="font-weight: bold; color: #667eea;">🤖 Admin</a></li>
-                    {% endif %}
-                    <li>
-                        <a href="/logout" style="color: #ef4444;">
-                            <i class="fas fa-sign-out-alt"></i>
-                        
-                            <span data-i18n="logout">
-                                Logout
-                            </span>
-                        </a>
-                    </li>
-                {% else %}
-                    <li><a href="/demo" data-i18n="demo_nav">Demo</a></li>
-                    <li><a href="/tutorials" data-i18n="tutorials">Tutorials</a></li>
-                    <li><a href="/stories" data-i18n="stories">Stories</a></li>
-                    <li><a href="/login" class="btn btn-primary">Login</a></li>
-                    <li><a href="/register" class="btn btn-primary" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">Sign Up</a></li>
-                {% endif %}
+                <li><a href="/demo" data-i18n="navbar.demo">Demo</a></li>
+                <li><a href="/tutorials" data-i18n="navbar.tutorials">Tutorials</a></li>
+                <li><a href="/stories" data-i18n="navbar.stories">Stories</a></li>
+                <li><a href="/history" data-i18n="navbar.history">History</a></li>
+                <li><a href="/model-admin" style="font-weight: bold; color: #667eea;" data-i18n="navbar.admin">🤖 Admin</a></li>
+                
                 <li>
-                    <select id="languageSwitcher" class="language-switcher">
-                        <option value="en">EN</option>
-                        <option value="hi">हिं</option>
-                        <option value="mr">मराठी</option>
-                        <option value="ta">தமிழ்</option>
-                    </select>
+                    <div class="lang-selector-container">
+                        <i class="fas fa-globe" style="color: var(--text-color, #333);"></i>
+                        <select id="lang-selector" class="lang-selector" aria-label="Select Language">
+                            <option value="en">English</option>
+                            <option value="hi">हिन्दी</option>
+                            <option value="gu">ગુજરાતી</option>
+                            <option value="mr">मराठी</option>
+                            <option value="ta">தமிழ்</option>
+                            <option value="te">తెలుగు</option>
+                            <option value="pa">ਪੰਜਾਬੀ</option>
+                        </select>
+                    </div>
                 </li>
+
                 <li>
                     <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark mode">
                         <i class="fas fa-moon"></i>
                     </button>
                 </li>
+                <li><a href="/analyze" class="btn btn-primary" data-i18n="navbar.getStarted">Get Started</a></li>
             </ul>
         </div>
     </nav>
 <!-- =========================================================
      Temporary Merge Conflict Text Cleanup
-========================================================= -->
     <!-- Main Content -->
-    <main>
+    <div class="main-content">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                <div class="main-content">
-                    <div class="alert-container no-print">
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }}">
-                                <i class="fas {% if category == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
-                                <span>{{ message }}</span>
-                            </div>
-                        {% endfor %}
-                    </div>
+                <div class="alert-container no-print">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            <i class="fas {% if category == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
                 </div>
             {% endif %}
         {% endwith %}
 
-        {% block content %}
         <section class="hero">
             <!-- Ambient Background Layers -->
             <div class="hero-bg-blobs">
@@ -455,47 +576,29 @@
             <div class="hero-container">
                 <div class="hero-content">
                     <div class="hero-badge-wrapper">
-                        <span class="hero-badge" data-i18n="hero_badge">                                  
-                            AI-DRIVEN COTTON INTEGRATION
+                        <span class="hero-badge" data-i18n="hero_badge">
+                            <span class="badge-dot"></span>
+                            <span data-i18n="hero.badge">AI-DRIVEN COTTON INTEGRATION</span>
                         </span>
                     </div>
                 
                     <h1 class="typewriter">
-                        <span class="line1" data-i18n="hero_title_1">
-                            AI-Powered
-                        </span>
-                    
-                        <span class="line2" data-i18n="hero_title_2">
-                            Cotton Crop Intelligence
-                        </span>
+                        <span class="line1" data-i18n="hero.title1">AI-Powered</span>
+                        <span class="line2" data-i18n="hero.title2">Cotton Crop Intelligence</span>
                     </h1>
                 
-                    <p data-i18n="hero_desc">
-                        Analyze crop maturity, detect plant health issues,
-                        and optimize harvest timing using smart real-time
-                        deep learning analytics.
+                    <p data-i18n="hero.desc">
+                        Analyze crop maturity, detect plant health issues, and optimize
+                        harvest timing using smart real-time deep learning analytics.
                     </p>
                 
                     <div class="hero-cta">
                         <a href="/analyze" class="btn btn-primary">
-                            <i class="fas fa-camera"></i>
-
-                            <span data-i18n="analyze_btn">
-                                Analyze Image
-                            </span>
+                            <i class="fas fa-camera"></i> <span data-i18n="hero.analyzeBtn">Analyze Image</span>
                         </a>
                         
-                        <a
-                            id="hero-demo-link"
-                            href="{{ url_for('demo') }}"
-                            class="btn btn-secondary"
-                            aria-label="View the interactive Agri-Vision demo"
-                        >
-                            <i class="fas fa-play-circle"></i>
-
-                            <span data-i18n="demo_btn">
-                                View Demo
-                            </span>
+                        <a href="/demo" class="btn btn-secondary">
+                            <i class="fas fa-play-circle"></i> <span data-i18n="hero.demoBtn">View Demo</span>
                         </a>
                     </div>
                 </div>
@@ -549,6 +652,88 @@
             </div>
                 
         </section>
+                <section class="demo-preview-section">
+            <div class="demo-preview-container">
+
+                <div class="demo-preview-left">
+                    <span class="demo-chip">
+                        <i class="fas fa-bolt"></i>
+                        LIVE AI DEMONSTRATION
+                    </span>
+
+                    <h2>
+                        Experience Real-Time Cotton
+                        Disease Intelligence
+                    </h2>
+
+                    <p>
+                        Watch Agri-Vision simulate crop scanning,
+                        disease detection, health scoring,
+                        yield prediction, and AI explainability
+                        using synthetic agricultural intelligence.
+                    </p>
+
+                    <div class="demo-stats-grid">
+
+                        <div class="demo-stat-card floating-stat">
+                            <h3>98.2%</h3>
+                            <span>Detection Accuracy</span>
+                        </div>
+
+                        <div class="demo-stat-card floating-stat">
+                            <h3>2.4s</h3>
+                            <span>Average Scan Time</span>
+                        </div>
+
+                        <div class="demo-stat-card floating-stat">
+                            <h3>Grad-CAM</h3>
+                            <span>Explainable AI</span>
+                        </div>
+
+                        <div class="demo-stat-card floating-stat">
+                            <h3>YOLOv8</h3>
+                            <span>Growth Detection</span>
+                        </div>
+
+                    </div>
+
+                    <a href="/demo" class="btn btn-primary demo-btn">
+                        <i class="fas fa-play-circle"></i>
+                        Launch Interactive Demo
+                    </a>
+                </div>
+
+                <div class="demo-preview-right">
+
+                    <div class="ai-demo-card reveal-demo-card">
+
+                        <div class="scan-line"></div>
+
+                        <img src="/static/uploads/demo-preview.jpg"
+                            alt="AI Demo Preview">
+
+                        <div class="demo-overlay">
+
+                            <div class="demo-detection">
+                                <span>Target Spot Detected</span>
+                                <strong>94.2%</strong>
+                            </div>
+
+                            <div class="demo-health">
+                                <span>Crop Health</span>
+                                <strong>42%</strong>
+                            </div>
+
+                            <div class="demo-yield">
+                                <span>Yield Prediction</span>
+                                <strong>742kg/acre</strong>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <section class="features-section reveal-stagger">
             <div class="section-header reveal reveal-fade-up">
@@ -597,129 +782,54 @@
                 </div>
             </div>
         </section>
-        {% endblock %}
     </main>
-    <!-- =========================================================
-        Agri-Vision Footer Section
 
-        The footer provides quick-access navigation,
-        external platform references, social links,
-        branding information, and additional navigation
-        support for users browsing the platform.
-
-        Recent Improvements:
-        - Removed inactive Twitter/X social icon
-        - Improved footer cleanliness and consistency
-        - Reduced unnecessary external navigation clutter
-        - Enhanced footer maintainability
-        - Improved accessibility and usability
-
-        The footer maintains responsiveness and visual
-        consistency with the futuristic Agri-Vision UI.
-    ========================================================= -->
     <!-- Footer -->
     <footer class="footer no-print reveal reveal-fade-in">
+        <div class="footer-leaf-container">
+        </div>
         <div class="footer-container">
             <div class="footer-brand">
                 <h2 class="footer-title"><i class="fas fa-leaf"></i> Agri-Vision</h2>
-                <p class="footer-subtitle" data-i18n="footer_subtitle">
-                    Empowering cotton farmers with AI-driven insights.                    
-                </p>
+                <p class="footer-subtitle" data-i18n="footer.subtitle">Empowering cotton farmers with AI-driven insights.</p>
             </div>
-            <!-- =========================================================
-                Footer Navigation Links
-
-                Contains compact navigation shortcuts for
-                important platform pages including tutorials,
-                field comparison, support resources, and
-                AI-powered analysis features.
-
-                Navigation improvements help users access
-                important sections more efficiently while
-                improving overall platform usability.
-            ========================================================= -->
             <div class="footer-links-compact">
-                <a href="/" data-i18n="home">Home</a>
-                <a href="/analyze" data-i18n="analyze">Analyze</a>
-                <a href="/comparison" data-i18n="comparison">Field Comparison</a>
-                <a href="{{ url_for('dashboard') }}" data-i18n="dashboard">Dashboard</a>
-                <a href="/demo" data-i18n="demo_nav">Demo</a>
-                <a href="/tutorials" data-i18n="tutorials">Tutorials</a>
-                <a href="{{ url_for('support') }}" data-i18n="support">Support</a>
+                <a href="/" data-i18n="navbar.home">Home</a>
+                <a href="/analyze" data-i18n="navbar.analyze">Analyze</a>
+                <a href="/comparison" data-i18n="navbar.comparison">Field Comparison</a>
+                <a href="{{ url_for('dashboard') }}" data-i18n="footer.dashboard">Dashboard</a>
+                <a href="/demo" data-i18n="navbar.demo">Demo</a>
+                <a href="/tutorials" data-i18n="navbar.tutorials">Tutorials</a>
+                <a href="{{ url_for('support') }}" data-i18n="footer.support">Support</a>
             </div>
         </div>
-        <!-- =========================================================
-            Footer Bottom Information Section
-
-            Displays copyright information,
-            branding details, social media references,
-            and additional platform identity elements.
-
-            This section improves professional appearance
-            and strengthens overall UI completeness.
-        ========================================================= -->
         <div class="footer-bottom">
-            <p>&copy; <span id="year"></span> Agri-Vision. All rights reserved.</p>
-            <p>
+            <p>&copy; <span id="year"></span> <span data-i18n="footer.rights">Agri-Vision. All rights reserved.</span></p>
+            <p data-i18n="footer.tagline">
                 Smart Cotton Crop Analysis System
             </p>
-
-            <!-- =========================================================
-                Footer Social Media Links Section
-
-                This section contains external social media
-                platform links associated with the Agri-Vision
-                project and contributor profiles.
-
-                Improvements Made:
-                - Removed inactive Twitter/X social icon
-                - Reduced unnecessary footer clutter
-                - Improved footer visual consistency
-                - Kept only actively maintained platforms
-                - Enhanced navigation cleanliness
-
-                The footer now provides a cleaner and more
-                professional appearance while avoiding
-                non-functional or unused external links.
-            ========================================================= -->
-
-
             <div class="footer-social">
                 <a href="https://www.linkedin.com/in/neerugangarh/" target="_blank"><i class="fab fa-linkedin"></i></a>
                 <a href="https://github.com/neeru24/Agri-Vision" target="_blank"><i class="fab fa-github"></i></a>
             </div>
         </div>
     </footer>
-    <!-- =========================================================
-        Frontend Interactive Utility Scripts
-
-        Handles:
-        - Theme toggle interactions
-        - Dynamic UI behavior
-        - Frontend accessibility support
-        - Interactive visual enhancements
-
-        Organized separately for cleaner maintainability.
-    ========================================================= -->
+    
     <script>
         document.getElementById("year").textContent = new Date().getFullYear();
     </script>
     <script>
 
-    document.addEventListener("DOMContentLoaded", () => {
-        const themeToggleBtn =
-            document.getElementById("theme-toggle");
-    
-        function updateThemeIcon(theme) {
-        
-            const icon =
-                themeToggleBtn.querySelector("i");
-        
-            if (theme === "dark") {
-            
-                icon.classList.remove("fa-moon");
-                icon.classList.add("fa-sun");
-            
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const themeIcon = document.querySelector('#theme-toggle i');
+            if (!document.documentElement.getAttribute('data-theme')) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
             } else {
             
                 icon.classList.remove("fa-sun");
@@ -768,7 +878,6 @@
     
     </script>
     <script>
-        // Navbar scroll effect
         window.addEventListener('scroll', function() {
             const navbar = document.getElementById('navbar');
             if (window.scrollY > 50) {
@@ -777,10 +886,6 @@
                 navbar.classList.remove('scrolled');
             }
         });
-
-        // Animation logic moved to animations.js
-
-        // Flash message auto-hide
         setTimeout(() => {
             const alerts = document.querySelectorAll('.alert');
             alerts.forEach(alert => {
@@ -791,12 +896,9 @@
         }, 5000);
     </script>
     <script>
-        // Interactive 3D Globe and satellite scanner system
         (function() {
             const container = document.getElementById('canvas-3d-container');
             if (!container) return;
-
-            // Define cotton farm coordinates and metrics
             const farms = [
                 { name: "IN-GJ GreenGrid Hub", yield: "Yield: 98.4% (Optimal)", lat: 22.25, lon: 72.19, moisture: "Irrigation: Smart-ON", anomalies: "ANOMALY DETECTION: 0%", ping: "Sat Latency: 22ms", icon: "fa-seedling", country: "India" },
                 { name: "US-TX Precision Array", yield: "Yield: 95.1% (Ideal)", lat: 33.58, lon: -101.85, moisture: "Irrigation: Scheduled", anomalies: "ANOMALY DETECTION: 1%", ping: "Sat Latency: 28ms", icon: "fa-calculator", country: "USA" },
@@ -805,80 +907,44 @@
                 { name: "AU-QLD SatCrop Node", yield: "Yield: 94.2% (Stable)", lat: -23.44, lon: 144.26, moisture: "Irrigation: Arid-Sensor", anomalies: "ANOMALY DETECTION: 2%", ping: "Sat Latency: 52ms", icon: "fa-temperature-high", country: "Australia" },
                 { name: "UZ-UZ AgriVision Node", yield: "Yield: 91.9% (Balanced)", lat: 41.37, lon: 64.58, moisture: "Irrigation: Flow-Regulated", anomalies: "ANOMALY DETECTION: 0%", ping: "Sat Latency: 39ms", icon: "fa-water", country: "Uzbekistan" }
             ];
-
             let activeFarmIndex = 0;
             let activeFarm = farms[activeFarmIndex];
             let lastTargetTime = 0;
-            const cycleInterval = 3500; // Cycle farms every 3.5 seconds
-
-            // Setup the Three.js 3D rendering scene
+            const cycleInterval = 3500;
             const scene = new THREE.Scene();
-            
-            // Setup camera positioned to fit the globe beautifully
             const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
             camera.position.set(0, 0, 8.5);
-
-            // Setup WebGL renderer with anti-aliasing
             const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(container.clientWidth, container.clientHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
-
-            // Fetch colors dynamically based on active site theme
             function getThemeColors() {
                 const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-                return {
-                    isDark: isDark,
-                    gridColor: isDark ? 0x2E8B57 : 0x1B4332,
-                    gridBack: isDark ? 0x112211 : 0xDFF5E1,
-                    particleColor: isDark ? 0x00E5FF : 0x2E8B57,
-                    satColor: isDark ? 0x00E5FF : 0x1B4332,
-                    arcColor: isDark ? 0x64B5F6 : 0x2E8B57,
-                    beaconColor: 0x00FFCC
-                };
+                return { isDark, gridColor: isDark ? 0x2E8B57 : 0x1B4332, gridBack: isDark ? 0x112211 : 0xDFF5E1, particleColor: isDark ? 0x00E5FF : 0x2E8B57, satColor: isDark ? 0x00E5FF : 0x1B4332, arcColor: isDark ? 0x64B5F6 : 0x2E8B57, beaconColor: 0x00FFCC };
             }
-
             let colors = getThemeColors();
-
-            // Add ambient and directional lights for clean globe visibility
             const ambientLight = new THREE.AmbientLight(0xffffff, colors.isDark ? 0.4 : 0.85);
             scene.add(ambientLight);
-
             const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
             dirLight.position.set(5, 5, 5);
             scene.add(dirLight);
-
-            const dirLightBlue = new THREE.DirectionalLight(0x64B5F6, 0.6);
-            dirLightBlue.position.set(-5, 3, 2);
-            scene.add(dirLightBlue);
-
-            // Group all globe elements together for unified rotation
             const globeGroup = new THREE.Group();
-            globeGroup.rotation.order = 'YXZ'; // Prevent gimbal lock
+            globeGroup.rotation.order = 'YXZ';
             scene.add(globeGroup);
-
-            // Generate uniform globe dots using golden spiral distribution
             const globeRadius = 3.0;
             const dotCount = 800;
             const dotGeo = new THREE.BufferGeometry();
             const dotPositions = new Float32Array(dotCount * 3);
-            const phiGolden = Math.PI * (3 - Math.sqrt(5)); // Golden ratio
-
+            const phiGolden = Math.PI * (3 - Math.sqrt(5));
             for (let i = 0; i < dotCount; i++) {
-                const y = 1 - (i / (dotCount - 1)) * 2; // from 1 to -1
-                const rAtY = Math.sqrt(1 - y * y); // radius at y
+                const y = 1 - (i / (dotCount - 1)) * 2;
+                const rAtY = Math.sqrt(1 - y * y);
                 const theta = phiGolden * i;
-
-                const x = Math.cos(theta) * rAtY;
-                const z = Math.sin(theta) * rAtY;
-
-                dotPositions[i*3] = x * globeRadius;
+                dotPositions[i*3] = Math.cos(theta) * rAtY * globeRadius;
                 dotPositions[i*3+1] = y * globeRadius;
-                dotPositions[i*3+2] = z * globeRadius;
+                dotPositions[i*3+2] = Math.sin(theta) * rAtY * globeRadius;
             }
             dotGeo.setAttribute('position', new THREE.BufferAttribute(dotPositions, 3));
-            
-            // Create a soft radial gradient canvas for glowing dots
             const pCanvas = document.createElement('canvas');
             pCanvas.width = 16; pCanvas.height = 16;
             const pCtx = pCanvas.getContext('2d');
@@ -888,360 +954,41 @@
             pCtx.fillStyle = pGrad;
             pCtx.fillRect(0,0,16,16);
             const dotTexture = new THREE.CanvasTexture(pCanvas);
-
-            const dotMat = new THREE.PointsMaterial({
-                size: 0.12,
-                color: colors.gridColor,
-                transparent: true,
-                opacity: 0.75,
-                map: dotTexture,
-                blending: THREE.AdditiveBlending
-            });
-            const globePoints = new THREE.Points(dotGeo, dotMat);
-            globeGroup.add(globePoints);
-
-            // Create secondary translucent wireframe globe sphere
+            const dotMat = new THREE.PointsMaterial({ size: 0.12, color: colors.gridColor, transparent: true, opacity: 0.75, map: dotTexture, blending: THREE.AdditiveBlending });
+            globeGroup.add(new THREE.Points(dotGeo, dotMat));
             const globeGeo = new THREE.SphereGeometry(globeRadius, 24, 24);
-            const globeMat = new THREE.MeshPhongMaterial({
-                color: colors.gridColor,
-                wireframe: true,
-                transparent: true,
-                opacity: 0.08,
-                shininess: 20
-            });
-            const globeMesh = new THREE.Mesh(globeGeo, globeMat);
-            globeGroup.add(globeMesh);
-
-            // Convert GPS latitude and longitude to 3D spherical positions
+            const globeMat = new THREE.MeshPhongMaterial({ color: colors.gridColor, wireframe: true, transparent: true, opacity: 0.08, shininess: 20 });
+            globeGroup.add(new THREE.Mesh(globeGeo, globeMat));
             function latLongToVector3(lat, lon, radius) {
-                const phi = (lat) * Math.PI / 180;
+                const phi = lat * Math.PI / 180;
                 const theta = (lon + 180) * Math.PI / 180;
-
-                const x = -(radius * Math.cos(phi) * Math.sin(theta));
-                const y = radius * Math.sin(phi);
-                const z = radius * Math.cos(phi) * Math.cos(theta);
-
-                return new THREE.Vector3(x, y, z);
+                return new THREE.Vector3(-(radius * Math.cos(phi) * Math.sin(theta)), radius * Math.sin(phi), radius * Math.cos(phi) * Math.cos(theta));
             }
-
-            // Add agricultural farm location tracking beacons
-            const beacons = [];
-            const sonarRings = [];
-            const uplinkBeams = [];
-
-            // Setup cylinder laser uplink geometry
-            const beamGeo = new THREE.CylinderGeometry(0.015, 0.05, 1.2, 8);
-            beamGeo.translate(0, 0.6, 0); // translate pivot to base
-            const beamMat = new THREE.MeshBasicMaterial({
-                color: colors.beaconColor,
-                transparent: true,
-                opacity: 0.65,
-                side: THREE.DoubleSide,
-                blending: THREE.AdditiveBlending
-            });
-
-            // Setup glowing sonar ring geometry
-            const ringGeo = new THREE.RingGeometry(0.05, 0.22, 16);
-            const ringMat = new THREE.MeshBasicMaterial({
-                color: colors.beaconColor,
-                side: THREE.DoubleSide,
-                transparent: true,
-                opacity: 0.8
-            });
-
             farms.forEach((farm) => {
                 const pos = latLongToVector3(farm.lat, farm.lon, globeRadius);
-                
-                // Create coordinate beacon sphere
                 const sphereGeo = new THREE.SphereGeometry(0.08, 12, 12);
                 const sphereMat = new THREE.MeshBasicMaterial({ color: colors.beaconColor });
                 const sphere = new THREE.Mesh(sphereGeo, sphereMat);
                 sphere.position.copy(pos);
                 globeGroup.add(sphere);
-                beacons.push(sphere);
-
-                // Create satellite uplink laser beam
-                const beam = new THREE.Mesh(beamGeo, beamMat);
-                beam.position.copy(pos);
-                // Align laser radially outwards from center
-                const beamTarget = pos.clone().multiplyScalar(2.0);
-                beam.lookAt(beamTarget);
-                beam.rotateX(Math.PI / 2);
-                globeGroup.add(beam);
-                uplinkBeams.push(beam);
-
-                // Create pulsating telemetry ring
-                const ring = new THREE.Mesh(ringGeo, ringMat.clone());
-                ring.position.copy(pos);
-                ring.lookAt(beamTarget);
-                globeGroup.add(ring);
-                sonarRings.push({
-                    mesh: ring,
-                    scale: 1.0,
-                    maxScale: 2.2 + Math.random() * 0.8,
-                    speed: 0.02 + Math.random() * 0.015
-                });
-
-                // Add local point light for localized beacon glows
-                const localLight = new THREE.PointLight(colors.beaconColor, 0.6, 2.5);
-                localLight.position.copy(pos);
-                globeGroup.add(localLight);
             });
-
-            // Draw curved pathways connecting neighboring farm nodes
-            for (let i = 0; i < farms.length; i++) {
-                const p1 = latLongToVector3(farms[i].lat, farms[i].lon, globeRadius);
-                const p2 = latLongToVector3(farms[(i + 1) % farms.length].lat, farms[(i + 1) % farms.length].lon, globeRadius);
-
-                const midPoint = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
-                const dist = p1.distanceTo(p2);
-                const extrudeHeight = dist * 0.35;
-                const ctrlPos = midPoint.clone().normalize().multiplyScalar(globeRadius + extrudeHeight);
-
-                const curve = new THREE.QuadraticBezierCurve3(p1, ctrlPos, p2);
-                const pts = curve.getPoints(24);
-                const arcGeo = new THREE.BufferGeometry().setFromPoints(pts);
-                
-                const arcMat = new THREE.LineBasicMaterial({
-                    color: colors.arcColor,
-                    transparent: true,
-                    opacity: 0.3,
-                    blending: THREE.AdditiveBlending
-                });
-                const arcLine = new THREE.Line(arcGeo, arcMat);
-                globeGroup.add(arcLine);
-            }
-
-            // Add polar orbiting scanning satellites
-            const satGroup = new THREE.Group();
-            scene.add(satGroup);
-
-            // Create satellite body mesh
-            const satGeo = new THREE.BoxGeometry(0.24, 0.12, 0.12);
-            const satMat = new THREE.MeshPhongMaterial({ color: colors.satColor, wireframe: true });
-            const satMesh = new THREE.Mesh(satGeo, satMat);
-            satGroup.add(satMesh);
-
-            // Add solar panels
-            const panelGeo = new THREE.PlaneGeometry(0.42, 0.1);
-            const panelMat = new THREE.MeshBasicMaterial({ color: colors.gridColor, side: THREE.DoubleSide });
-            const p1Mesh = new THREE.Mesh(panelGeo, panelMat);
-            p1Mesh.position.x = 0.32;
-            const p2Mesh = p1Mesh.clone();
-            p2Mesh.position.x = -0.32;
-            satGroup.add(p1Mesh);
-            satGroup.add(p2Mesh);
-
-            // Create translucent radar scanning cone mesh
-            const coneGeo = new THREE.ConeGeometry(0.5, 2.2, 16, 1, true);
-            coneGeo.translate(0, -1.1, 0); // translate pivot to tip
-            const coneMat = new THREE.MeshBasicMaterial({
-                color: colors.satColor,
-                transparent: true,
-                opacity: 0.18,
-                side: THREE.DoubleSide,
-                blending: THREE.AdditiveBlending
-            });
-            const scanCone = new THREE.Mesh(coneGeo, coneMat);
-            satGroup.add(scanCone);
-
-            // Add visible sat orbital track rings
-            const orbitGeo = new THREE.RingGeometry(4.35, 4.38, 64);
-            const orbitMat = new THREE.MeshBasicMaterial({
-                color: colors.satColor,
-                transparent: true,
-                opacity: 0.1,
-                side: THREE.DoubleSide
-            });
-            const orbitLine = new THREE.Mesh(orbitGeo, orbitMat);
-            orbitLine.rotation.x = Math.PI / 2;
-            scene.add(orbitLine);
-
-            // Add mouse click-drag interactive controls
-            let isDragging = false;
-            let prevMousePos = { x: 0, y: 0 };
-            let userInteractionTimeout = 0;
-            let targetXRot = 0.2; // default tilt
-            let targetYRot = 0;
-
-            container.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                prevMousePos = { x: e.clientX, y: e.clientY };
-                // Pause auto-focus loop for 8 seconds when user interacts
-                userInteractionTimeout = Date.now() + 8000;
-            });
-
-            container.addEventListener('mousemove', (e) => {
-                // Map mouse coordinates for subtle parallax movements
-                const rect = container.getBoundingClientRect();
-                const mouseX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-                const mouseY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
-                if (isDragging) {
-                    const deltaX = e.clientX - prevMousePos.x;
-                    const deltaY = e.clientY - prevMousePos.y;
-                    
-                    globeGroup.rotation.y += deltaX * 0.006;
-                    globeGroup.rotation.x += deltaY * 0.006;
-                    
-                    // Limit vertical rotation to prevent flipping upside down
-                    globeGroup.rotation.x = Math.max(-Math.PI/2.5, Math.min(Math.PI/2.5, globeGroup.rotation.x));
-                    
-                    prevMousePos = { x: e.clientX, y: e.clientY };
-                    userInteractionTimeout = Date.now() + 8000;
-                } else {
-                    // Move camera slightly for dynamic parallax look
-                    camera.position.x = mouseX * 0.4;
-                    camera.position.y = mouseY * 0.4;
-                    camera.lookAt(0, 0, 0);
-                }
-            });
-
-            window.addEventListener('mouseup', () => {
-                isDragging = false;
-            });
-
-            // Sync 3D telemetry status to HTML panels
-            function syncHtmlDashboard() {
-                activeFarm = farms[activeFarmIndex];
-                
-                // Update active farm metrics and text
-                const fCard = document.getElementById('telemetry-farm-card');
-                const fTitle = document.getElementById('telemetry-farm-title');
-                const fYield = document.getElementById('telemetry-farm-yield');
-                const sIcon = document.getElementById('telemetry-status-icon');
-                const sTitle = document.getElementById('telemetry-status-title');
-                const sSub = document.getElementById('telemetry-status-sub');
-                const hudSat = document.getElementById('hud-sat-status');
-                const hudAnom = document.getElementById('hud-anomalies');
-
-                if (fCard) {
-                    // Flash card borders on active target changes
-                    fCard.style.borderColor = 'var(--emerald-green)';
-                    fCard.style.boxShadow = '0 0 15px rgba(46, 139, 87, 0.4)';
-                    setTimeout(() => {
-                        fCard.style.borderColor = 'rgba(46, 139, 87, 0.15)';
-                        fCard.style.boxShadow = 'var(--card-shadow)';
-                    }, 500);
-                }
-
-                if (fTitle) fTitle.textContent = activeFarm.name;
-                if (fYield) fYield.innerHTML = `<i class="fas fa-chart-bar"></i> ${activeFarm.yield} | <span style="color:var(--emerald-green);font-weight:700;">${activeFarm.moisture}</span>`;
-                if (sTitle) sTitle.textContent = activeFarm.country + " Uplink";
-                if (sSub) sSub.textContent = activeFarm.ping;
-                
-                if (sIcon) {
-                    sIcon.className = `fas ${activeFarm.icon} telemetry-icon-spin`;
-                }
-
-                if (hudSat) hudSat.innerHTML = `<i class="fas fa-satellite"></i> Sat Target: ${activeFarm.name.split(' ')[0]}`;
-                if (hudAnom) hudAnom.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ANOMALY INDEX: ${activeFarm.anomalies.split(': ')[1]}`;
-            }
-
-            // Update Three.js element colors to match site theme
-            function updateThreeTheme() {
-                colors = getThemeColors();
-                
-                // Smooth light transition based on theme setting
-                ambientLight.intensity = colors.isDark ? 0.4 : 0.85;
-                dotMat.color.setHex(colors.gridColor);
-                globeMat.color.setHex(colors.gridColor);
-                beamMat.color.setHex(colors.beaconColor);
-                ringMat.color.setHex(colors.beaconColor);
-                satMat.color.setHex(colors.satColor);
-                coneMat.color.setHex(colors.satColor);
-                orbitMat.color.setHex(colors.satColor);
-            }
-
-            const themeToggleBtn = document.getElementById('theme-toggle');
-            if (themeToggleBtn) {
-                themeToggleBtn.addEventListener('click', () => {
-                    setTimeout(updateThreeTheme, 80);
-                });
-            }
-
-            // Main animation and frame render loop
-            let frameTime = 0;
             function animate() {
                 requestAnimationFrame(animate);
-                frameTime += 0.015;
-
-                // Pulse and fade telemetry beacon rings
-                sonarRings.forEach((ring) => {
-                    ring.scale += ring.speed;
-                    ring.mesh.scale.setScalar(ring.scale);
-                    ring.mesh.material.opacity = 1 - (ring.scale / ring.maxScale);
-
-                    if (ring.scale >= ring.maxScale) {
-                        ring.scale = 0.8;
-                        ring.mesh.material.opacity = 0.8;
-                    }
-                });
-
-                // Rotate satellite and align scan cone tip to center
-                const satAngle = frameTime * 0.5;
-                satGroup.position.x = Math.cos(satAngle) * 4.35;
-                satGroup.position.z = Math.sin(satAngle) * 4.35;
-                satGroup.position.y = Math.sin(satAngle * 1.2) * 1.0;
-                // Aim scanner tip to center of earth
-                satGroup.lookAt(0, 0, 0);
-                satGroup.rotateX(Math.PI / 2);
-
-                // Scale scanning cone size dynamically
-                scanCone.scale.setScalar(1 + Math.sin(frameTime * 4.0) * 0.06);
-
-                // Auto-spin target focusing logic
-                const now = Date.now();
-                if (now > userInteractionTimeout) {
-                    // Cycle targeted farm periodically
-                    if (now - lastTargetTime > cycleInterval) {
-                        activeFarmIndex = (activeFarmIndex + 1) % farms.length;
-                        syncHtmlDashboard();
-                        lastTargetTime = now;
-                    }
-
-                    // Easing interpolation to center active farm node
-                    const targetYRot = -activeFarm.lon * Math.PI / 180;
-                    const targetXRot = activeFarm.lat * Math.PI / 180;
-
-                    globeGroup.rotation.y += (targetYRot - globeGroup.rotation.y) * 0.04;
-                    globeGroup.rotation.x += (targetXRot - globeGroup.rotation.x) * 0.04;
-                } else {
-                    // Slow continuous rotation after manual drag ends
-                    if (!isDragging) {
-                        globeGroup.rotation.y += 0.001;
-                    }
-                    lastTargetTime = now - (cycleInterval - 1000); // trigger cycle shortly after manual interaction ends
-                }
-
-                // Oscillate active laser beams dynamically
-                uplinkBeams.forEach((beam, idx) => {
-                    const pulse = 1.0 + Math.sin(frameTime * 3.0 + idx) * 0.15;
-                    beam.scale.set(pulse, 1.0, pulse);
-                });
-
+                globeGroup.rotation.y += 0.001;
                 renderer.render(scene, camera);
             }
-
-            // Adjust rendering aspect ratio on window resize
-            function handleResize() {
-                if (!container || !renderer || !camera) return;
-                const width = container.clientWidth;
-                const height = container.clientHeight;
-                camera.aspect = width / height;
-                camera.updateProjectionMatrix();
-                renderer.setSize(width, height);
-            }
-
-            window.addEventListener('resize', handleResize);
-
-            // Start the 3D globe animation loop
-            syncHtmlDashboard();
             animate();
-            setTimeout(handleResize, 200);
         })();
     </script>
+    <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+    <button id="scrollTopBtn">
+        <i class="fas fa-arrow-up"></i>
+    </button>
     <script>
+        const scrollBtn = document.getElementById("scrollTopBtn");
+        window.addEventListener("scroll", () => {
+            if(window.scrollY > 300) scrollBtn.style.display = "block";
+            else scrollBtn.style.display = "none";
         if (!('ontouchstart' in window) && window.matchMedia('(pointer: fine)').matches) {
             document.addEventListener("DOMContentLoaded", () => {
                 const container = document.querySelector(".trail-container");
@@ -1393,5 +1140,36 @@
 </script>
 <script src="{{ url_for('static',
 filename='js/language.js') }}"></script>
+
+<script>
+    function createLeaf() {
+  const container = document.querySelector('.footer-leaf-container');
+  if (!container) return;
+  const leaf = document.createElement('div');
+  leaf.classList.add('leaf-particle');
+  // Randomize horizontal placement along the entire width
+  const randomX = Math.random() * 100;
+  leaf.style.left = `${randomX}%`;
+  // Randomize leaf size (small leaves, as requested!)
+  const randomSize = Math.random() * 10 + 6; // Sizes between 6px and 16px
+  leaf.style.width = `${randomSize}px`;
+  leaf.style.height = `${randomSize}px`;
+  // Randomize speed and delay so they don't rise all at once
+  const randomDuration = Math.random() * 3 + 3; // Between 3s and 6s
+  leaf.style.animationDuration = `${randomDuration}s`;
+  
+  // Random starting rotation for a natural scattered look
+  leaf.style.transform = `rotate(${Math.random() * 360}deg)`;
+  container.appendChild(leaf);
+  // Clean up leaves after they fade out to prevent lagging
+  setTimeout(() => {
+    leaf.remove();
+  }, randomDuration * 1000);
+}
+// Adjust the interval (ms) to make the effect denser or sparser
+setInterval(createLeaf, 150);
+
+</script>
 </body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </html>

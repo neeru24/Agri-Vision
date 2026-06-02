@@ -18,31 +18,6 @@ The platform follows a layered architecture consisting of:
 4. Data Processing Layer  
 5. Deployment Layer  
 
-### Layer Responsibilities
-
-- Frontend Layer: user interface, image upload, display of predictions.
-- Backend Layer: Flask routing, file handling, API orchestration, pre-inference data processing, and result formatting.
-- AI Inference Layer: model execution for growth stage and disease classification.
-- Data Processing Layer: implemented as part of the backend execution flow before model inference, handling image validation, resizing, normalization, and tensor preparation.
-- Deployment Layer: containerization, runtime environment, and reverse proxy management.
-
----
-
-## System Architecture Diagram
-
-```mermaid
-graph TD
-A[User Upload Image] --> B[Flask Backend]
-B --> C[Backend Data Processing]
-C --> D[YOLOv8 Growth Stage Model]
-D --> E[ResNet50 Disease Model]
-D --> F[Result Aggregation]
-E --> F
-F --> G[API Response / Web UI]
-```
-
-The Data Processing Layer is part of the backend pipeline and prepares images for model inference.
-
 ---
 
 # High-Level Workflow
@@ -51,13 +26,15 @@ User uploads crop image
 ↓  
 Flask backend receives request  
 ↓  
-Backend data processing validates and pre-processes the image  
+Image validation and preprocessing  
 ↓  
-YOLOv8 and ResNet50 perform inference  
+AI models perform inference  
 ↓  
-Prediction results are aggregated  
+Prediction results generated  
 ↓  
-Recommendations are prepared and returned by web interface or API  
+Recommendations prepared  
+↓  
+Results returned through web interface or API  
 
 ---
 
@@ -143,22 +120,22 @@ The AI system uses two primary deep learning models.
 - Powdery mildew
 - Target spot
 
-### Model Selection Reasoning
-
-- YOLOv8 is used for growth stage detection due to its real-time object detection capability and strong performance on visual localization tasks.
-- ResNet50 is used for disease classification because of its reliability in image classification tasks and strong transfer learning performance.
-
 ---
 
 # AI Workflow
 
-The uploaded image is validated and preprocessed, then passed through YOLOv8 and ResNet50 models as part of the inference pipeline execution. Predictions are aggregated into a single response with confidence scores and recommendations.
+The uploaded crop image passes through several processing stages before predictions are generated.
 
-## Pipeline Steps
+## Workflow Steps
 
-- Image validation and preprocessing
-- Inference pipeline execution for growth stage and disease detection
-- Result aggregation and recommendation generation
+1. Image upload
+2. File validation
+3. Image preprocessing
+4. Growth stage detection
+5. Disease classification
+6. Confidence score calculation
+7. Recommendation generation
+8. Result formatting
 
 ---
 
@@ -185,38 +162,31 @@ The image preprocessing workflow ensures optimized inference quality and model c
 
 # API Architecture
 
-Agri-Vision exposes a REST endpoint for image-based crop analysis.
+Agri-Vision provides REST API support for external integrations and automation.
 
 ## Main Endpoint
 
 - `POST /api/analyze`
 
-## Request / Response
+## API Workflow
 
-- Input: image file (`multipart/form-data`)
-- Output: JSON payload with growth stage, disease label, confidence scores, and recommendations
+Client request  
+↓  
+Image upload validation  
+↓  
+AI prediction pipeline  
+↓  
+Prediction response generation  
+↓  
+JSON response returned  
 
-### Example Request
+## Response Includes
 
-- Endpoint: POST /api/analyze
-- Input: image file (multipart/form-data)
-
-### Example Response
-
-```json
-{
-  "growth_stage": "Cotton Bud",
-  "disease": "Aphids",
-  "confidence": {
-    "growth_stage": 0.92,
-    "disease": 0.87
-  },
-  "recommendations": [
-    "Apply neem-based spray",
-    "Monitor leaf underside regularly"
-  ]
-}
-```
+- Crop growth stage
+- Disease status
+- Confidence scores
+- Health indicators
+- Recommendations
 
 ---
 
@@ -249,14 +219,16 @@ Includes unit and integration tests.
 
 # Testing Architecture
 
-The project uses pytest-based testing with unit and integration coverage focused on Flask routes, upload handling, and mocked AI inference.
+The project uses pytest-based testing with automated coverage reporting.
 
 ## Testing Features
 
-- Route and utility unit tests
-- Integration tests for file upload and API response formats
-- Mocked inference for model-dependent workflows
-- Coverage reporting and CI validation
+- Unit testing
+- Integration testing
+- API testing
+- Mocked AI inference
+- Coverage reporting
+- Continuous Integration support
 
 ## Testing Workflow
 
@@ -272,12 +244,14 @@ GitHub Actions verification
 
 # CI/CD Workflow
 
-GitHub Actions automates:
+GitHub Actions automates testing and validation for every push and pull request.
+
+## Automated Tasks
 
 - Dependency installation
-- Unit and integration tests (pytest)
-- Code coverage validation
-- Pull request verification before merge
+- Test execution
+- Coverage checking
+- Pull request validation
 
 ---
 
@@ -309,7 +283,6 @@ Acts as a reverse proxy and handles routing.
 - File upload validation
 - Secure request handling
 - Error handling protections
-- Input validation for uploaded images to prevent invalid or malicious file uploads
 
 ## Recommended Future Improvements
 
@@ -323,11 +296,15 @@ Acts as a reverse proxy and handles routing.
 
 # Scalability Considerations
 
-The architecture is designed for container-based scaling and can grow by adding dedicated inference capacity and async processing.
+Future scalability improvements may include:
 
-- GPU-accelerated inference nodes or dedicated model-serving instances
-- Asynchronous request handling with task queues for heavier workloads
-- Cloud deployment with autoscaling and model version management
+- Cloud model hosting
+- GPU inference servers
+- Microservices architecture
+- Distributed processing
+- Async task queues
+- Database integration
+- Model version management
 
 ---
 
