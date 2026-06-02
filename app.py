@@ -1566,6 +1566,28 @@ def api_chat_test():
 @app.route("/api/chat", methods=["POST"])
 @app.route("/api/chat/", methods=["POST"])
 def api_chat():
+    """
+    Chat with the Agri-Vision Assistant
+    ---
+    tags:
+      - Chatbot
+    parameters:
+      - in: body
+        name: body
+        schema:
+          type: object
+          required:
+            - message
+          properties:
+            message:
+              type: string
+              example: "How much water does my cotton need?"
+    responses:
+      200:
+        description: AI Chatbot response
+      400:
+        description: Missing message payload
+    """
     data = request.get_json(silent=True)
     if not data or "message" not in data:
         return jsonify({"reply": "I'm sorry, I didn't receive a message."}), 400
@@ -1627,6 +1649,32 @@ def api_chat():
 
 @app.route("/api/weather")
 def api_weather():
+    """
+    Get Weather Forecast and Crop Recommendations
+    ---
+    tags:
+      - Weather
+    parameters:
+      - in: query
+        name: lat
+        type: number
+        description: Latitude of the farm
+      - in: query
+        name: lon
+        type: number
+        description: Longitude of the farm
+      - in: query
+        name: city
+        type: string
+        description: City name (fallback if lat/lon not provided)
+    responses:
+      200:
+        description: Current weather data and actionable farming recommendations
+      400:
+        description: Missing location parameters
+      404:
+        description: Could not geocode city
+    """
     lat = request.args.get("lat", type=float)
     lon = request.args.get("lon", type=float)
     city = request.args.get("city", type=str)
@@ -1650,7 +1698,29 @@ def api_weather():
 
 
 @app.route("/api/analyze", methods=["POST"])
+@limiter.limit("10 per minute")
 def api_analyze():
+    """
+    Analyze Cotton Crop Image
+    ---
+    tags:
+      - Inference
+    consumes:
+      - multipart/form-data
+    parameters:
+      - in: formData
+        name: file
+        type: file
+        required: true
+        description: The cotton crop image to analyze for disease and growth stage
+    responses:
+      200:
+        description: Analysis results including health score, Grad-CAM heatmap, and yield estimate
+      400:
+        description: Invalid file or missing image
+      500:
+        description: AI processing error
+    """
     if 'file' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400
     
