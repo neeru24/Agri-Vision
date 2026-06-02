@@ -3,6 +3,7 @@ Agri-Vision Flask Application
 Unified inference for disease classification (ResNet50) and growth stage prediction (YOLOv8)
 """
 import hashlib
+import secrets
 import logging
 from flask import Flask, render_template, request, jsonify, flash, redirect, url_for, send_file
 from flask_sqlalchemy import SQLAlchemy
@@ -58,6 +59,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Try dynamic package loading to prevent crash on automated CI testing rigs
 try:
+    import redis
     redis_host = os.getenv("REDIS_HOST", "localhost")
     redis_port = int(os.getenv("REDIS_PORT", "6379"))
     redis_db = int(os.getenv("REDIS_DB", "0"))
@@ -70,7 +72,7 @@ try:
         storage_uri=f"redis://{redis_host}:{redis_port}",
         strategy="fixed-window",
     )
-except (redis.ConnectionError, ModuleNotFoundError) as err:
+except (redis.ConnectionError, ModuleNotFoundError, NameError) as err:
     logger.warning(f"caching layer bypass active: {err}")
     redis_client = None
 
@@ -121,7 +123,8 @@ if not secret_key:
     if os.getenv("FLASK_ENV") == "production":
         logger.critical("SECRET_KEY must be configured in production.")
         raise SystemExit("SECRET_KEY must be configured in production.")
-    secret_key = "dev_secret_123"
+    logger.warning("SECRET_KEY not set — using a random ephemeral key. Sessions will be invalidated on restart.")
+    secret_key = secrets.token_urlsafe(64)
 app.secret_key = secret_key
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
 app.config["MAX_FORM_MEMORY_SIZE"] = 25 * 1024 * 1024
@@ -140,8 +143,14 @@ MAX_INFERENCE_DIMENSION = 1024
 DISPLAY_IMAGE_MAX_DIMENSION = 1200
 DISPLAY_JPEG_QUALITY = 80
 
-RESNET_MODEL_PATH = "models/cotton_crop_disease_classification/full_resnet50_model.pth"
-YOLO_MODEL_PATH = "models/cotton_crop_growth_stage_prediction/best.pt"
+RESNET_MODEL_PATH = os.getenv(
+    "RESNET_MODEL_PATH",
+    "models/cotton_crop_disease_classification/full_resnet50_model.pth",
+)
+YOLO_MODEL_PATH = os.getenv(
+    "YOLO_MODEL_PATH",
+    "models/cotton_crop_growth_stage_prediction/best.pt",
+)
 
 disease_classes = [
     "Aphids",
@@ -2822,14 +2831,14 @@ if __name__ == '__main__':
         registry.register_model(
             model_type="resnet",
             version="v1.0",
-            path="models/cotton_crop_disease_classification/full_resnet50_model.pth",
+            path=RESNET_MODEL_PATH,
             accuracy=0.9983,
             dataset_version="v1.0"
         )
         registry.register_model(
             model_type="yolo",
             version="v1.0",
-            path="models/cotton_crop_growth_stage_prediction/best.pt",
+            path=YOLO_MODEL_PATH,
             accuracy=0.6006,
             dataset_version="v1.0"
         )
