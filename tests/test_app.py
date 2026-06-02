@@ -206,6 +206,14 @@ def test_home_page_en(client):
     assert b"Agri" in resp.data or b"Vision" in resp.data
 
 
+def test_home_page_hero_demo_cta_links_to_demo(client):
+    resp = client.get("/")
+    assert resp.status_code == 200
+    assert b'id="hero-demo-link"' in resp.data
+    assert b'href="/demo"' in resp.data
+    assert b"View Demo" in resp.data
+
+
 def test_home_page_te(client):
     resp = client.get("/?lang=te")
     assert resp.status_code == 200
@@ -634,4 +642,3 @@ def test_api_chat_fallback_response(client):
     assert resp.status_code == 200
     data = json.loads(resp.data)
     assert "Agri-Vision AI assistant" in data["reply"]
-

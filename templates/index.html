@@ -384,8 +384,8 @@
                 </button>
                 {% if current_user.is_authenticated %}
                     <li><a href="/analyze">Analyze</a></li>
-                    <li><a href="/dashboard" style="font-weight: bold; color: #667eea;">📊 Dashboard</a></li>
-                    <li><a href="/reports" style="font-weight: bold; color: #667eea;">📄 Reports</a></li>
+                    <li><a href="/dashboard" > Dashboard</a></li>
+                    <li><a href="/stories">Stories</a></li>
                     <li><a href="/history">History</a></li>
                     {% if current_user.is_researcher() %}
                         <li><a href="/model-admin" style="font-weight: bold; color: #667eea;">🤖 Admin</a></li>
@@ -485,7 +485,12 @@
                             </span>
                         </a>
                         
-                        <a href="/demo" class="btn btn-secondary">
+                        <a
+                            id="hero-demo-link"
+                            href="{{ url_for('demo') }}"
+                            class="btn btn-secondary"
+                            aria-label="View the interactive Agri-Vision demo"
+                        >
                             <i class="fas fa-play-circle"></i>
 
                             <span data-i18n="demo_btn">

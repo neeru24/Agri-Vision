@@ -1,0 +1,35 @@
+name: Run Unit Tests & Coverage
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+permissions: 
+  contents: write 
+  pull-requests: write 
+  issues: write
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11" # Standard stable Python version for ML compatibility
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run Tests with Pytest & Coverage
+      env:
+        FLASK_ENV: testing
+        SECRET_KEY: ci-test-secret-key
+      run: |
+        python -m pytest
