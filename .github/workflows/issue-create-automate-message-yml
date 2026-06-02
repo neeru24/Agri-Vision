@@ -19,7 +19,7 @@ jobs:
           script: |
             const issueNumber = context.issue.number;
 
-            const commentBody1 = ### Thank you for raising this issue!\n We'll review it as soon as possible. We truly appreciate your contributions! ✨\n\n> Meanwhile make sure you've visited the README.md, CONTRIBUTING.md, and CODE_OF_CONDUCT.md before creating a PR for this.;
+            const commentBody1 = `Thank you for raising this issue, @${context.payload.issue.user.login}! We'll review it as soon as possible. We truly appreciate your contributions! ✨\n\n> Meanwhile make sure you've visited the README.md, CONTRIBUTING.md, and CODE_OF_CONDUCT.md before creating a PR for this.`;
 
 
             await github.rest.issues.createComment({
@@ -30,3 +30,4 @@ jobs:
             });
 
             console.log('Comment added successfully.');
+
