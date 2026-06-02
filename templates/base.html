@@ -12,46 +12,47 @@
                 if (localTheme === 'dark' || (!localTheme && sysTheme)) {
                     document.documentElement.setAttribute('data-theme', 'dark');
                 }
-                
-                // SSR-safe inline initialization for language
-                var localLang = localStorage.getItem('i18n_lang');
-                if (localLang) {
-                    document.documentElement.lang = localLang;
-                }
             } catch (e) {}
         })();
     </script>
-    <script src="{{ url_for('static', filename='js/i18n.js') }}" defer></script>
-    <script src="{{ url_for('static', filename='js/animations.js') }}" defer></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
 </head>
 <body>
     <header>
-        <h1>Agri-Vision</h1>
-        <nav>
-            <a href="/" data-i18n="navbar.home">Home</a>
-            <a href="/analyze" data-i18n="navbar.analyze">Analyze</a>
-            <a href="/demo" data-i18n="navbar.demo">Demo</a>
-            <a href="/tutorials" data-i18n="navbar.tutorials">Tutorials</a>
-            <a href="/stories" data-i18n="navbar.stories">Stories</a>
-            <a href="/model-admin" style="font-weight: bold; color: #667eea;" data-i18n="navbar.admin">🤖 Admin</a>
-            
-            <div class="lang-selector-container">
-                <i class="fas fa-globe"></i>
-                <select id="lang-selector" class="lang-selector" aria-label="Select Language">
-                    <option value="en">English</option>
-                    <option value="hi">हिन्दी</option>
-                    <option value="gu">ગુજરાતી</option>
-                    <option value="mr">मराठी</option>
-                    <option value="ta">தமிழ்</option>
-                    <option value="te">తెలుగు</option>
-                    <option value="pa">ਪੰਜਾਬੀ</option>
-                </select>
-            </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px;">
+            <h1 style="margin:0;">Agri-Vision</h1>
+            <button id="hamburger" aria-label="Toggle menu" style="display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:4px;">
+                <span style="display:block; width:25px; height:3px; background:currentColor; border-radius:3px;"></span>
+                <span style="display:block; width:25px; height:3px; background:currentColor; border-radius:3px;"></span>
+                <span style="display:block; width:25px; height:3px; background:currentColor; border-radius:3px;"></span>
+            </button>
+        </div>
+        <nav id="main-nav" style="display:flex; flex-wrap:wrap; gap:12px; padding:0 16px 12px;">
+            <a href="/">Home</a>
+            <a href="/analyze">Analyze</a>
+            <a href="/comparison">Field Comparison</a>
+            <a href="/demo">Demo</a>
+            <a href="/tutorials">Tutorials</a>
+            <a href="/stories">Stories</a>
         </nav>
         <hr/>
     </header>
-    <main id="swup" class="transition-fade">
+
+    <style>
+        @media (max-width: 768px) {
+            #hamburger { display: flex !important; }
+            #main-nav { display: none; flex-direction: column; }
+            #main-nav.open { display: flex; }
+        }
+    </style>
+
+    <script>
+        document.getElementById('hamburger').addEventListener('click', function() {
+            document.getElementById('main-nav').classList.toggle('open');
+        });
+    </script>
+    <main>
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <ul id="alert-list">
@@ -67,10 +68,5 @@
         <hr>
         <p style="font-size:0.95em">Agri-Vision &copy; 2026</p>
     </footer>
-    
-    <!-- Page Transitions Dependencies -->
-    <script src="https://unpkg.com/swup@4"></script>
-    <script src="https://unpkg.com/@swup/progress-plugin@3"></script>
-    <script src="{{ url_for('static', filename='js/page-transitions.js') }}" defer></script>
 </body>
 </html>

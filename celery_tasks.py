@@ -1,137 +1,250 @@
-"""
-Celery tasks for batch image processing
-"""
 import os
-import uuid
 import logging
 from datetime import datetime
-
-# Lazy import Celery to avoid errors if not installed
-try:
-    from celery import Celery
-    redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
-    celery = Celery('agri_vision', broker=redis_url, backend=redis_url)
-    celery.conf.update(
-        task_serializer='json',
-        accept_content=['json'],
-        result_serializer='json',
-        timezone='UTC',
-        enable_utc=True,
-        task_track_started=True,
-        task_time_limit=300,  # 5 minutes per task
-    )
-    CELERY_AVAILABLE = True
-except ImportError:
-    celery = None
-    CELERY_AVAILABLE = False
+import base64
 
 logger = logging.getLogger(__name__)
 
+MAX_BATCH_SIZE = int(os.getenv("AGRI_MAX_BATCH_SIZE", "200"))
+CELERY_BROKER = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
-# Define task decorators that work with or without Celery
+try:
+    from celery import Celery, group, chord
+
+    celery = Celery("agri_vision", broker=CELERY_BROKER, backend=CELERY_BROKER)
+    celery.conf.update(
+        task_serializer="json",
+        accept_content=["json"],
+        result_serializer="json",
+        timezone="UTC",
+        enable_utc=True,
+        task_track_started=True,
+        task_time_limit=300,
+        task_soft_time_limit=240,
+    )
+
+    CELERY_AVAILABLE = True
+except Exception:
+    celery = None
+    CELERY_AVAILABLE = False
+
+
+def _ensure_app_context():
+    from app import app
+
+    return app
+
+
 if CELERY_AVAILABLE:
-    @celery.task(bind=True)
-    def analyze_image_task(self, image_data, image_name, job_id, image_index):
-        """
-        Celery task to analyze a single image
-        """
+    @celery.task(bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=3)
+    def analyze_image_task(self, job_id: str, result_id: str, image_b64: str):
+        """Analyse one image and update DB AnalysisResult row."""
         import cv2
         import numpy as np
-        from app import analyze_image, model_manager
-        
+
+        app = _ensure_app_context()
+        from app import analyze_image
+        from models import AnalysisResult, db
+
         try:
-            # Update task status
-            self.update_state(
-                state='PROGRESS',
-                meta={'job_id': job_id, 'image_index': image_index, 'status': 'processing'}
-            )
-            
-            # Decode image
-            import base64
-            file_bytes = np.frombuffer(base64.b64decode(image_data), np.uint8)
-            image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+            file_bytes = base64.b64decode(image_b64)
+            arr = np.frombuffer(file_bytes, np.uint8)
+            image = cv2.imdecode(arr, cv2.IMREAD_COLOR)
             if image is None:
-                raise ValueError(f"Invalid image file: {image_name}")
-            
-            # Convert to RGB
+                raise ValueError("Invalid image data")
+
             image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            
-            # Analyze image
             results = analyze_image(image_rgb)
-            
-            # Update task status to complete
-            self.update_state(
-                state='SUCCESS',
-                meta={
-                    'job_id': job_id,
-                    'image_index': image_index,
-                    'status': 'complete',
-                    'results': results
-                }
-            )
-            
-            return {
-                'image_name': image_name,
-                'image_index': image_index,
-                'status': 'complete',
-                'results': results,
-                'timestamp': datetime.utcnow().isoformat()
-            }
-            
-        except Exception as e:
-            logger.error(f"Error processing image {image_name}: {e}")
-            self.update_state(
-                state='FAILURE',
-                meta={
-                    'job_id': job_id,
-                    'image_index': image_index,
-                    'status': 'error',
-                    'error': str(e)
-                }
-            )
+
+            with app.app_context():
+                res = AnalysisResult.query.get(result_id)
+                if not res:
+                    res = AnalysisResult(id=result_id, batch_job_id=job_id, image_name="unknown", image_index=0)
+                    db.session.add(res)
+
+                res.status = "complete"
+                res.results_json = results
+                disease = results.get("disease", {})
+                res.disease_class = disease.get("predicted_class")
+                res.disease_confidence = disease.get("confidence")
+                res.health_score = disease.get("health_score")
+                growth = results.get("growth", {})
+                res.growth_class = growth.get("main_class")
+                res.growth_confidence = growth.get("confidence")
+                res.error_message = None
+                db.session.commit()
+
+            return {"result_id": result_id, "status": "complete"}
+
+        except Exception as exc:
+            logger.exception("analyze_image_task failed: %s", exc)
+            app = _ensure_app_context()
+            from models import AnalysisResult, db
+            with app.app_context():
+                try:
+                    res = AnalysisResult.query.get(result_id)
+                    if res:
+                        res.status = "error"
+                        res.error_message = str(exc)
+                        db.session.commit()
+                except Exception:
+                    logger.exception("Failed to persist task failure for %s", result_id)
+
             raise
 
-    @celery.task
-    def process_batch_job(job_id, images_data):
-        """
-        Orchestrates batch processing of multiple images
-        """
-        from models import BatchJob, db
-        
-        try:
-            # Get batch job from database
+
+    @celery.task(bind=True)
+    def finalize_batch_job(self, job_id: str, results_meta: list):
+        from models import BatchJob, AnalysisResult, db
+
+        app = _ensure_app_context()
+        with app.app_context():
+            job = BatchJob.query.get(job_id)
+            if not job:
+                logger.error("finalize_batch_job: job not found %s", job_id)
+                return {"job_id": job_id, "status": "missing"}
+
+            completed = AnalysisResult.query.filter_by(batch_job_id=job_id, status="complete").count()
+            failed = AnalysisResult.query.filter_by(batch_job_id=job_id, status="error").count()
+            job.completed_images = completed
+            job.failed_images = failed
+            job.status = "completed" if (completed + failed) >= job.total_images else "processing"
+            if job.status == "completed":
+                job.completed_at = datetime.utcnow()
+            db.session.commit()
+
+            return {"job_id": job_id, "status": job.status, "completed": completed, "failed": failed}
+
+
+    @celery.task(bind=True)
+    def process_batch_job(self, job_id: str, images_data: list):
+        from models import BatchJob, AnalysisResult, db
+
+        app = _ensure_app_context()
+        with app.app_context():
             job = BatchJob.query.get(job_id)
             if not job:
                 raise ValueError(f"Batch job {job_id} not found")
-            
-            # Update job status
-            job.status = 'processing'
+
+            if len(images_data) > MAX_BATCH_SIZE:
+                raise ValueError(f"Batch size exceeds maximum of {MAX_BATCH_SIZE}")
+
+            job.status = "processing"
             job.started_at = datetime.utcnow()
+            job.total_images = len(images_data)
             db.session.commit()
-            
-            # Create tasks for each image
-            task_ids = []
-            for idx, (image_name, image_data) in enumerate(images_data):
-                task = analyze_image_task.delay(image_data, image_name, job_id, idx)
-                task_ids.append(task.id)
-            
-            # Store task IDs in job
-            job.task_ids = task_ids
+
+            task_sigs = []
+            for idx, (image_name, b64) in enumerate(images_data):
+                res = AnalysisResult(batch_job_id=job.id, image_name=image_name, image_index=idx, status="pending")
+                db.session.add(res)
+                db.session.flush()
+
+                sig = analyze_image_task.s(job.id, res.id, b64)
+                task_sigs.append(sig)
+
             db.session.commit()
-            
-            return {'job_id': job_id, 'task_count': len(task_ids)}
-            
-        except Exception as e:
-            logger.error(f"Error starting batch job {job_id}: {e}")
-            if job:
-                job.status = 'failed'
-                job.error_message = str(e)
-                db.session.commit()
-            raise
+
+            job.task_ids = []
+            db.session.commit()
+
+            group_obj = group(task_sigs)
+            chord(group_obj)(finalize_batch_job.s(job.id))
+
+            return {"job_id": job.id, "dispatched": len(task_sigs)}
+
 else:
-    # Stub functions when Celery is not available
     def analyze_image_task(*args, **kwargs):
-        raise NotImplementedError("Celery is not installed. Install with: pip install celery")
-    
-    def process_batch_job(*args, **kwargs):
-        raise NotImplementedError("Celery is not installed. Install with: pip install celery")
+        raise NotImplementedError("Celery is not available in this environment")
+
+
+    def process_batch_job(job_id: str, images_data: list):
+        import concurrent.futures
+        import threading
+        import cv2
+        import numpy as np
+        from app import analyze_image
+        from models import BatchJob, AnalysisResult, db
+
+        if len(images_data) > MAX_BATCH_SIZE:
+            raise ValueError(f"Batch size exceeds maximum of {MAX_BATCH_SIZE}")
+
+        def _worker():
+            from app import app
+            with app.app_context():
+                job = BatchJob.query.get(job_id)
+                if not job:
+                    logger.error("Fallback worker: job not found %s", job_id)
+                    return
+                job.status = "processing"
+                job.started_at = datetime.utcnow()
+                job.total_images = len(images_data)
+                db.session.commit()
+
+            with concurrent.futures.ThreadPoolExecutor(max_workers=4) as ex:
+                futures = []
+                for idx, (image_name, b64) in enumerate(images_data):
+                    futures.append(ex.submit(_process_single, job_id, idx, image_name, b64))
+
+                for fut in concurrent.futures.as_completed(futures):
+                    try:
+                        fut.result()
+                    except Exception as e:
+                        logger.exception("Fallback image processing error: %s", e)
+
+            from app import app
+            with app.app_context():
+                job = BatchJob.query.get(job_id)
+                completed = AnalysisResult.query.filter_by(batch_job_id=job_id, status="complete").count()
+                failed = AnalysisResult.query.filter_by(batch_job_id=job_id, status="error").count()
+                job.completed_images = completed
+                job.failed_images = failed
+                job.status = "completed"
+                job.completed_at = datetime.utcnow()
+                db.session.commit()
+
+        def _process_single(job_id, idx, image_name, b64):
+            from app import analyze_image
+            from models import AnalysisResult, db
+            import base64
+            import numpy as np
+            import cv2
+
+            app = _ensure_app_context()
+            with app.app_context():
+                res = AnalysisResult(batch_job_id=job_id, image_name=image_name, image_index=idx, status="pending")
+                db.session.add(res)
+                db.session.commit()
+
+            try:
+                raw = base64.b64decode(b64)
+                arr = np.frombuffer(raw, np.uint8)
+                image = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+                if image is None:
+                    raise ValueError("Invalid image data")
+                image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                results = analyze_image(image_rgb)
+
+                with app.app_context():
+                    r = AnalysisResult.query.get(res.id)
+                    r.status = "complete"
+                    r.results_json = results
+                    disease = results.get("disease", {})
+                    r.disease_class = disease.get("predicted_class")
+                    r.disease_confidence = disease.get("confidence")
+                    r.health_score = disease.get("health_score")
+                    growth = results.get("growth", {})
+                    r.growth_class = growth.get("main_class")
+                    r.growth_confidence = growth.get("confidence")
+                    db.session.commit()
+            except Exception as e:
+                logger.exception("Fallback processing failed for %s: %s", image_name, e)
+                with app.app_context():
+                    r = AnalysisResult.query.get(res.id)
+                    r.status = "error"
+                    r.error_message = str(e)
+                    db.session.commit()
+
+        t = threading.Thread(target=_worker, daemon=True)
+        t.start()
+        return {"job_id": job_id, "status": "started_fallback"}

@@ -2,11 +2,11 @@
 
 Thank you for your interest in contributing to Agri-Vision 🚀. 
 We welcome contributions including
--🐛Bug fixes 
--✨ New features
--🎨UI improvements
--📖Documentation updates
--🧪Suggestions.
+- 🐛Bug fixes 
+- ✨ New features
+- 🎨UI improvements
+- 📖Documentation updates
+- 🧪Suggestions.
 
 Your contributions help improve Agri-Vision for developers, researchers, and farmers.
 
@@ -86,12 +86,12 @@ python -m pytest
 
 You can contribute in the following ways:
 
--🐛 Fix bugs
--🎨 Improve UI/UX
--✨ Add new features
--📖 Improve documentation
--⚡ Optimize performance
--🧪 Add tests
+- 🐛 Fix bugs
+- 🎨 Improve UI/UX
+- ✨ Add new features
+- 📖 Improve documentation
+- ⚡ Optimize performance
+- 🧪 Add tests
 
 ## Commit Guidelines
 

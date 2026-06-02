@@ -368,7 +368,7 @@
             <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">
               Compare the expected healthy appearance with your uploaded crop image.
             </p>
-      
+      </div>
       {% if weather %}
       <div class="weather-card" style="
           margin: 2rem 0;
@@ -468,18 +468,18 @@
 
       <!-- Yield Estimate -->
       {% if yield_estimate %}
-      <div class="result-card" style="background: linear-gradient(135deg, #f0fff4 0%, #e6ffed 100%); border: 1px solid #b7ebc0;">
+      <div class="result-card yield-calculator-section" style="background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur)); border: 1px solid var(--card-border); transition: all 0.3s ease;">
         <h2 class="results-section-title" data-i18n="res_yield_title">
           <i class="fas fa-chart-line"></i> Interactive Yield Calculator
         </h2>
 
         <!-- Interactive Acreage Slider -->
-        <div class="no-print" style="margin-bottom: 1.5rem; padding: 1.25rem; background: white; border-radius: 12px; border: 1px solid #b7ebc0; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+        <div class="no-print yield-slider-container" style="margin-bottom: 1.5rem; padding: 1.25rem; background: rgba(255, 255, 255, 0.08); border-radius: 12px; border: 1px solid var(--card-border); box-shadow: 0 2px 10px rgba(0,0,0,0.15); transition: all 0.3s ease;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
-            <label for="acreage-slider" style="font-weight: 700; color: #1a7f37; font-size: 0.95rem;" data-i18n="res_yield_adj">
+            <label for="acreage-slider" style="font-weight: 700; color: var(--emerald-green); font-size: 0.95rem;" data-i18n="res_yield_adj">
               <i class="fas fa-expand-arrows-alt"></i> Adjust Farm Size (Acres)
             </label>
-            <span id="acreage-display" style="font-weight: 800; color: #ffffff; background: #1a7f37; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem; box-shadow: 0 2px 5px rgba(26,127,55,0.2);">
+            <span id="acreage-display" style="font-weight: 800; color: white; background: linear-gradient(135deg, var(--emerald-green), var(--fresh-green)); padding: 6px 14px; border-radius: 20px; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(92, 209, 139, 0.3);">
               {{ yield_estimate.field_acres|default(1.0) }} acres
             </span>
           </div>
@@ -490,52 +490,52 @@
             max="50"
             step="0.5"
             value="{{ yield_estimate.field_acres|default(1.0) }}"
-            style="width: 100%; accent-color: #1a7f37; cursor: pointer; height: 8px; border-radius: 4px; background: #e9ecef; outline: none;"
+            style="width: 100%; accent-color: var(--emerald-green); cursor: pointer; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.15); outline: none;"
           >
-          <div style="display: flex; justify-content: space-between; margin-top: 0.4rem; color: #6c757d; font-size: 0.7rem; font-weight: 500;">
+          <div style="display: flex; justify-content: space-between; margin-top: 0.4rem; color: var(--text-muted); font-size: 0.7rem; font-weight: 500;">
             <span>0.5 Ac</span>
             <span>25 Ac</span>
             <span>50 Ac</span>
           </div>
         </div>
 
-        <p style="font-size:0.82rem; color:#6c757d; margin: 0 0 1.2rem; font-style: italic;">
+        <p style="font-size:0.82rem; color:var(--text-muted); margin: 0 0 1.2rem; font-style: italic;">
           Based on growth stage, crop health{% if weather %}, and current weather{% endif %}.
           Reference: ICAR Bt cotton baseline (20 q/acre).
         </p>
 
         <div style="display:flex; flex-wrap:wrap; gap:1rem; margin-bottom:1.2rem;">
-          <div style="flex:1; min-width:150px; text-align:center; background:white; border-radius:12px; padding:1.2rem; box-shadow:0 3px 12px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.02);">
-            <div style="font-size:0.75rem; color:#6c757d; margin-bottom:0.4rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="res_yield_per_acre">Per Acre</div>
-            <div style="font-size:1.6rem; font-weight:800; color:#1a7f37; margin-bottom: 0.2rem;">
+          <div class="yield-stat-card" style="flex:1; min-width:150px; text-align:center; background:rgba(255, 255, 255, 0.06); border-radius:12px; padding:1.2rem; box-shadow:0 3px 12px rgba(0,0,0,0.2); border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease;">
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.4rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="res_yield_per_acre">Per Acre</div>
+            <div style="font-size:1.6rem; font-weight:800; color:var(--emerald-green); margin-bottom: 0.2rem;">
               {{ yield_estimate.yield_min_acre }}–{{ yield_estimate.yield_max_acre }}
             </div>
-            <div style="font-size:0.85rem; color:#495057; font-weight: 500;">quintals/acre</div>
-            <div style="font-size:0.72rem; color:#adb5bd; margin-top:0.4rem; padding-top: 0.4rem; border-top: 1px solid #f8f9fa;">
+            <div style="font-size:0.85rem; color:var(--text-color); font-weight: 500;">quintals/acre</div>
+            <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.4rem; padding-top: 0.4rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
               {{ yield_estimate.yield_min_kg_ha }}–{{ yield_estimate.yield_max_kg_ha }} kg/ha
             </div>
           </div>
 
-          <div style="flex:1; min-width:150px; text-align:center; background: linear-gradient(145deg, #ffffff, #f8fff9); border-radius:12px; padding:1.2rem; box-shadow:0 3px 12px rgba(0,0,0,0.08); border: 2px solid #b7ebc0;">
-            <div style="font-size:0.75rem; color:#1a7f37; margin-bottom:0.4rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="res_yield_total">Total Field Estimate</div>
-            <div style="font-size:1.8rem; font-weight:900; color:#1a7f37; margin-bottom: 0.2rem;" id="total-yield-display">
+          <div class="yield-stat-card yield-stat-card-primary" style="flex:1; min-width:150px; text-align:center; background: linear-gradient(145deg, rgba(92, 209, 139, 0.15), rgba(109, 220, 144, 0.1)); border-radius:12px; padding:1.2rem; box-shadow:0 3px 12px rgba(92, 209, 139, 0.2); border: 2px solid rgba(92, 209, 139, 0.3); transition: all 0.3s ease;">
+            <div style="font-size:0.75rem; color:var(--emerald-green); margin-bottom:0.4rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="res_yield_total">Total Field Estimate</div>
+            <div style="font-size:1.8rem; font-weight:900; color:var(--fresh-green); margin-bottom: 0.2rem;" id="total-yield-display">
               {{ yield_estimate.yield_min_total }}–{{ yield_estimate.yield_max_total }}
             </div>
-            <div style="font-size:0.9rem; color:#2e7d32; font-weight: 600;" id="total-unit-display">quintals total</div>
-            <div style="font-size:0.72rem; color:#1a7f37; margin-top:0.4rem; padding-top: 0.4rem; border-top: 1px solid #e6ffed; font-weight: 500;" id="total-kg-ha-display">
+            <div style="font-size:0.9rem; color:var(--emerald-green); font-weight: 600;" id="total-unit-display">quintals total</div>
+            <div style="font-size:0.72rem; color:var(--emerald-green); margin-top:0.4rem; padding-top: 0.4rem; border-top: 1px solid rgba(92, 209, 139, 0.2); font-weight: 500;" id="total-kg-ha-display">
               {{ (yield_estimate.yield_min_total * 100)|round|int }}–{{ (yield_estimate.yield_max_total * 100)|round|int }} kg total
             </div>
           </div>
 
-          <div style="flex:1; min-width:150px; text-align:center; background:white; border-radius:12px; padding:1.2rem; box-shadow:0 3px 12px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.02);">
-            <div style="font-size:0.75rem; color:#6c757d; margin-bottom:0.5rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="res_yield_conf">Confidence</div>
+          <div class="yield-stat-card" style="flex:1; min-width:150px; text-align:center; background:rgba(255, 255, 255, 0.06); border-radius:12px; padding:1.2rem; box-shadow:0 3px 12px rgba(0,0,0,0.2); border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease;">
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.5rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="res_yield_conf">Confidence</div>
             <div style="font-size:1.3rem; font-weight:800; color:{{ yield_estimate.confidence_color }}; margin-bottom: 0.4rem;">
               {{ yield_estimate.confidence_label }}
             </div>
-            <div style="background:#e9ecef; border-radius:10px; height:8px; margin:0.5rem auto; width:85%; overflow: hidden;">
+            <div style="background:rgba(255, 255, 255, 0.1); border-radius:10px; height:8px; margin:0.5rem auto; width:85%; overflow: hidden;">
               <div style="background:{{ yield_estimate.confidence_color }}; width:{{ yield_estimate.confidence_pct }}%; height:100%; border-radius:10px; transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);"></div>
             </div>
-            <div style="font-size:0.8rem; color:#495057; font-weight: 700;"><span id="rel-pct">{{ yield_estimate.confidence_pct }}</span>% <span data-i18n="res_yield_reliability">reliability</span></div>
+            <div style="font-size:0.8rem; color:var(--text-color); font-weight: 700;"><span id="rel-pct">{{ yield_estimate.confidence_pct }}</span>% <span data-i18n="res_yield_reliability">reliability</span></div>
           </div>
         </div>
 
@@ -857,11 +857,11 @@
       </div>
 
       <!-- Footer Actions -->
-      <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:2rem; margin-bottom:2rem;">
-        <button onclick="readInsights()" class="upload-btn" data-i18n="res_voice" style="padding:0.5rem 1rem; font-size:0.9rem; background:var(--secondary-green);">
+      <div style="display:flex; justify-content:flex-end; gap:1.2rem; margin-top:2rem; margin-bottom:2rem; flex-wrap:wrap;">
+        <button onclick="readInsights()" class="btn-action btn-action-primary" data-i18n="res_voice" aria-label="Read analysis insights aloud using voice assistant">
           <i class="fas fa-volume-up"></i> Voice Assistant
         </button>
-        <button onclick="exportToPDF()" class="upload-btn" data-i18n="res_pdf" style="padding:0.5rem 1rem; font-size:0.9rem;">
+        <button onclick="exportToPDF()" class="btn-action btn-action-secondary" data-i18n="res_pdf" aria-label="Download analysis results as PDF report">
           <i class="fas fa-file-pdf"></i> Download PDF Report
         </button>
       </div>
@@ -1243,6 +1243,7 @@ async function exportToPDF() {
     }
     </script>
 
+<script>
 function readInsights() {
   var insights = [];
   {% if results.farmer_insights %}
@@ -1257,44 +1258,27 @@ function readInsights() {
   if (!window.speechSynthesis) {
     alert("Speech synthesis is not supported in this browser.");
     return;
-
-  function exportExplainabilityReport() {
-    window.print();
   }
+  window.speechSynthesis.cancel();
+  var utterance = new SpeechSynthesisUtterance("Here are your crop analysis insights. " + insights.join(" "));
+  window.speechSynthesis.speak(utterance);
+}
 
-  function readInsights() {
-    var insights = [];
-    {% if results.farmer_insights %}
-    {% for insight in results.farmer_insights %}
-    insights.push("{{ insight | replace('"', '\\"') }}");
-    {% endfor %}
-    {% endif %}
-    {% if results.yield_prediction %}
-    insights.push("Estimated yield is {{ results.yield_prediction.estimated_yield_kg_per_acre }} kilograms per acre.");
-    {% endif %}
+function exportExplainabilityReport() {
+  window.print();
+}
 
-    if (!window.speechSynthesis) {
-      alert("Speech synthesis is not supported in this browser.");
-      return;
-    }
-    window.speechSynthesis.cancel();
-    var utterance = new SpeechSynthesisUtterance("Here are your crop analysis insights. " + insights.join(" "));
-    window.speechSynthesis.speak(utterance);
-  }
-
-  document.addEventListener("DOMContentLoaded", function () {
-      const cropHistory = JSON.parse(localStorage.getItem("cropHistory")) || [];
-      const scanData = {
-          disease: `{{ disease.detected_issue|default("Unknown") }}`,
-          confidence: `{{ disease.model_confidence|default(0)|float|round(2) }}%`,
-          treatment: `{{ disease_info.get('treatment', 'No treatment available.') }}`,
-          date: `{{ timestamp }}`,
-          image: "data:image/jpeg;base64,{{ image_b64 }}"
-      };
-      cropHistory.unshift(scanData);
-      localStorage.setItem("cropHistory", JSON.stringify(cropHistory));
-  });
+document.addEventListener("DOMContentLoaded", function () {
+    const cropHistory = JSON.parse(localStorage.getItem("cropHistory")) || [];
+    const scanData = {
+        disease: `{{ disease.detected_issue|default("Unknown") }}`,
+        confidence: `{{ disease.model_confidence|default(0)|float|round(2) }}%`,
+        date: `{{ timestamp }}`,
+        image: "data:image/jpeg;base64,{{ image_b64 }}"
+    };
+    cropHistory.unshift(scanData);
+    localStorage.setItem("cropHistory", JSON.stringify(cropHistory));
+});
 </script>
 
 {% endblock %}
-    {% endblock %}
