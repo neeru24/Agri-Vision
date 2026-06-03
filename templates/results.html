@@ -1243,6 +1243,7 @@ async function exportToPDF() {
     }
     </script>
 
+<script>
 function readInsights() {
   var insights = [];
   {% if results.farmer_insights %}
@@ -1257,43 +1258,27 @@ function readInsights() {
   if (!window.speechSynthesis) {
     alert("Speech synthesis is not supported in this browser.");
     return;
-
-  function exportExplainabilityReport() {
-    window.print();
   }
+  window.speechSynthesis.cancel();
+  var utterance = new SpeechSynthesisUtterance("Here are your crop analysis insights. " + insights.join(" "));
+  window.speechSynthesis.speak(utterance);
+}
 
-  function readInsights() {
-    var insights = [];
-    {% if results.farmer_insights %}
-    {% for insight in results.farmer_insights %}
-    insights.push("{{ insight | replace('"', '\\"') }}");
-    {% endfor %}
-    {% endif %}
-    {% if results.yield_prediction %}
-    insights.push("Estimated yield is {{ results.yield_prediction.estimated_yield_kg_per_acre }} kilograms per acre.");
-    {% endif %}
+function exportExplainabilityReport() {
+  window.print();
+}
 
-    if (!window.speechSynthesis) {
-      alert("Speech synthesis is not supported in this browser.");
-      return;
-    }
-    window.speechSynthesis.cancel();
-    var utterance = new SpeechSynthesisUtterance("Here are your crop analysis insights. " + insights.join(" "));
-    window.speechSynthesis.speak(utterance);
-  }
-
-  document.addEventListener("DOMContentLoaded", function () {
-      const cropHistory = JSON.parse(localStorage.getItem("cropHistory")) || [];
-      const scanData = {
-          disease: `{{ disease.detected_issue|default("Unknown") }}`,
-          confidence: `{{ disease.model_confidence|default(0)|float|round(2) }}%`,
-          treatment: `{{ disease_info.get('treatment', 'No treatment available.') }}`,
-          date: `{{ timestamp }}`,
-          image: "data:image/jpeg;base64,{{ image_b64 }}"
-      };
-      cropHistory.unshift(scanData);
-      localStorage.setItem("cropHistory", JSON.stringify(cropHistory));
-  });
+document.addEventListener("DOMContentLoaded", function () {
+    const cropHistory = JSON.parse(localStorage.getItem("cropHistory")) || [];
+    const scanData = {
+        disease: `{{ disease.detected_issue|default("Unknown") }}`,
+        confidence: `{{ disease.model_confidence|default(0)|float|round(2) }}%`,
+        date: `{{ timestamp }}`,
+        image: "data:image/jpeg;base64,{{ image_b64 }}"
+    };
+    cropHistory.unshift(scanData);
+    localStorage.setItem("cropHistory", JSON.stringify(cropHistory));
+});
 </script>
 
 {% endblock %}

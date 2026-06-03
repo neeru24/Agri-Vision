@@ -1,31 +1,16 @@
-# TODO - Unified Form Input System (Agri-Vision)
+# TODO - Refresh Token Rotation (Enterprise, Replay Detection)
 
-## Step 1: CSS foundation
-- [x] Add design tokens for input system (radius, heights, padding, focus ring, validation colors) to `static/css/style.css`
+## Plan checkpoints
+- [ ] Step 1: Add DB models for refresh token families + refresh tokens (hashed-only storage, indexes)
 
-- [ ] Add base styles for `input/select/textarea` with `:hover` + `:focus-visible`
-- [ ] Add error/success hooks via `[aria-invalid="true"]`, `.is-invalid`, `.is-valid`
-- [ ] Add helper classes: `.form-field`, `.form-label`, `.form-hint`, `.form-error`
-- [ ] Add reduced-motion handling for input transitions
 
-## Step 2: Auth forms
-- [ ] Modernize inputs in `templates/login.html`
-- [ ] Modernize inputs in `templates/register.html`
+- [ ] Step 2: Add JWT utilities (access/refresh signing, claims, TTL)
 
-## Step 3: Upload + prediction entry form
-- [ ] Apply unified classes to weather city input + controls in `templates/upload.html`
-- [ ] Apply unified classes / styling hooks to file upload area and hidden upload inputs
-
-## Step 4: Filters/search across app
-- [ ] Update remaining templates with inputs/selects/search to use unified system
-
-## Step 5: Validation + A11y
-- [ ] Ensure aria-invalid usage where applicable (without breaking backend)
-- [ ] Ensure labels remain correctly associated (for/id)
-
-## Step 6: Quality gates
-- [ ] Run lint (if available)
-- [ ] Run typecheck (if available)
-- [ ] Run tests (`pytest`)
-- [ ] Run production build checks (if available)
+- [ ] Step 3: Add refresh rotation service with one-time-use enforcement + replay detection + family revocation
+- [ ] Step 4: Add audit logging helper (structured logs; never log raw tokens)
+- [ ] Step 5: Add API endpoints: login (JWT issuance), refresh, logout
+- [ ] Step 6: Add concurrency-safe rotation logic (transaction / conditional update)
+- [ ] Step 7: Add tests: unit + integration + concurrency + reuse detection + family revocation
+- [ ] Step 8: Update docs/security notes
+- [ ] Step 9: Run full test suite + ensure CI compatibility
 

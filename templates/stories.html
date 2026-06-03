@@ -54,10 +54,17 @@
 <style>
     /* ─── Section Layout ──────────────────────────────────── */
     .stories-section {
-        padding: 120px 0 80px;
-        position: relative;
-        overflow: hidden;
-    }
+    padding: 160px 0 80px;
+    position: relative;
+    overflow: hidden;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(46,139,87,0.03) 0%,
+            rgba(46,139,87,0.06) 100%
+        );
+}
 
     /* Subtle ambient background blobs (mirrors hero blobs pattern) */
     .stories-section::before {
@@ -71,6 +78,8 @@
         border-radius: 50%;
         pointer-events: none;
         z-index: 0;
+        filter: blur(50px);
+    opacity: 0.8;
     }
     .stories-section::after {
         content: '';
@@ -83,12 +92,14 @@
         border-radius: 50%;
         pointer-events: none;
         z-index: 0;
+        filter: blur(45px);
+    opacity: 0.8;
     }
 
     /* ─── Section Header ──────────────────────────────────── */
     .stories-header {
         text-align: center;
-        margin-bottom: 64px;
+        margin-bottom: 32px;
         position: relative;
         z-index: 1;
     }
@@ -226,13 +237,15 @@
     }
 
     .story-card:hover {
-        transform: translateY(-7px) scale(1.015);
-        box-shadow:
-            0 20px 48px rgba(0,0,0,0.13),
-            0 0 0 1px rgba(46,139,87,0.40),
-            0 0 32px rgba(46,139,87,0.14);
-        border-color: rgba(46,139,87,0.45);
-    }
+    transform: translateY(-8px) scale(1.02) rotateZ(-0.5deg);
+
+    box-shadow:
+        0 22px 55px rgba(0,0,0,0.14),
+        0 0 0 1px rgba(46,139,87,0.30),
+        0 0 36px rgba(46,139,87,0.10);
+
+    border-color: rgba(46,139,87,0.45);
+}
 
     .story-card:hover::after {
         opacity: 1;
@@ -265,15 +278,26 @@
         transition: background 0.25s ease, box-shadow 0.25s ease;
     }
 
-    .story-card:hover .story-avatar {
-        background: linear-gradient(
-            135deg,
-            rgba(46,139,87,0.28) 0%,
-            rgba(46,139,87,0.12) 100%
-        );
-        box-shadow: 0 0 18px rgba(46,139,87,0.25);
-        transform: scale(1.05);
-    }
+    .story-avatar {
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        background 0.3s ease;
+}
+
+.story-card:hover .story-avatar {
+    background: linear-gradient(
+        135deg,
+        rgba(46,139,87,0.30) 0%,
+        rgba(46,139,87,0.12) 100%
+    );
+
+    transform: scale(1.1) rotate(-3deg);
+
+    box-shadow:
+        0 0 22px rgba(46,139,87,0.30),
+        0 8px 20px rgba(46,139,87,0.15);
+}
 
     /* ─── Card: Farmer Name & Location ───────────────────── */
     .story-meta {
@@ -381,6 +405,8 @@
         position: relative;
         padding-left: 18px;
         margin: 0;
+        transition: color 0.3s ease;
+
     }
 
     /* Left accent bar — mirrors feature-card icon accent */
@@ -393,11 +419,14 @@
         width: 3px;
         border-radius: 2px;
         background: linear-gradient(
-            180deg,
-            var(--emerald-green, #2e8b57),
-            transparent
-        );
-        opacity: 0.55;
+        180deg,
+        #2e8b57 0%,
+        #5cd391 60%,
+        transparent 100%
+    );
+
+    opacity: 0.75;
+    
     }
 
     /* ─── Dark Theme Overrides ────────────────────────────── */
@@ -449,6 +478,9 @@
         .stories-eyebrow .badge-dot {
             animation: none;
         }
+        .story-card:hover .story-quote {
+    color: #444;
+}
     }
 </style>
 

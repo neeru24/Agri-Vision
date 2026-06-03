@@ -417,8 +417,67 @@ class DiseasePrediction(db.Model):
         }
 
 
+class RefreshTokenFamily(db.Model):
+    """Refresh token family tracking for rotation and replay detection."""
+
+    __tablename__ = "refresh_token_families"
+
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=False, index=True)
+    session_id = db.Column(db.String(64), nullable=False, index=True)
+    is_compromised = db.Column(db.Boolean, default=False, nullable=False)
+    compromised_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    refresh_tokens = db.relationship(
+        "RefreshToken",
+        backref="family",
+        lazy=True,
+        cascade="all, delete-orphan",
+    )
+
+
+class RefreshToken(db.Model):
+    """A single refresh token (hashed) with one-time use enforcement."""
+
+    __tablename__ = "refresh_tokens"
+
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    family_id = db.Column(
+        db.String(36),
+        db.ForeignKey("refresh_token_families.id"),
+        nullable=False,
+        index=True,
+    )
+    user_id = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=False, index=True)
+    session_id = db.Column(db.String(64), nullable=False, index=True)
+
+    token_hash = db.Column(db.String(64), nullable=False, index=True)  # sha256 hex
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    expires_at = db.Column(db.DateTime, nullable=False, index=True)
+
+    revoked_at = db.Column(db.DateTime, nullable=True, index=True)
+    replaced_by_token_id = db.Column(db.String(36), nullable=True)
+
+    is_compromised = db.Column(db.Boolean, default=False, nullable=False, index=True)
+    last_used_at = db.Column(db.DateTime, nullable=True)
+
+    created_ip = db.Column(db.String(64), nullable=True)
+    created_user_agent = db.Column(db.String(255), nullable=True)
+
+    __table_args__ = (
+        db.Index(
+            "ix_refresh_tokens_family_token_hash",
+            "family_id",
+            "token_hash",
+        ),
+    )
+
+
 class DiseaseOccurrence(db.Model):
     """Model for tracking historical disease occurrences for ML training"""
+
 
     __tablename__ = "disease_occurrences"
 
