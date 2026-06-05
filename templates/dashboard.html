@@ -868,8 +868,11 @@
             container.innerHTML = '';
             
             activities.forEach(activity => {
-                const item = document.createElement('div');
+                const resultUrl = activity.result_id ? `/results/${activity.result_id}` : '#';
+                const item = document.createElement('a');
+                item.href = resultUrl;
                 item.className = 'activity-item';
+                item.style.cssText = 'text-decoration: none; display: block; cursor: pointer;';
                 
                 const iconColor = activity.type === 'disease' ? '#ef4444' : 
                                  activity.type === 'healthy' ? '#22c55e' : '#667eea';

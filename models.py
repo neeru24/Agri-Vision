@@ -167,6 +167,7 @@ class AnalysisHistory(db.Model):
     __tablename__ = "analysis_history"
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    result_id = db.Column(db.String(36), unique=True, nullable=True, index=True)
     user_id = db.Column(
         db.String(36), db.ForeignKey("users.id"), nullable=False, index=True
     )
@@ -180,11 +181,13 @@ class AnalysisHistory(db.Model):
     longitude = db.Column(db.Float, nullable=True)
     location_name = db.Column(db.String(255), nullable=True)
     region = db.Column(db.String(100), nullable=True)
+    results_data = db.Column(db.JSON, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
 
     def to_dict(self):
         return {
             "id": self.id,
+            "result_id": self.result_id,
             "user_id": self.user_id,
             "image_path": self.image_path,
             "disease_result": self.disease_result,
@@ -195,6 +198,7 @@ class AnalysisHistory(db.Model):
             "longitude": self.longitude,
             "location_name": self.location_name,
             "region": self.region,
+            "results_data": self.results_data,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 

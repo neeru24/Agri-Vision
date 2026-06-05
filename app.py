@@ -22,6 +22,7 @@ from services.weather_service import get_weather
 
 import redis
 import base64
+import uuid
 import cv2
 import numpy as np
 import torch
@@ -1699,6 +1700,61 @@ def history():
     return render_template("history.html")
 
 
+
+
+@app.route("/results/<result_id>")
+@login_required
+def view_results(result_id):
+    from models import AnalysisHistory
+    analysis = AnalysisHistory.query.filter_by(
+        result_id=result_id,
+        user_id=current_user.id
+    ).first_or_404()
+
+    results = dict(analysis.results_data) if analysis.results_data else {}
+
+    if not results.get("disease") and analysis.disease_result:
+        results["disease"] = analysis.disease_result
+    if not results.get("growth") and analysis.growth_result:
+        results["growth"] = analysis.growth_result
+
+    image_b64 = None
+    img_shape = {"width": 410, "height": 410}
+    if analysis.image_path:
+        full_path = os.path.join("static", "uploads", analysis.image_path)
+        if os.path.exists(full_path):
+            image = cv2.imread(full_path)
+            if image is not None:
+                image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                image_b64 = encode_image_for_display(image_rgb)
+                img_shape = {"width": image.shape[1], "height": image.shape[0]}
+
+    predicted_class = (analysis.disease_result or {}).get("predicted_class", "")
+    disease_info = disease_info_map.get(predicted_class, {})
+
+    raw_json = json.dumps(results, indent=2, default=str)
+    timestamp = analysis.created_at.strftime("%Y-%m-%d %H:%M:%S") if analysis.created_at else ""
+
+    return render_template(
+        "results.html",
+        results=results,
+        filename=analysis.image_path,
+        image_b64=image_b64,
+        img_shape=img_shape,
+        raw_json=raw_json,
+        timestamp=timestamp,
+        weather=results.get("weather"),
+        forecast=None,
+        grad_cam_image_b64=None,
+        heatmap_only_b64=None,
+        heatmap_image_path=None,
+        heatmap_only_path=None,
+        disease_info=disease_info,
+        treatment_recommendations=results.get("treatment_recommendations", {}),
+        disease_classes=disease_classes,
+    )
+
+
 @app.route("/health")
 def health():
     ensure_models_loaded()
@@ -1747,23 +1803,31 @@ def analyze():
             predicted_class = results.get("disease", {}).get("predicted_class", "") or ""
             disease_info = disease_info_map.get(predicted_class, {})
 
-            import time
-            unique_filename = f"{int(time.time())}_{safe_filename}"
-            file_path = os.path.join("static", "uploads", unique_filename)
-            cv2.imwrite(file_path, image)
-            
             from models import AnalysisHistory, db
             if current_user.is_authenticated:
+                import time
+                unique_filename = f"{int(time.time())}_{safe_filename}"
+                file_path = os.path.join("static", "uploads", unique_filename)
+                cv2.imwrite(file_path, image)
+
+                results_data = {
+                    k: v for k, v in results.items()
+                    if k not in ("grad_cam_image_b64", "heatmap_only_b64")
+                }
                 history_entry = AnalysisHistory(
+                    result_id=str(uuid.uuid4()),
                     user_id=current_user.id,
                     image_path=unique_filename,
                     disease_result=results.get("disease"),
                     growth_result=results.get("growth"),
                     confidence=results.get("disease", {}).get("confidence"),
-                    health_score=results.get("disease", {}).get("health_score")
+                    health_score=results.get("disease", {}).get("health_score"),
+                    results_data=results_data,
                 )
                 db.session.add(history_entry)
                 db.session.commit()
+
+                return redirect(url_for("view_results", result_id=history_entry.result_id))
 
             return render_template(
                 "results.html",
@@ -3039,7 +3103,8 @@ def api_dashboard_stats():
             'icon': icon,
             'title': f'{disease.replace("_", " ").title()} Detected',
             'description': f'Confidence: {(a.confidence * 100):.1f}%' if a.confidence else 'No confidence data',
-            'time': a.created_at.strftime('%b %d, %Y %H:%M')
+            'time': a.created_at.strftime('%b %d, %Y %H:%M'),
+            'result_id': a.result_id if hasattr(a, 'result_id') else None
         })
     
     return jsonify({
@@ -3085,7 +3150,8 @@ def api_analyses():
             'id': a.id,
             'disease': disease.replace('_', ' ').title(),
             'date': a.created_at.strftime('%Y-%m-%d %H:%M'),
-            'health_score': a.health_score
+            'health_score': a.health_score,
+            'result_id': a.result_id if hasattr(a, 'result_id') else a.id
         })
     
     return jsonify({'analyses': analyses_list})
@@ -3534,6 +3600,22 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         logger.info("Database tables created")
+
+        # Apply startup migration for result_id and results_data columns
+        try:
+            import sqlalchemy as sa
+            from models import AnalysisHistory
+            inspector = sa.inspect(db.engine)
+            columns = [c["name"] for c in inspector.get_columns("analysis_history")]
+            if "result_id" not in columns:
+                db.session.execute(sa.text("ALTER TABLE analysis_history ADD COLUMN result_id VARCHAR(36)"))
+                logger.info("Added result_id column to analysis_history")
+            if "results_data" not in columns:
+                db.session.execute(sa.text("ALTER TABLE analysis_history ADD COLUMN results_data JSON"))
+                logger.info("Added results_data column to analysis_history")
+            db.session.commit()
+        except Exception as exc:
+            logger.warning(f"Startup migration skipped/failed: {exc}")
 
         # Seed enterprise RBAC (idempotent)
         try:

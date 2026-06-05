@@ -85,6 +85,7 @@
         <div class="history-container" id="historyContainer">
             {% if history_records %}
                 {% for record in history_records %}
+                <a href="/results/{{ record.result_id }}" style="text-decoration: none; color: inherit; display: block;">
                 <div class="history-card">
                     <img src="{{ url_for('static', filename='uploads/' ~ record.image_path) if record.image_path else '' }}" alt="Crop Image">
                     <h2>{{ record.disease_result.predicted_class if record.disease_result else 'Unknown Disease' }}</h2>
@@ -93,6 +94,7 @@
                     <p><b>Health Score:</b> {{ record.health_score|round(1) if record.health_score else 'N/A' }}</p>
                     <p><b>Date:</b> {{ record.created_at.strftime('%Y-%m-%d %H:%M:%S') if record.created_at else '' }}</p>
                 </div>
+                </a>
                 {% endfor %}
             {% else %}
                 <p>No scan history found in your account.</p>
