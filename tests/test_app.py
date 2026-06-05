@@ -297,7 +297,7 @@ def test_build_comparison_result_improved():
 # Form upload submission routes
 def test_post_analyze_valid(client, valid_image):
     data = {"file": (valid_image, "test_cotton.png")}
-    resp = client.post("/analyze", data=data, content_type="multipart/form-data")
+    resp = client.post("/analyze", data=data, content_type="multipart/form-data", follow_redirects=True)
     assert resp.status_code == 200
     assert (
         b"Results" in resp.data
@@ -570,6 +570,7 @@ def test_analyze_web_and_api_yield_multiplier_consistent(client, valid_image, mo
     "/analyze",
     data={"file": (io.BytesIO(img_bytes), "cotton.png"), "lat": "29.5", "lon": "30.8"},
     content_type="multipart/form-data",
+    follow_redirects=True,
     )
     assert web_resp.status_code == 200
     text = html.unescape(web_resp.get_data(as_text=True))
