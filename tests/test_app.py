@@ -554,22 +554,48 @@ def test_post_api_analyze_recommendations_unique_with_weather(client, valid_imag
 def test_analyze_web_and_api_yield_multiplier_consistent(client, valid_image, monkeypatch):
     stress = {"temperature": 40, "humidity": 90, "precipitation": 0}
     monkeypatch.setattr(app, "resolve_weather_for_analysis", lambda **kwargs: stress)
+
+    def mock_analyze_image(_image, *, weather=None, field_acres=1.0):
+        return {
+            "disease": {
+                "predicted_class": "Healthy",
+                "predicted_class_idx": 5,
+                "confidence": 0.92,
+                "all_confidences": {},
+                "health_score": 82.0,
+                "raw": [],
+            },
+            "growth": {
+                "main_class": "Matured Cotton Boll",
+                "main_class_idx": 3,
+                "confidence": 0.8,
+                "boxes": [],
+                "raw": [],
+            },
+            "recommendations": ["Continue general crop monitoring."],
+            "yield_estimate": {
+                "weather_multiplier": 0.72,
+                "combined_multiplier": 0.58,
+            },
+            "weather": weather,
+        }
+
+    monkeypatch.setattr(app, "analyze_image", mock_analyze_image)
+
     img_bytes = valid_image.getvalue()
-    file_field = (io.BytesIO(img_bytes), "cotton.png")
-    form = {"file": file_field, "lat": "29.5", "lon": "30.8"}
 
     api_resp = client.post(
-    "/api/analyze",
-    data={"file": (io.BytesIO(img_bytes), "cotton.png"), "lat": "29.5", "lon": "30.8"},
-    content_type="multipart/form-data",
+        "/api/analyze",
+        data={"file": (io.BytesIO(img_bytes), "cotton.png"), "lat": "29.5", "lon": "30.8"},
+        content_type="multipart/form-data",
     )
     assert api_resp.status_code == 200
     api_yield = json.loads(api_resp.data)["results"]["yield_estimate"]
 
     web_resp = client.post(
-    "/analyze",
-    data={"file": (io.BytesIO(img_bytes), "cotton.png"), "lat": "29.5", "lon": "30.8"},
-    content_type="multipart/form-data",
+        "/analyze",
+        data={"file": (io.BytesIO(img_bytes), "cotton.png"), "lat": "29.5", "lon": "30.8"},
+        content_type="multipart/form-data",
     )
     assert web_resp.status_code == 200
     text = html.unescape(web_resp.get_data(as_text=True))
@@ -827,5 +853,4 @@ def test_api_batch_status_stream_valid(client):
     assert "data:" in data_chunks[0]
     payload = json.loads(data_chunks[0].replace("data:", "").strip())
     assert payload["job"]["id"] == "test-sse-job"
-
 
