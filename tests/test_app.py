@@ -574,8 +574,19 @@ def test_analyze_web_and_api_yield_multiplier_consistent(client, valid_image, mo
             },
             "recommendations": ["Continue general crop monitoring."],
             "yield_estimate": {
+                "field_acres": field_acres,
+                "yield_min_acre": 10.5,
+                "yield_max_acre": 14.2,
+                "yield_min_total": round(10.5 * field_acres, 2),
+                "yield_max_total": round(14.2 * field_acres, 2),
+                "yield_min_kg_ha": 2594,
+                "yield_max_kg_ha": 3508,
+                "confidence_label": "High",
+                "confidence_color": "#16a34a",
+                "confidence_pct": 82,
                 "weather_multiplier": 0.72,
                 "combined_multiplier": 0.58,
+                "harvest_advice": "Continue monitoring crop maturity.",
             },
             "weather": weather,
         }
@@ -853,4 +864,3 @@ def test_api_batch_status_stream_valid(client):
     assert "data:" in data_chunks[0]
     payload = json.loads(data_chunks[0].replace("data:", "").strip())
     assert payload["job"]["id"] == "test-sse-job"
-
