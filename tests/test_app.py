@@ -15,6 +15,45 @@ import app
 import security_utils
 
 
+# Mocking deep learning models for active path checks
+class MockResNetModel:
+    def __call__(self, x):
+        # target index 5 is healthy
+        import torch
+        logits = torch.zeros(1, 8)
+        logits[0, 5] = 10.0
+        return logits
+
+    def eval(self):
+        return self
+
+
+class MockYOLOBox:
+    def __init__(self, class_id, confidence, xyxy):
+        import torch
+        self.cls = [torch.tensor(class_id)]
+        self.conf = [torch.tensor(confidence)]
+        self.xyxy = [torch.tensor(xyxy)]
+
+
+class MockYOLOResult:
+    def __init__(self, boxes):
+        self.boxes = boxes
+
+
+class MockYOLOModel:
+    def __call__(self, pil_image):
+        import torch
+        # dummy boxes for growth stage detection
+        box1 = MockYOLOBox(
+            class_id=3, confidence=0.95, xyxy=[120.0, 80.0, 210.0, 155.0]
+        )
+        box2 = MockYOLOBox(
+            class_id=4, confidence=0.75, xyxy=[300.0, 120.0, 390.0, 210.0]
+        )
+        return [MockYOLOResult([box1, box2])]
+
+
 # Basic unit tests for helper utils
 def test_preprocess_image_for_resnet():
     dummy_img = np.zeros((100, 100, 3), dtype=np.uint8)
@@ -723,12 +762,14 @@ def test_api_batch_status_stream_not_found(client):
 
 def test_api_batch_status_stream_valid(client):
     from models import BatchJob, db
+    import uuid
+    job_id = f"test-sse-job-{uuid.uuid4()}"
     with app.app.app_context():
-        job = BatchJob(id="test-sse-job", total_images=1, status="pending")
+        job = BatchJob(id=job_id, total_images=1, status="pending")
         db.session.add(job)
         db.session.commit()
     
-    resp = client.get("/api/batch_status/test-sse-job/stream")
+    resp = client.get(f"/api/batch_status/{job_id}/stream")
     assert resp.status_code == 200
     assert resp.mimetype == "text/event-stream"
     
@@ -741,7 +782,7 @@ def test_api_batch_status_stream_valid(client):
     assert len(data_chunks) > 0
     assert "data:" in data_chunks[0]
     payload = json.loads(data_chunks[0].replace("data:", "").strip())
-    assert payload["job"]["id"] == "test-sse-job"
+    assert payload["job"]["id"] == job_id
 
 
 def test_get_compare_route_valid(client):
@@ -751,9 +792,11 @@ def test_get_compare_route_valid(client):
     
     with app.app.app_context():
         # Create dummy analysis records
+        res_id1 = f"res-1-{uuid.uuid4()}"
+        res_id2 = f"res-2-{uuid.uuid4()}"
         a1 = AnalysisHistory(
             id=str(uuid.uuid4()),
-            result_id="res-1",
+            result_id=res_id1,
             user_id="1",
             disease_result={"predicted_class": "Healthy"},
             health_score=95.0,
@@ -761,7 +804,7 @@ def test_get_compare_route_valid(client):
         )
         a2 = AnalysisHistory(
             id=str(uuid.uuid4()),
-            result_id="res-2",
+            result_id=res_id2,
             user_id="1",
             disease_result={"predicted_class": "Aphids"},
             health_score=45.0,

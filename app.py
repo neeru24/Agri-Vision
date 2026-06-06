@@ -1745,7 +1745,7 @@ def compare():
 
     rows = []
     for key, label in canonical_fields:
-        row = {"label": label, "key": key, "values": []}
+        row = {"label": label, "key": key, "field_values": []}
         for analysis in analyses:
             if key == 'disease':
                 val = (analysis.disease_result or {}).get('predicted_class')
@@ -1759,7 +1759,7 @@ def compare():
                 val = analysis.created_at.strftime('%Y-%m-%d %H:%M') if analysis.created_at else None
             else:
                 val = None
-            row["values"].append(val)
+            row["field_values"].append(val)
         rows.append(row)
 
     return render_template('compare.html',

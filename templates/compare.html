@@ -34,9 +34,10 @@
                             <td style="padding: 0.9rem 1.25rem; font-weight: 600; color: var(--text-primary); border-right: 1px solid rgba(255,255,255,0.06);">
                                 {{ row.label }}
                             </td>
-                            {% for val in row.values %}
-                            <td style="padding: 0.9rem 1.25rem; text-align: center;">
-                                {% if val is none or val == '' %}
+                            {% for val in row.field_values %}
+                            <td style="padding: 0.9rem 1.25rem; text-align: center; color: var(--text-secondary);">
+                                {% if row.key == 'confidence' %}
+
                                 <span style="color: var(--text-muted); font-style: italic;">N/A</span>
                                 {% elif row.key == 'health_score' %}
                                 <span class="health-badge" style="

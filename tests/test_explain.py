@@ -10,6 +10,21 @@ import cv2
 
 import app
 
+
+class MiniResNet(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.layer4 = torch.nn.Sequential(
+            torch.nn.Conv2d(3, 4, kernel_size=3, padding=1)
+        )
+        self.fc = torch.nn.Linear(4, len(app.disease_classes))
+
+    def forward(self, x):
+        x = self.layer4(x)
+        x = torch.mean(x, dim=(2, 3))
+        return self.fc(x)
+
+
 def test_generate_pure_heatmap():
     dummy_img = np.zeros((100, 100, 3), dtype=np.uint8)
     dummy_heatmap = np.ones((100, 100), dtype=np.float32)
