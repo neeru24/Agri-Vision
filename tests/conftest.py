@@ -63,7 +63,7 @@ def app():
     })
     
     with flask_app.app_context():
-        from models import db, User
+        from models import db, User, AnalysisHistory, BatchJob
         db.create_all()
         # Create a default test user with ID "1"
         if not User.query.get("1"):
