@@ -23,6 +23,7 @@ from services.weather_service import get_weather
 import redis
 import base64
 import uuid
+import time
 import cv2
 import numpy as np
 import torch
@@ -1696,8 +1697,11 @@ def download_analysis_report():
 
 
 @app.route("/history")
+@login_required
 def history():
-    return render_template("history.html")
+    from models import AnalysisHistory
+    history_records = AnalysisHistory.query.filter_by(user_id=current_user.id).order_by(AnalysisHistory.created_at.desc()).all()
+    return render_template("history.html", history_records=history_records)
 
 
 
@@ -1803,10 +1807,9 @@ def analyze():
             predicted_class = results.get("disease", {}).get("predicted_class", "") or ""
             disease_info = disease_info_map.get(predicted_class, {})
 
+            unique_filename = f"{int(time.time())}_{safe_filename}"
             from models import AnalysisHistory, db
             if current_user.is_authenticated:
-                import time
-                unique_filename = f"{int(time.time())}_{safe_filename}"
                 file_path = os.path.join("static", "uploads", unique_filename)
                 cv2.imwrite(file_path, image)
 

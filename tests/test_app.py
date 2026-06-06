@@ -830,3 +830,48 @@ def test_api_batch_status_stream_valid(client):
     assert payload["job"]["id"] == "test-sse-job"
 
 
+def test_get_compare_route_valid(client):
+    from models import AnalysisHistory, db
+    import uuid
+    from datetime import datetime
+    
+    with app.app.app_context():
+        # Create dummy analysis records
+        a1 = AnalysisHistory(
+            id=str(uuid.uuid4()),
+            result_id="res-1",
+            user_id="1",
+            disease_result={"predicted_class": "Healthy"},
+            health_score=95.0,
+            created_at=datetime.utcnow()
+        )
+        a2 = AnalysisHistory(
+            id=str(uuid.uuid4()),
+            result_id="res-2",
+            user_id="1",
+            disease_result={"predicted_class": "Aphids"},
+            health_score=45.0,
+            created_at=datetime.utcnow()
+        )
+        db.session.add(a1)
+        db.session.add(a2)
+        db.session.commit()
+        
+        ids = f"{a1.id},{a2.id}"
+        resp = client.get(f"/compare?ids={ids}")
+        assert resp.status_code == 200
+        assert b"Multi-Analysis Comparison" in resp.data
+        assert b"Healthy" in resp.data
+        assert b"Aphids" in resp.data
+
+def test_get_compare_route_no_ids(client):
+    resp = client.get("/compare")
+    assert resp.status_code == 302
+    assert "/history" in resp.headers["Location"]
+
+def test_get_compare_route_invalid_ids(client):
+    resp = client.get("/compare?ids=nonexistent1,nonexistent2")
+    assert resp.status_code == 302
+    assert "/history" in resp.headers["Location"]
+
+

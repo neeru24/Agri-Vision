@@ -51,7 +51,7 @@ def rotate_refresh_token(
 
     # Concurrency safety: single transaction + conditional revoke of the current token.
     # We treat "revoked_at is null" as the one-time-use gate.
-    with db.session.begin():
+    try:
         token_row = (
             RefreshToken.query.filter(
                 RefreshToken.family_id == family_id,
@@ -94,22 +94,21 @@ def rotate_refresh_token(
                 token_row.is_compromised = True
             db.session.add(family)
             db.session.add(token_row)
+            db.session.commit()
 
             # Best-effort: mark device sessions linked to this family as inactive/compromised.
-            # Avoid hard dependency during initial rollout.
             try:
-                from models import DeviceSession  # type: ignore
+                from models import DeviceSession
 
-                (  # noqa: E701
-                    db.session.query(DeviceSession)
-                    .filter(DeviceSession.refresh_token_family_id == family_id, DeviceSession.user_id == user_id)
-                    .update({"is_active": False, "revoked_at": now}, synchronize_session=False)
-                )
+                db.session.query(DeviceSession).filter(
+                    DeviceSession.refresh_token_family_id == family_id,
+                    DeviceSession.user_id == user_id
+                ).update({"is_active": False, "revoked_at": now}, synchronize_session=False)
+                db.session.commit()
             except Exception:
-                pass
+                db.session.rollback()
 
             raise RefreshRotationError("reuse", "Refresh token reuse detected")
-
 
         # If the token is active, rotate:
         new_family_id = family_id  # same family chain
@@ -131,24 +130,7 @@ def rotate_refresh_token(
         )
         new_refresh_hash = sha256_hex(new_refresh_raw)
 
-        new_exp = now + timedelta(seconds=int(claims.get("exp") - claims.get("iat", now.timestamp())))
-        # The above is best-effort; token JWT exp already contains actual TTL.
-        # We'll also set expires_at from the decoded claims exp.
-        decoded_exp = claims.get("exp")
-        if decoded_exp is not None:
-            try:
-                new_exp = datetime.utcfromtimestamp(int(decoded_exp) - (int(claims.get("iat", now.timestamp())) - int(claims.get("iat", now.timestamp()))))
-            except Exception:
-                pass
-
-        # Prefer JWT exp to avoid mistakes
-        refresh_cfg_exp_seconds = None
-        try:
-            refresh_cfg_exp_seconds = int(new_refresh_raw and 0)
-        except Exception:
-            refresh_cfg_exp_seconds = None
-
-        # We'll compute expires_at from JWT by decoding again cheaply.
+        # Compute expires_at from JWT.
         new_claims, _ = decode_token(new_refresh_raw)
         expires_at = now + timedelta(seconds=int(new_claims.get("exp") - new_claims.get("iat"))) if new_claims else (now + timedelta(days=14))
 
@@ -177,6 +159,13 @@ def rotate_refresh_token(
             family_id=new_family_id,
             jti=access_jti,
         )
+        
+        db.session.commit()
+        return access_token, new_refresh_raw
 
-    return access_token, new_refresh_raw
+    except Exception as e:
+        db.session.rollback()
+        if isinstance(e, RefreshRotationError):
+            raise
+        raise RefreshRotationError("internal_error", str(e))
 
