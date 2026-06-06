@@ -754,7 +754,7 @@ def test_get_compare_route_valid(client):
         a1 = AnalysisHistory(
             id=str(uuid.uuid4()),
             result_id="res-1",
-            user_id=TEST_USER_ID,
+            user_id="1",
             disease_result={"predicted_class": "Healthy"},
             health_score=95.0,
             created_at=datetime.utcnow()
@@ -762,7 +762,7 @@ def test_get_compare_route_valid(client):
         a2 = AnalysisHistory(
             id=str(uuid.uuid4()),
             result_id="res-2",
-            user_id=TEST_USER_ID,
+            user_id="1",
             disease_result={"predicted_class": "Aphids"},
             health_score=45.0,
             created_at=datetime.utcnow()

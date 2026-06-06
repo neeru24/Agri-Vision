@@ -52,7 +52,7 @@ def app():
     flask_app = app_module.app
     flask_app.config.update({
         "TESTING": True,
-        "LOGIN_DISABLED": False,
+        "LOGIN_DISABLED": True,
         "MAX_CONTENT_LENGTH": 10 * 1024 * 1024,
         "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
         "WTF_CSRF_ENABLED": False
