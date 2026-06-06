@@ -1,14 +1,18 @@
+from typing import Optional
 from models import AnalysisHistory, BatchJob, AnalysisResult, DiseaseOccurrence, db
 
 class AnalysisRepository:
     # AnalysisHistory
     @staticmethod
-    def get_history_by_id(history_id: str) -> AnalysisHistory:
-        return AnalysisHistory.query.get(history_id)
+    def get_history_by_id(history_id: str) -> Optional[AnalysisHistory]:
+        return db.session.get(AnalysisHistory, history_id)
 
     @staticmethod
-    def get_user_history(user_id: str) -> list[AnalysisHistory]:
-        return AnalysisHistory.query.filter_by(user_id=user_id).order_by(AnalysisHistory.created_at.desc()).all()
+    def get_user_history(user_id: str, limit: Optional[int] = 50) -> list[AnalysisHistory]:
+        query = AnalysisHistory.query.filter_by(user_id=user_id).order_by(AnalysisHistory.created_at.desc())
+        if limit is not None:
+            query = query.limit(limit)
+        return query.all()
 
     @staticmethod
     def create_history(history: AnalysisHistory) -> AnalysisHistory:
@@ -23,8 +27,8 @@ class AnalysisRepository:
 
     # BatchJob
     @staticmethod
-    def get_batch_job(job_id: str) -> BatchJob:
-        return BatchJob.query.get(job_id)
+    def get_batch_job(job_id: str) -> Optional[BatchJob]:
+        return db.session.get(BatchJob, job_id)
 
     @staticmethod
     def create_batch_job(job: BatchJob) -> BatchJob:
@@ -39,8 +43,8 @@ class AnalysisRepository:
 
     # AnalysisResult
     @staticmethod
-    def get_analysis_result(result_id: str) -> AnalysisResult:
-        return AnalysisResult.query.get(result_id)
+    def get_analysis_result(result_id: str) -> Optional[AnalysisResult]:
+        return db.session.get(AnalysisResult, result_id)
 
     @staticmethod
     def get_batch_results(job_id: str) -> list[AnalysisResult]:

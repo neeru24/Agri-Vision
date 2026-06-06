@@ -2392,6 +2392,7 @@ def api_batch_upload():
             celery_enabled = False
             # Process synchronously if Celery is not available
             job.status = 'processing'
+            AnalysisRepository.save_batch_job(job)
             
             # Process images one by one
             import cv2
@@ -2437,6 +2438,7 @@ def api_batch_upload():
             
             job.status = 'completed'
             job.completed_at = datetime.utcnow()
+            AnalysisRepository.save_batch_job(job)
         
         return jsonify({
             'status': 'success',
@@ -2468,6 +2470,7 @@ def api_batch_status(job_id):
     if job.completed_images + job.failed_images >= job.total_images:
         job.status = 'completed'
         job.completed_at = datetime.utcnow()
+        AnalysisRepository.save_batch_job(job)
     
     return jsonify(job.to_dict())
 
@@ -2530,6 +2533,7 @@ def api_batch_status_stream(job_id):
                         current_job.status = "completed"
                         if not current_job.completed_at:
                             current_job.completed_at = datetime.utcnow()
+                        AnalysisRepository.save_batch_job(current_job)
                     
                     job_dict = current_job.to_dict()
                     # Include total, completed, failed counts in job_dict
@@ -2751,7 +2755,7 @@ def login():
                 return render_template('login.html')
             
             login_user(user, remember=remember)
-            user.last_login = datetime.utcnow()
+            UserRepository.update_last_login(user)
             
             next_page = request.args.get('next')
             return redirect(next_page) if next_page else redirect(url_for('index'))
@@ -2821,7 +2825,7 @@ def auth_google_callback():
         )
         UserRepository.create(user)
 
-    user.last_login = datetime.utcnow()
+    UserRepository.update_last_login(user)
 
     login_user(user)
     logger.info("User %s signed in via Google OAuth.", user.email)
@@ -3132,7 +3136,7 @@ def api_analyses():
     if current_user.is_researcher():
         analyses = AnalysisHistory.query.order_by(AnalysisHistory.created_at.desc()).limit(50).all()
     else:
-        analyses = AnalysisRepository.get_user_history(current_user.id)
+        analyses = AnalysisRepository.get_user_history(current_user.id, limit=50)
     
     analyses_list = []
     for a in analyses:
