@@ -7,6 +7,8 @@ import numpy as np
 os.environ.setdefault("SECRET_KEY", "test-secret")
 
 import app as app_module
+import models
+from models import db, User
 
 # Standard mocks for ML model behavior (without shadowing packages)
 class MockResNetModel:
@@ -63,7 +65,6 @@ def app():
     })
     
     with flask_app.app_context():
-        from models import db, User, AnalysisHistory, BatchJob
         db.create_all()
         # Create a default test user with ID "1"
         if not User.query.get("1"):
