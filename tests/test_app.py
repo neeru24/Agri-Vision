@@ -15,11 +15,13 @@ import app
 import security_utils
 
 
+TEST_USER_ID = "test-user-uuid-1234"
+
 # --- Add Missing Fixtures Here ---
 @pytest.fixture(scope="session")
 def app_with_db():
     app.app.config["TESTING"] = True
-    app.app.config["LOGIN_DISABLED"] = True
+    app.app.config["LOGIN_DISABLED"] = False
     app.app.config["UPLOAD_FOLDER"] = "./static/uploads"
     app.app.config["SECRET_KEY"] = "test-secret"
     app.app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
@@ -28,7 +30,7 @@ def app_with_db():
     with app.app.app_context():
         db.create_all()
         test_user = User(
-            id="1", 
+            id=TEST_USER_ID, 
             email="test@example.com", 
             full_name="Test User",
             password_hash="pbkdf2:sha256:260000$test$test"
@@ -42,7 +44,7 @@ def app_with_db():
 def client(app_with_db):
     with app_with_db.test_client() as client:
         with client.session_transaction() as sess:
-            sess['_user_id'] = '1'
+            sess['_user_id'] = TEST_USER_ID
             sess['_fresh'] = True
         yield client
 
@@ -840,7 +842,7 @@ def test_get_compare_route_valid(client):
         a1 = AnalysisHistory(
             id=str(uuid.uuid4()),
             result_id="res-1",
-            user_id="1",
+            user_id=TEST_USER_ID,
             disease_result={"predicted_class": "Healthy"},
             health_score=95.0,
             created_at=datetime.utcnow()
@@ -848,7 +850,7 @@ def test_get_compare_route_valid(client):
         a2 = AnalysisHistory(
             id=str(uuid.uuid4()),
             result_id="res-2",
-            user_id="1",
+            user_id=TEST_USER_ID,
             disease_result={"predicted_class": "Aphids"},
             health_score=45.0,
             created_at=datetime.utcnow()
