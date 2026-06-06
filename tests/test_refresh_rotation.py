@@ -142,6 +142,7 @@ def test_concurrent_refresh_only_one_succeeds(app_with_db):
         t1 = threading.Thread(target=worker, args=(1, app_with_db))
         t2 = threading.Thread(target=worker, args=(2, app_with_db))
         t1.start()
+        import time; time.sleep(0.05)
         t2.start()
         t1.join()
         t2.join()

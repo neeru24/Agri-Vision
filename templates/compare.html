@@ -1,0 +1,75 @@
+{% extends "index.html" %}
+
+{% block content %}
+<section class="main-content comparison-page">
+    <div class="comparison-shell">
+        <div class="comparison-hero glass-card fade-in">
+            <div>
+                <span class="comparison-kicker" data-i18n="comp_hero_badge">CROP COMPARISON</span>
+                <h1>Multi-Analysis Comparison</h1>
+                <p>Compare multiple crop analyses side-by-side with normalized fields.</p>
+            </div>
+        </div>
+
+        {% if analyses %}
+        <div class="comparison-results fade-in">
+            <div class="table-responsive" style="overflow-x:auto; margin-top: 1.5rem;">
+                <table class="comparison-table" style="width:100%; border-collapse: collapse; background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur)); border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.2);">
+                    <thead>
+                        <tr style="background: rgba(46, 139, 87, 0.2);">
+                            <th style="padding: 1rem 1.25rem; text-align: left; font-weight: 700; color: var(--emerald-green); border-bottom: 2px solid rgba(46, 139, 87, 0.3); min-width: 160px;">Attribute</th>
+                            {% for analysis in analyses %}
+                            <th style="padding: 1rem 1.25rem; text-align: center; font-weight: 600; border-bottom: 2px solid rgba(46, 139, 87, 0.3); min-width: 140px;">
+                                <div style="font-size: 0.85rem; color: var(--emerald-green);">Analysis</div>
+                                <small style="color: var(--text-muted); font-size: 0.75rem;">
+                                    {{ analysis.created_at.strftime('%b %d, %Y') if analysis.created_at else '' }}
+                                </small>
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+                            <td style="padding: 0.9rem 1.25rem; font-weight: 600; color: var(--text-primary); border-right: 1px solid rgba(255,255,255,0.06);">
+                                {{ row.label }}
+                            </td>
+                            {% for val in row.values %}
+                            <td style="padding: 0.9rem 1.25rem; text-align: center;">
+                                {% if val is none or val == '' %}
+                                <span style="color: var(--text-muted); font-style: italic;">N/A</span>
+                                {% elif row.key == 'health_score' %}
+                                <span class="health-badge" style="
+                                    display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px; font-weight: 600; font-size: 0.85rem;
+                                    {% if val >= 70 %} background: rgba(34, 197, 94, 0.15); color: #22c55e;
+                                    {% elif val >= 40 %} background: rgba(234, 179, 8, 0.15); color: #eab308;
+                                    {% else %} background: rgba(239, 68, 68, 0.15); color: #ef4444; {% endif %}
+                                ">{{ val }}%</span>
+                                {% elif row.key == 'confidence' %}
+                                <span>{{ "%.1f"|format(val * 100) }}%</span>
+                                {% else %}
+                                <span>{{ val }}</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="comparison-error-card glass-card fade-in" style="text-align:center; padding: 3rem;">
+            <div class="comparison-error-icon">
+                <i class="fas fa-search"></i>
+            </div>
+            <h2>No Analyses Selected</h2>
+            <p>Select analyses from your history to compare them side-by-side.</p>
+            <a href="/history" class="btn btn-primary" style="display:inline-block; margin-top: 1rem;">
+                <i class="fas fa-clock-rotate-left"></i> View History
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

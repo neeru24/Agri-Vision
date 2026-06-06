@@ -31,6 +31,9 @@
                     </label>
                 </div>
                 <button id="analyzeBtn" class="btn-primary">Analyze Patterns</button>
+                <button id="compareSelectedBtn" class="btn btn-primary" style="margin-left: 0.5rem;" disabled onclick="compareSelected()">
+                    <i class="fas fa-chart-simple"></i> Compare Selected
+                </button>
             </div>
 
             <!-- Insights Cards -->
@@ -86,7 +89,10 @@
             {% if history_records %}
                 {% for record in history_records %}
                 <a href="/results/{{ record.result_id }}" style="text-decoration: none; color: inherit; display: block;">
-                <div class="history-card">
+                <div class="history-card" data-analysis-id="{{ record.id }}">
+                    <label class="history-card-checkbox" onclick="event.stopPropagation()">
+                        <input type="checkbox" class="compare-checkbox" value="{{ record.id }}" onchange="updateCompareButton()">
+                    </label>
                     <img src="{{ url_for('static', filename='uploads/' ~ record.image_path) if record.image_path else '' }}" alt="Crop Image">
                     <h2>{{ record.disease_result.predicted_class if record.disease_result else 'Unknown Disease' }}</h2>
                     <p><b>Confidence:</b> {{ (record.confidence * 100)|round(1) if record.confidence else 0 }}%</p>
@@ -381,7 +387,7 @@
 }
 
 .history-card{
-
+    position: relative;
     background:rgba(255,255,255,0.08);
 
     backdrop-filter:blur(10px);
@@ -393,6 +399,33 @@
     padding:20px;
 
     transition:0.3s;
+}
+
+.history-card.selected{
+    border-color: var(--emerald-green);
+    box-shadow: 0 0 0 2px rgba(46, 139, 87, 0.3);
+}
+
+.history-card-checkbox{
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    width: 24px;
+    height: 24px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.history-card-checkbox input[type="checkbox"]{
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--emerald-green);
 }
 
 .history-card:hover{
@@ -414,5 +447,29 @@
 }
 
 </style>
+
+<script>
+function updateCompareButton() {
+    const checked = document.querySelectorAll('.compare-checkbox:checked');
+    const btn = document.getElementById('compareSelectedBtn');
+    const cards = document.querySelectorAll('.history-card');
+    cards.forEach(c => c.classList.remove('selected'));
+    checked.forEach(cb => {
+        const card = cb.closest('.history-card');
+        if (card) card.classList.add('selected');
+    });
+    btn.disabled = checked.length < 2;
+    btn.textContent = checked.length < 2
+        ? 'Compare Selected (select 2+)'
+        : 'Compare Selected (' + checked.length + ')';
+}
+
+function compareSelected() {
+    const checked = document.querySelectorAll('.compare-checkbox:checked');
+    if (checked.length < 2) return;
+    const ids = Array.from(checked).map(cb => cb.value).join(',');
+    window.location.href = '/compare?ids=' + encodeURIComponent(ids);
+}
+</script>
 
 {% endblock %}
