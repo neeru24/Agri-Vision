@@ -1,25 +1,6 @@
 import pytest
 import io
 import os
-import sys
-from unittest.mock import MagicMock
-
-# Mock missing dependencies only if not available
-try:
-    import cv2
-except ImportError:
-    sys.modules["cv2"] = MagicMock()
-
-try:
-    import torchvision
-except ImportError:
-    sys.modules["torchvision"] = MagicMock()
-
-try:
-    import ultralytics
-except ImportError:
-    sys.modules["ultralytics"] = MagicMock()
-
 from PIL import Image
 import numpy as np
 
@@ -27,7 +8,7 @@ os.environ.setdefault("SECRET_KEY", "test-secret")
 
 import app as app_module
 
-# Mocking deep learning models for active path checks
+# Standard mocks for ML model behavior (without shadowing packages)
 class MockResNetModel:
     def __call__(self, x):
         # target index 5 is healthy
@@ -59,11 +40,15 @@ class MockYOLOModel:
 
 @pytest.fixture(scope="session", autouse=True)
 def mock_models():
+    """Session-wide fixture to mock the heavy ML models."""
     app_module.resnet_model = MockResNetModel()
     app_module.yolo_model = MockYOLOModel()
     yield
-    app_module.resnet_model = app_module.model_manager.resnet_model
-    app_module.yolo_model = app_module.model_manager.yolo_model
+    # Restore original attributes if needed (though session is ending)
+    if hasattr(app_module.model_manager, 'resnet_model'):
+        app_module.resnet_model = app_module.model_manager.resnet_model
+    if hasattr(app_module.model_manager, 'yolo_model'):
+        app_module.yolo_model = app_module.model_manager.yolo_model
 
 @pytest.fixture(scope="session")
 def app():
