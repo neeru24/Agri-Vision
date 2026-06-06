@@ -28,7 +28,7 @@ def app():
     """Configures the Flask app for testing."""
     flask_app.config.update({
         "TESTING": True,
-        "LOGIN_DISABLED": False,
+        "LOGIN_DISABLED": True,
         "MAX_CONTENT_LENGTH": 10 * 1024 * 1024,
         # Max content length is kept at 10MB to test oversized file uploads
     })

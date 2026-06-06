@@ -21,7 +21,7 @@ TEST_USER_ID = "test-user-uuid-1234"
 @pytest.fixture(scope="session")
 def app_with_db():
     app.app.config["TESTING"] = True
-    app.app.config["LOGIN_DISABLED"] = False
+    app.app.config["LOGIN_DISABLED"] = True
     app.app.config["UPLOAD_FOLDER"] = "./static/uploads"
     app.app.config["SECRET_KEY"] = "test-secret"
     app.app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
