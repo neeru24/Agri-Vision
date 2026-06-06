@@ -1,6 +1,25 @@
 import pytest
 import io
 import os
+import sys
+from unittest.mock import MagicMock
+
+# Mock missing dependencies only if not available
+try:
+    import cv2
+except ImportError:
+    sys.modules["cv2"] = MagicMock()
+
+try:
+    import torchvision
+except ImportError:
+    sys.modules["torchvision"] = MagicMock()
+
+try:
+    import ultralytics
+except ImportError:
+    sys.modules["ultralytics"] = MagicMock()
+
 from PIL import Image
 import numpy as np
 
