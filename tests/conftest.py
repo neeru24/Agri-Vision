@@ -8,32 +8,80 @@ os.environ.setdefault("SECRET_KEY", "test-secret")
 
 import app as app_module
 
-app_module.resnet_model = app_module.model_manager.resnet_model
-app_module.yolo_model = app_module.model_manager.yolo_model
+# Mocking deep learning models for active path checks
+class MockResNetModel:
+    def __call__(self, x):
+        # target index 5 is healthy
+        import torch
+        logits = torch.zeros(1, 8)
+        logits[0, 5] = 10.0
+        return logits
+    def eval(self):
+        return self
 
+class MockYOLOBox:
+    def __init__(self, class_id, confidence, xyxy):
+        import torch
+        self.cls = [torch.tensor(class_id)]
+        self.conf = [torch.tensor(confidence)]
+        self.xyxy = [torch.tensor(xyxy)]
 
-def _load_models_for_legacy_tests():
-    resnet_model, yolo_model = app_module.model_manager.load_models()
-    app_module.resnet_model = resnet_model
-    app_module.yolo_model = yolo_model
-    return resnet_model, yolo_model
+class MockYOLOResult:
+    def __init__(self, boxes):
+        self.boxes = boxes
 
+class MockYOLOModel:
+    def __call__(self, pil_image):
+        import torch
+        # dummy boxes for growth stage detection
+        box1 = MockYOLOBox(class_id=3, confidence=0.95, xyxy=[120.0, 80.0, 210.0, 155.0])
+        box2 = MockYOLOBox(class_id=4, confidence=0.75, xyxy=[300.0, 120.0, 390.0, 210.0])
+        return [MockYOLOResult([box1, box2])]
 
-app_module.load_models = _load_models_for_legacy_tests
+@pytest.fixture(scope="session", autouse=True)
+def mock_models():
+    app_module.resnet_model = MockResNetModel()
+    app_module.yolo_model = MockYOLOModel()
+    yield
+    app_module.resnet_model = app_module.model_manager.resnet_model
+    app_module.yolo_model = app_module.model_manager.yolo_model
 
-flask_app = app_module.app
-
-@pytest.fixture
+@pytest.fixture(scope="session")
 def app():
     """Configures the Flask app for testing."""
+    flask_app = app_module.app
     flask_app.config.update({
         "TESTING": True,
-        "LOGIN_DISABLED": True,
+        "LOGIN_DISABLED": False,
         "MAX_CONTENT_LENGTH": 10 * 1024 * 1024,
-        # Max content length is kept at 10MB to test oversized file uploads
+        "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+        "WTF_CSRF_ENABLED": False
     })
+    
+    with flask_app.app_context():
+        from models import db, User
+        db.create_all()
+        # Create a default test user with ID "1"
+        if not User.query.get("1"):
+            user = User(
+                id="1", 
+                email="test@example.com", 
+                full_name="Test User",
+                password_hash="pbkdf2:sha256:260000$test$test"
+            )
+            db.session.add(user)
+            db.session.commit()
+    
     return flask_app
 
+@pytest.fixture
+def client(app):
+    """Provides a Flask test client with an active session for user '1'."""
+    with app.test_client() as client:
+        with client.session_transaction() as sess:
+            sess['_user_id'] = "1"
+            sess['_fresh'] = True
+        yield client
 
 @pytest.fixture(autouse=True)
 def allow_synthetic_test_images(monkeypatch):
@@ -44,11 +92,6 @@ def allow_synthetic_test_images(monkeypatch):
         lambda _image: ({"is_blocking": False, "warnings": []}, False),
         raising=False,
     )
-
-@pytest.fixture
-def client(app):
-    """Provides a Flask test client."""
-    return app.test_client()
 
 @pytest.fixture
 def valid_image():
@@ -68,8 +111,7 @@ def invalid_file():
 
 @pytest.fixture
 def oversized_file():
-    """Generates a dummy file larger than 10MB to trigger MaxContentLength (MAX_CONTENT_LENGTH = 10 * 1024 * 1024)."""
-    # 11MB of dummy data
+    """Generates a dummy file larger than 10MB."""
     file_bytes = io.BytesIO(b"0" * (11 * 1024 * 1024))
     file_bytes.seek(0)
     return file_bytes
