@@ -1707,6 +1707,68 @@ def history():
     return render_template("history.html", history_records=history_records)
 
 
+@app.route("/compare")
+@login_required
+def compare():
+    ids_param = request.args.get('ids', '')
+    if not ids_param:
+        flash("No analyses selected for comparison", "warning")
+        return redirect(url_for('history'))
+
+    analysis_ids = [aid.strip() for aid in ids_param.split(',') if aid.strip()]
+    
+    from models import AnalysisHistory
+    user_id = getattr(current_user, "id", None)
+    if user_id:
+        analyses = AnalysisHistory.query.filter(
+            AnalysisHistory.id.in_(analysis_ids),
+            AnalysisHistory.user_id == user_id
+        ).all()
+    else:
+        # Support for tests with LOGIN_DISABLED
+        analyses = AnalysisHistory.query.filter(
+            AnalysisHistory.id.in_(analysis_ids)
+        ).all()
+
+    if not analyses:
+        flash("Could not find analyses for comparison", "danger")
+        return redirect(url_for('history'))
+
+    # Build rows for the comparison table
+    canonical_fields = [
+        ('disease', 'Disease Type'),
+        ('growth_stage', 'Growth Stage'),
+        ('confidence', 'Confidence'),
+        ('health_score', 'Health Score'),
+        ('created_at', 'Analysis Date'),
+    ]
+
+    rows = []
+    for key, label in canonical_fields:
+        row = {"label": label, "key": key, "values": []}
+        for analysis in analyses:
+            if key == 'disease':
+                val = (analysis.disease_result or {}).get('predicted_class')
+            elif key == 'growth_stage':
+                val = (analysis.growth_result or {}).get('main_class')
+            elif key == 'confidence':
+                val = analysis.confidence
+            elif key == 'health_score':
+                val = analysis.health_score
+            elif key == 'created_at':
+                val = analysis.created_at.strftime('%Y-%m-%d %H:%M') if analysis.created_at else None
+            else:
+                val = None
+            row["values"].append(val)
+        rows.append(row)
+
+    return render_template('compare.html',
+        analyses=analyses,
+        rows=rows,
+        enumerate=enumerate,
+    )
+
+
 
 
 @app.route("/results/<result_id>")
