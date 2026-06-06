@@ -28,7 +28,7 @@ def app_with_db():
     with app.app.app_context():
         db.create_all()
         test_user = User(
-            id=1, 
+            id="1", 
             email="test@example.com", 
             full_name="Test User",
             password_hash="pbkdf2:sha256:260000$test$test"
