@@ -22,27 +22,6 @@ import app
 
 
 # ---------------------------------------------------------------------------
-# Fixtures
-# ---------------------------------------------------------------------------
-
-@pytest.fixture
-def client():
-    """Flask test client."""
-    app.app.config["TESTING"] = True
-    with app.app.test_client() as c:
-        yield c
-
-
-@pytest.fixture
-def valid_image():
-    """Generates a valid green 100x100 PNG image in-memory."""
-    img_byte_arr = io.BytesIO()
-    Image.new("RGB", (100, 100), color="green").save(img_byte_arr, format="PNG")
-    img_byte_arr.seek(0)
-    return img_byte_arr
-
-
-# ---------------------------------------------------------------------------
 # RECOMMENDATION CATEGORIES — expected keys in every response
 # ---------------------------------------------------------------------------
 

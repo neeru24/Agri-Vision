@@ -10,31 +10,6 @@ import cv2
 
 import app
 
-@pytest.fixture
-def client():
-    app.app.config["TESTING"] = True
-    with app.app.test_client() as client:
-        yield client
-
-@pytest.fixture
-def valid_image():
-    img_byte_arr = io.BytesIO()
-    Image.new("RGB", (100, 100), color="green").save(img_byte_arr, format="PNG")
-    img_byte_arr.seek(0)
-    return img_byte_arr
-
-
-class MiniResNet(torch.nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.layer4 = torch.nn.Sequential(torch.nn.Conv2d(3, 4, kernel_size=3, padding=1))
-        self.fc = torch.nn.Linear(4, len(app.disease_classes))
-
-    def forward(self, x):
-        x = self.layer4(x)
-        x = torch.mean(x, dim=(2, 3))
-        return self.fc(x)
-
 def test_generate_pure_heatmap():
     dummy_img = np.zeros((100, 100, 3), dtype=np.uint8)
     dummy_heatmap = np.ones((100, 100), dtype=np.float32)
