@@ -96,6 +96,8 @@ limiter = Limiter(
     strategy="fixed-window",
 )
 from models import db
+from app.repositories.UserRepository import UserRepository
+from app.repositories.AnalysisRepository import AnalysisRepository
 db.init_app(app)
 
 # --- Login Manager Configuration ---
@@ -108,7 +110,7 @@ login_manager.login_message_category = 'info'
 @login_manager.user_loader
 def load_user(user_id):
     from models import User
-    return User.query.get(user_id)
+    return UserRepository.get_by_id(user_id)
 
 # --- Google OAuth 2.0 Configuration (issue #626) ---
 from authlib.integrations.flask_client import OAuth as _OAuth
@@ -1821,8 +1823,7 @@ def analyze():
                     confidence=results.get("disease", {}).get("confidence"),
                     health_score=results.get("disease", {}).get("health_score")
                 )
-                db.session.add(history_entry)
-                db.session.commit()
+                AnalysisRepository.create_history(history_entry)
 
             return render_template(
                 "results.html",
@@ -2373,8 +2374,7 @@ def api_batch_upload():
             total_images=len(valid_files),
             status='pending'
         )
-        db.session.add(job)
-        db.session.commit()
+        AnalysisRepository.create_batch_job(job)
         
         # Prepare image data for Celery
         images_data = []
@@ -2392,7 +2392,6 @@ def api_batch_upload():
             celery_enabled = False
             # Process synchronously if Celery is not available
             job.status = 'processing'
-            db.session.commit()
             
             # Process images one by one
             import cv2
@@ -2423,7 +2422,7 @@ def api_batch_upload():
                             growth_confidence=results.get('growth', {}).get('confidence'),
                             results_json=results
                         )
-                        db.session.add(result)
+                        AnalysisRepository.create_analysis_result(result)
                 except Exception as e:
                     logger.error(f"Error processing image {filename}: {e}")
                     from models import AnalysisResult
@@ -2434,11 +2433,10 @@ def api_batch_upload():
                         status='error',
                         error_message=str(e)
                     )
-                    db.session.add(result)
+                    AnalysisRepository.create_analysis_result(result)
             
             job.status = 'completed'
             job.completed_at = datetime.utcnow()
-            db.session.commit()
         
         return jsonify({
             'status': 'success',
@@ -2458,7 +2456,7 @@ def api_batch_status(job_id):
     """Get status of a batch job"""
     from models import BatchJob, db
     
-    job = BatchJob.query.get(job_id)
+    job = AnalysisRepository.get_batch_job(job_id)
     if not job:
         return jsonify({'error': 'Batch job not found'}), 404
     
@@ -2470,7 +2468,6 @@ def api_batch_status(job_id):
     if job.completed_images + job.failed_images >= job.total_images:
         job.status = 'completed'
         job.completed_at = datetime.utcnow()
-        db.session.commit()
     
     return jsonify(job.to_dict())
 
@@ -2480,7 +2477,7 @@ def api_batch_results(job_id):
     """Get all results for a batch job"""
     from models import BatchJob, db
     
-    job = BatchJob.query.get(job_id)
+    job = AnalysisRepository.get_batch_job(job_id)
     if not job:
         return jsonify({'error': 'Batch job not found'}), 404
     
@@ -2505,7 +2502,7 @@ def api_batch_status_stream(job_id):
     import time
     
     # Check if job exists
-    job = BatchJob.query.get(job_id)
+    job = AnalysisRepository.get_batch_job(job_id)
     if not job:
         return jsonify({"error": "Batch job not found"}), 404
         
@@ -2517,8 +2514,8 @@ def api_batch_status_stream(job_id):
             # We must run database queries within app_context
             with app.app_context():
                 # Refresh job from DB
-                db.session.expire_all()
-                current_job = BatchJob.query.get(job_id)
+                AnalysisRepository.expire_all()
+                current_job = AnalysisRepository.get_batch_job(job_id)
                 if not current_job:
                     payload = {"error": "Job deleted"}
                     is_finished = True
@@ -2533,7 +2530,6 @@ def api_batch_status_stream(job_id):
                         current_job.status = "completed"
                         if not current_job.completed_at:
                             current_job.completed_at = datetime.utcnow()
-                        db.session.commit()
                     
                     job_dict = current_job.to_dict()
                     # Include total, completed, failed counts in job_dict
@@ -2593,7 +2589,7 @@ def export_batch_csv(job_id):
     import csv
     from io import StringIO
     
-    job = BatchJob.query.get(job_id)
+    job = AnalysisRepository.get_batch_job(job_id)
     if not job:
         return jsonify({'error': 'Batch job not found'}), 404
 
@@ -2646,7 +2642,7 @@ def export_batch_pdf(job_id):
     except ImportError:
         return jsonify({"error": "reportlab not installed. Install with: pip install reportlab"}), 500
 
-    job = BatchJob.query.get(job_id)
+    job = AnalysisRepository.get_batch_job(job_id)
     if not job:
         return jsonify({'error': 'Batch job not found'}), 404
 
@@ -2747,7 +2743,7 @@ def login():
         remember = request.form.get('remember')
         
         from models import User
-        user = User.query.filter_by(email=email).first()
+        user = UserRepository.get_by_email(email)
         
         if user and user.check_password(password):
             if not user.is_active:
@@ -2756,7 +2752,6 @@ def login():
             
             login_user(user, remember=remember)
             user.last_login = datetime.utcnow()
-            db.session.commit()
             
             next_page = request.args.get('next')
             return redirect(next_page) if next_page else redirect(url_for('index'))
@@ -2805,7 +2800,7 @@ def auth_google_callback():
 
     # 2. Fall back to matching by email (links existing password accounts)
     if user is None and email:
-        user = User.query.filter_by(email=email).first()
+        user = UserRepository.get_by_email(email)
         if user:
             user.oauth_provider = "google"
             user.oauth_id = google_id
@@ -2824,10 +2819,9 @@ def auth_google_callback():
             role="farmer",
             is_active=True,
         )
-        db.session.add(user)
+        UserRepository.create(user)
 
     user.last_login = datetime.utcnow()
-    db.session.commit()
 
     login_user(user)
     logger.info("User %s signed in via Google OAuth.", user.email)
@@ -2862,7 +2856,7 @@ def register():
             return render_template('register.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
         
         from models import User
-        if User.query.filter_by(email=email).first():
+        if UserRepository.get_by_email(email):
             flash('Email already registered', 'danger')
             return render_template('register.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
         
@@ -2874,8 +2868,7 @@ def register():
         )
         user.set_password(password)
         
-        db.session.add(user)
-        db.session.commit()
+        UserRepository.create(user)
         
         flash('Account created successfully! Please login.', 'success')
         return redirect(url_for('login'))
@@ -3139,7 +3132,7 @@ def api_analyses():
     if current_user.is_researcher():
         analyses = AnalysisHistory.query.order_by(AnalysisHistory.created_at.desc()).limit(50).all()
     else:
-        analyses = AnalysisHistory.query.filter_by(user_id=current_user.id).order_by(AnalysisHistory.created_at.desc()).limit(50).all()
+        analyses = AnalysisRepository.get_user_history(current_user.id)
     
     analyses_list = []
     for a in analyses:
@@ -3167,7 +3160,7 @@ def generate_report(analysis_id):
         logger.error(f"Failed to import ReportGenerator: {e}")
         return jsonify({'error': f'Report service not available: {str(e)}'}), 500
     
-    analysis = AnalysisHistory.query.get(analysis_id)
+    analysis = AnalysisRepository.get_history_by_id(analysis_id)
     if not analysis:
         return jsonify({'error': 'Analysis not found'}), 404
     
@@ -3550,8 +3543,7 @@ def api_report_disease_occurrence():
             notes=notes
         )
         
-        db.session.add(occurrence)
-        db.session.commit()
+        AnalysisRepository.create_disease_occurrence(occurrence)
         
         return jsonify({
             'message': 'Disease occurrence reported successfully',
@@ -3559,7 +3551,7 @@ def api_report_disease_occurrence():
         })
     except Exception as e:
         logger.error(f"Error reporting disease occurrence: {e}")
-        db.session.rollback()
+        AnalysisRepository.rollback()
         return jsonify({'error': str(e)}), 500
 
 
