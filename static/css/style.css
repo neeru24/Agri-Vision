@@ -753,18 +753,43 @@ nav a[href="/model-admin"]:hover {
 
 /* Language section */
 .language-switcher {
-    padding: 6px 10px;
+    min-width: 74px;
+    min-height: 38px;
+    padding: 0.45rem 2rem 0.45rem 0.8rem;
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: transparent;
-    color: var(--text-color);
+    border: 1px solid var(--glass-border);
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(223, 245, 225, 0.68)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%232E8B57' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 0.72rem center / 0.85rem;
+    color: var(--text-main);
+    box-shadow: var(--soft-shadow);
     cursor: pointer;
-    display: flex;
-    align-items: center;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    outline: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    transition: var(--transition-smooth);
+}
+
+.language-switcher:hover,
+.language-switcher:focus-visible {
+    border-color: var(--emerald-green);
+    box-shadow: var(--hover-shadow);
 }
 
 .language-switcher option {
-    color: black;
+    background: var(--card-bg);
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .language-switcher {
+    background:
+        linear-gradient(135deg, rgba(22, 27, 33, 0.88), rgba(27, 67, 50, 0.38)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235cd18b' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 0.72rem center / 0.85rem;
 }
 
 @keyframes healthPulse {
