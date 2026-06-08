@@ -959,7 +959,7 @@ main
         margin: 0 auto;
         padding: 0 1.5rem;
         display: grid;
-        grid-template-columns: 1.15fr 0.85fr;
+        grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
         gap: 4rem;
         align-items: center;
         width: 100%;
@@ -967,6 +967,7 @@ main
 
     .hero-content {
         animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        min-width: 0;
     }
 
     /* Badge */
@@ -1097,6 +1098,7 @@ main
         position: relative;
         animation: slideInRight 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         width: 100%;
+        min-width: 0;
     }
 
     .scanner-container {
@@ -1108,8 +1110,9 @@ main
         border: 1px solid var(--card-border);
         box-shadow: var(--card-shadow);
         transition: var(--transition-smooth);
-        height: 350px;
-        width: 500px;
+        min-height: 320px;
+        height: auto;
+        width: min(100%, 500px);
         max-width: 100%;
         box-sizing: border-box;
     }
@@ -1148,6 +1151,7 @@ main
         width: 100%;
         border-radius: 18px;
         aspect-ratio: 4/3;
+        min-height: 260px;
         border: 1px solid rgba(46, 139, 87, 0.15);
         box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
         transition: background 0.4s ease, border-color 0.4s ease;
@@ -1412,7 +1416,7 @@ main
         .hero-container {
             grid-template-columns: 1fr;
             text-align: center;
-            gap: 3rem;
+            gap: 2.25rem;
         }
 
         .hero-content {
@@ -1425,8 +1429,11 @@ main
 
         .hero-image {
             order: 2;
-            display: flex;
-            justify-content: center;
+            display: grid;
+            justify-items: center;
+            gap: 0.85rem;
+            max-width: 500px;
+            margin: 0 auto;
         }
 
         .hero-content p {
@@ -1436,9 +1443,16 @@ main
         }
 
         .scanner-container {
-            width: 100%;
-            max-width: 450px;
-            height: auto;
+            width: min(100%, 460px);
+            min-height: 300px;
+        }
+
+        .floating-telemetry-1,
+        .floating-telemetry-2 {
+            position: static;
+            width: min(100%, 360px);
+            margin-top: 0;
+            transform: none;
         }
 
         .typewriter {
@@ -1505,13 +1519,16 @@ main
         }
 
         .scanner-container {
-            width: 100%;
-            height: 260px;
+            width: min(100%, 420px);
+            min-height: 0;
+        }
+
+        .canvas-3d-wrapper {
+            min-height: 220px;
         }
 
         .floating-telemetry-1,
         .floating-telemetry-2 {
-            position: static;
             margin-top: 0.75rem;
             width: 100%;
         }
