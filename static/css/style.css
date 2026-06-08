@@ -34,6 +34,8 @@
 
     /* Accent & Status */
     --ai-blue: #4A90E2;
+    --focus-ring-color: #2563eb;
+    --focus-ring-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
     --success-bg: rgba(46, 139, 87, 0.1);
     --success-text: #1b4332;
     --success-border: rgba(46, 139, 87, 0.2);
@@ -142,6 +144,8 @@ nav a[href="/model-admin"]:hover {
     --fresh-green: #6ddc90;
     --soft-mint: rgba(60, 179, 113, 0.15);
     --ai-blue: #64B5F6;
+    --focus-ring-color: #93c5fd;
+    --focus-ring-shadow: 0 0 0 4px rgba(147, 197, 253, 0.28);
 
     --glass-bg: rgba(22, 27, 33, 0.65);
     --glass-border: rgba(255, 255, 255, 0.08);
@@ -206,6 +210,19 @@ body {
     font-size: 15px;
     cursor: default;
     transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+:where(a,
+button,
+input,
+select,
+textarea,
+[role="button"],
+[role="link"],
+[tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 3px solid var(--focus-ring-color) !important;
+    outline-offset: 3px;
+    box-shadow: var(--focus-ring-shadow) !important;
 }
 
 /* UTILITY CLASSES */
