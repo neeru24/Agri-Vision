@@ -513,11 +513,33 @@ a:focus-visible {
     padding: 0.5rem 1.2rem;
     font-size: 0.85rem;
     border-radius: 50px;
+    border: 1px solid transparent;
+    background: linear-gradient(135deg, var(--emerald-green) 0%, var(--fresh-green) 100%);
     box-shadow: 0 4px 12px rgba(46, 139, 87, 0.2);
     color: white !important;
     opacity: 1 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
+.nav-menu .language-switcher,
+.nav-menu .theme-toggle-btn {
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(46, 139, 87, 0.18);
+    border-radius: 999px;
+    color: var(--deep-forest);
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+}
+
+[data-theme="dark"] .nav-menu .language-switcher,
+[data-theme="dark"] .nav-menu .theme-toggle-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #e0e0e0;
+}
+
+.nav-menu .theme-toggle-btn {
+    padding: 0.65rem;
+}
 
 /* 
    CTA BUTTON HOVER ACCESSIBILITY IMPROVEMENT
