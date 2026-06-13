@@ -11,10 +11,13 @@ import cv2
 import app
 
 @pytest.fixture
-def client():
-    app.app.config["TESTING"] = True
-    with app.app.test_client() as client:
-        yield client
+def client(app_with_db):
+    """/api/explain is login-protected; reuse session DB and logged-in user id ``1``."""
+    with app_with_db.test_client() as tc:
+        with tc.session_transaction() as sess:
+            sess["_user_id"] = "1"
+            sess["_fresh"] = True
+        yield tc
 
 @pytest.fixture
 def valid_image():

@@ -3,7 +3,7 @@ import io
 import json
 import html
 from flask_login import login_user
-from models import User, db
+from models import db
 
 import cv2
 import numpy as np
@@ -14,29 +14,6 @@ from PIL import Image
 import app
 import security_utils
 
-
-# --- Add Missing Fixtures Here ---
-@pytest.fixture(scope="session")
-def app_with_db():
-    app.app.config["TESTING"] = True
-    app.app.config["LOGIN_DISABLED"] = True
-    app.app.config["UPLOAD_FOLDER"] = "./static/uploads"
-    app.app.config["SECRET_KEY"] = "test-secret"
-    app.app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
-    app.app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
-    
-    with app.app.app_context():
-        db.create_all()
-        test_user = User(
-            id=1, 
-            email="test@example.com", 
-            full_name="Test User",
-            password_hash="pbkdf2:sha256:260000$test$test"
-        )
-        db.session.add(test_user)
-        db.session.commit()
-        yield app.app
-        db.drop_all()
 
 @pytest.fixture
 def client(app_with_db):
@@ -614,6 +591,30 @@ def test_post_api_analyze_recommendations_unique_with_weather(client, valid_imag
 def test_analyze_web_and_api_yield_multiplier_consistent(client, valid_image, monkeypatch):
     stress = {"temperature": 40, "humidity": 90, "precipitation": 0}
     monkeypatch.setattr(app, "resolve_weather_for_analysis", lambda **kwargs: stress)
+    # Stabilize yield multipliers: real models + Grad-CAM cache can differ slightly between calls.
+    monkeypatch.setattr(
+        app,
+        "infer_disease",
+        lambda _img: {
+            "predicted_class": "Healthy",
+            "predicted_class_idx": app.disease_classes.index("Healthy"),
+            "confidence": 0.99,
+            "all_confidences": {c: (1.0 / len(app.disease_classes)) for c in app.disease_classes},
+            "health_score": 85.0,
+            "raw": [],
+        },
+    )
+    monkeypatch.setattr(
+        app,
+        "infer_growth_stage",
+        lambda _img: {
+            "main_class": "Split Cotton Boll",
+            "main_class_idx": 0,
+            "confidence": 0.95,
+            "boxes": [],
+            "raw": [],
+        },
+    )
     img_bytes = valid_image.getvalue()
     file_field = (io.BytesIO(img_bytes), "cotton.png")
     form = {"file": file_field, "lat": "29.5", "lon": "30.8"}

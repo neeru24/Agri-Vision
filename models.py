@@ -105,6 +105,14 @@ class User(UserMixin, db.Model):
     last_failed_ip = db.Column(db.String(64), nullable=True)
     last_successful_ip = db.Column(db.String(64), nullable=True)
 
+    # Account lockout (see ensure_account_lockout_schema in app.py for legacy DB backfill)
+    failed_login_attempts = db.Column(db.Integer, default=0, nullable=False)
+    last_failed_login_at = db.Column(db.DateTime, nullable=True)
+    account_locked_until = db.Column(db.DateTime, nullable=True, index=True)
+    last_successful_login_at = db.Column(db.DateTime, nullable=True)
+    last_failed_ip = db.Column(db.String(64), nullable=True)
+    last_successful_ip = db.Column(db.String(64), nullable=True)
+
     # OAuth fields (populated when user signs in via Google)
     oauth_provider = db.Column(db.String(32), nullable=True)   # e.g. "google"
     oauth_id = db.Column(db.String(255), nullable=True, index=True)  # Provider's unique user ID

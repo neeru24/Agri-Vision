@@ -103,6 +103,34 @@ limiter = Limiter(
     strategy="fixed-window",
 )
 from models import db
+
+# Load from the file next to this module so a stray ``sqlite_db`` on PYTHONPATH
+# cannot shadow the project helper (CI / odd environments).
+def _load_configure_sqlite_immediate_transactions():
+    import importlib.util
+    from pathlib import Path
+
+    path = Path(__file__).resolve().parent / "sqlite_db.py"
+    if not path.is_file():
+        raise ImportError(
+            f"sqlite_db.py is missing next to app.py ({path}). "
+            "Restore it from upstream; it defines configure_sqlite_immediate_transactions."
+        )
+    spec = importlib.util.spec_from_file_location("_agri_vision_sqlite_db", path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Cannot load sqlite helpers from {path}")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    fn = getattr(mod, "configure_sqlite_immediate_transactions", None)
+    if fn is None:
+        raise ImportError(
+            f"{path} does not define configure_sqlite_immediate_transactions"
+        )
+    return fn
+
+
+configure_sqlite_immediate_transactions = _load_configure_sqlite_immediate_transactions()
+
 db.init_app(app)
 
 
@@ -153,6 +181,11 @@ def _ensure_account_lockout_schema_once() -> None:
         _account_lockout_schema_checked = True
     except Exception as exc:
         logger.warning("Account lockout schema check skipped: %s", exc)
+
+# Serialize concurrent writers on SQLite (e.g. refresh-token rotation).
+with app.app_context():
+    configure_sqlite_immediate_transactions(db.engine)
+
 
 # --- Login Manager Configuration ---
 login_manager = LoginManager()
@@ -597,14 +630,30 @@ RESNET_TRANSFORM = transforms.Compose([
 ])
 
 
-def preprocess_image_for_resnet(image: np.ndarray) -> torch.Tensor:
+def preprocess_image_for_resnet(
+    image: np.ndarray,
+    target_size: Tuple[int, int] = (224, 224),
+) -> torch.Tensor:
     """Preprocess an RGB numpy image for ResNet50 inference.
 
-    Uses the module-level RESNET_TRANSFORM pipeline which includes
-    ImageNet normalization (mean=[0.485, 0.456, 0.406],
-    std=[0.229, 0.224, 0.225]).
+    Uses ImageNet normalization (mean=[0.485, 0.456, 0.406],
+    std=[0.229, 0.224, 0.225]). Default ``target_size`` matches the shared
+    ``RESNET_TRANSFORM`` pipeline; other sizes build an equivalent pipeline.
     """
-    return RESNET_TRANSFORM(image).unsqueeze(0)
+    if target_size == (224, 224):
+        return RESNET_TRANSFORM(image).unsqueeze(0)
+    transform = transforms.Compose(
+        [
+            transforms.ToPILImage(),
+            transforms.Resize(target_size),
+            transforms.ToTensor(),
+            transforms.Normalize(
+                mean=[0.485, 0.456, 0.406],
+                std=[0.229, 0.224, 0.225],
+            ),
+        ]
+    )
+    return transform(image).unsqueeze(0)
 
 
 def infer_disease(image):

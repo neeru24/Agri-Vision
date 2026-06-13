@@ -1,3 +1,4 @@
+"""Account lockout checks and auth audit hooks used by ``app.login``."""
 from __future__ import annotations
 
 from dataclasses import dataclass

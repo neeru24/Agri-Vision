@@ -14,7 +14,6 @@ except ImportError:  # pragma: no cover - handled by UploadValidationError
     magic = None
 
 
-
 class UploadValidationError(ValueError):
     """Raised when an uploaded file fails validation."""
 
@@ -80,28 +79,21 @@ def _read_stream_limited(stream, max_bytes: int, chunk_size: int = 1024 * 1024) 
 def detect_mime_type(sample: bytes) -> str:
     """Detect MIME type.
 
-    In this repo we support two validation backends:
-      1) python-magic (if installed) for detailed detection
-      2) file-signature fallback for CI/dev environments without python-magic
+    Uses python-magic (libmagic) when available; on failure or if missing,
+    falls back to signature-based detection from ``services.file_validator``
+    (e.g. CI/dev without libmagic, or Windows).
     """
     if magic is not None:
-        return magic.from_buffer(sample, mime=True)
+        try:
+            return magic.from_buffer(sample, mime=True)
+        except Exception:
+            pass
+    from services.file_validator import detect_image_type
 
-    # Fallback: use lightweight signature-based validation from services/file_validator.py
-    try:
-        from services.file_validator import detect_image_type
-
-        detected = detect_image_type(sample)
-        if detected is None:
-            raise UploadValidationError("Invalid image content.", status_code=400)
-        _fmt, mime = detected
-        return mime
-
-    except Exception as exc:
-        # If fallback import/detection fails, fail safe with the original 500 message.
-        raise UploadValidationError("python-magic is required for content validation.", status_code=500) from exc
-
-
+    detected = detect_image_type(sample)
+    if detected is None:
+        raise UploadValidationError("Invalid image content.", status_code=400)
+    return detected[1]
 
 
 def validate_image_upload(
@@ -146,6 +138,8 @@ def validate_image_upload(
         if not ok:
             raise UploadValidationError(reason, status_code=400)
         detected = detect_mime_type(file_bytes[:2048])
+        if detected not in allowed_mime_types:
+            raise UploadValidationError("Invalid image content.", status_code=400)
         return sanitized_name, file_bytes, detected
     except UploadValidationError:
         raise

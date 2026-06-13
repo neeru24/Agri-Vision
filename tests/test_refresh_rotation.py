@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 import threading
+import uuid
 
 import pytest
 
@@ -11,25 +12,10 @@ from auth.token_crypto import sha256_hex
 from models import db, User, RefreshTokenFamily, RefreshToken
 
 
-@pytest.fixture()
-def app_with_db(monkeypatch):
-    # Uses the existing pytest configuration; relies on app.py db.init_app already.
-    # Import app to create application context.
-    import app as flask_app
-
-    flask_app.app.config.update(
-        {"TESTING": True, "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:"}
-    )
-
-    with flask_app.app.app_context():
-        db.create_all()
-        yield flask_app.app
-        db.session.remove()
-        db.drop_all()
-
-
 def _seed_user_and_family(db_session):
-    user = User(email="u@example.com", full_name="User", role="farmer")
+    # Unique email: session-scoped DB is shared across both tests in this module.
+    email = f"u-{uuid.uuid4().hex[:12]}@example.com"
+    user = User(email=email, full_name="User", role="farmer")
     user.set_password("password123")
     db_session.add(user)
     db_session.commit()
@@ -94,6 +80,17 @@ def test_successful_rotation_rejects_old_token(app_with_db):
 
 
 def test_concurrent_refresh_only_one_succeeds(app_with_db):
+    """Race two threads on the same refresh token; exactly one rotation wins.
+    - Loser should raise ``RefreshRotationError`` with code ``reuse`` (token already
+      revoked under ``with_for_update`` in ``rotate_refresh_token``).
+    - Each worker uses ``with app.app_context()`` because Flask's application
+      context is thread-local; workers do not inherit the main thread's context.
+    - File-backed SQLite via session ``app_with_db`` in ``conftest.py`` gives one
+      shared database for all connections; raw ``sqlite:///:memory:`` can attach
+      each connection to a different empty DB and makes this harness flaky.
+    Stress locally: ``pytest tests/test_refresh_rotation.py::test_concurrent_refresh_only_one_succeeds --count=50``
+    (requires ``pytest-repeat``) or a shell loop.
+    """
     from auth.jwt_utils import new_jti
 
     with app_with_db.app_context():
@@ -149,4 +146,6 @@ def test_concurrent_refresh_only_one_succeeds(app_with_db):
 
         assert len(results["ok"]) == 1
         assert len(results["err"]) == 1
+        loser_code = results["err"][0][0]
+        assert loser_code == "reuse", f"expected loser reuse, got {loser_code!r}"
 

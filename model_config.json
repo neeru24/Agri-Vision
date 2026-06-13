@@ -32,10 +32,10 @@
         "is_active": true,
         "ab_test_ratio": 0.0,
         "performance_metrics": {
-          "total_requests": 0,
-          "successful_predictions": 0,
-          "avg_confidence": 0.0,
-          "avg_inference_time": 0.0,
+          "total_requests": 6,
+          "successful_predictions": 6,
+          "avg_confidence": 0.9500000000000001,
+          "avg_inference_time": 0.00016689300537109375,
           "error_count": 0
         }
       }

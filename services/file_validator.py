@@ -78,7 +78,9 @@ def validate_upload(
     detected = detect_image_type(file_bytes)
     if detected is None:
         logger.warning("Unrecognised file signature for claimed type '%s'.", claimed_mime)
-        return False, "File content does not match any supported image format."
+        return False, (
+            "Invalid image: file content does not match any supported image format."
+        )
 
     detected_fmt, detected_mime = detected
     if detected_mime != claimed_mime:
