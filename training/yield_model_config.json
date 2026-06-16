@@ -1,0 +1,126 @@
+{
+  "_comment": "Domain ranges for synthetic yield data generation. Sources: ICAR-CICR Cotton Guide 2022, ICAR Tomato Production, CPRI Potato Handbook.",
+
+  "crops": {
+    "cotton": {
+      "base_yield_min_kg_acre": 400,
+      "base_yield_max_kg_acre": 800,
+      "healthy_yield_mean": 620,
+      "unit": "kg/acre (seed cotton)",
+      "source": "ICAR-CICR Bt cotton average 15-25 q/acre",
+      "growth_stages": [
+        "Cotton Bud",
+        "Cotton Blossom",
+        "Early Boll",
+        "Green Cotton Boll",
+        "Matured Cotton Boll",
+        "Split Cotton Boll"
+      ],
+      "stage_base_fractions": {
+        "Cotton Bud":           0.30,
+        "Cotton Blossom":       0.42,
+        "Early Boll":           0.65,
+        "Green Cotton Boll":    0.78,
+        "Matured Cotton Boll":  0.95,
+        "Split Cotton Boll":    1.00
+      },
+      "diseases": {
+        "Healthy":          { "severity": 0.00 },
+        "Aphids":           { "severity": 0.20 },
+        "Army Worm":        { "severity": 0.30 },
+        "Bacterial Blight": { "severity": 0.45 },
+        "Cotton Boll Rot":  { "severity": 0.50 },
+        "Green Cotton Boll":{ "severity": 0.15 },
+        "Powdery Mildew":   { "severity": 0.25 },
+        "Target Spot":      { "severity": 0.35 }
+      }
+    },
+
+    "tomato": {
+      "base_yield_min_kg_acre": 8000,
+      "base_yield_max_kg_acre": 20000,
+      "healthy_yield_mean": 13000,
+      "unit": "kg/acre (fresh fruit)",
+      "source": "ICAR-IIHR Tomato Production Technology",
+      "growth_stages": [
+        "Early Vegetative",
+        "Flowering Initiation"
+      ],
+      "stage_base_fractions": {
+        "Early Vegetative":     0.35,
+        "Flowering Initiation": 0.65
+      },
+      "diseases": {
+        "Healthy":              { "severity": 0.00 },
+        "Early Blight":         { "severity": 0.30 },
+        "Late Blight":          { "severity": 0.55 },
+        "Leaf Miner":           { "severity": 0.20 },
+        "Leaf Mold":            { "severity": 0.25 },
+        "Mosaic Virus":         { "severity": 0.50 },
+        "Septoria":             { "severity": 0.35 },
+        "Spider Mites":         { "severity": 0.25 },
+        "Yellow Leaf Curl Virus": { "severity": 0.60 }
+      }
+    },
+
+    "potato": {
+      "base_yield_min_kg_acre": 4000,
+      "base_yield_max_kg_acre": 10000,
+      "healthy_yield_mean": 7000,
+      "unit": "kg/acre (tubers)",
+      "source": "CPRI Shimla Potato Production Handbook",
+      "growth_stages": [
+        "Vegetative",
+        "Tuber Initiation",
+        "Tuber Bulking",
+        "Maturation"
+      ],
+      "stage_base_fractions": {
+        "Vegetative":       0.25,
+        "Tuber Initiation": 0.55,
+        "Tuber Bulking":    0.85,
+        "Maturation":       1.00
+      },
+      "diseases": {
+        "Healthy":      { "severity": 0.00 },
+        "Early Blight": { "severity": 0.30 },
+        "Late Blight":  { "severity": 0.60 }
+      }
+    }
+  },
+
+  "weather_stress": {
+    "temperature": {
+      "optimal_min": 22,
+      "optimal_max": 32,
+      "heat_threshold": 38,
+      "cold_threshold": 15,
+      "heat_stress_per_degree": 0.015,
+      "cold_stress_per_degree": 0.012
+    },
+    "humidity": {
+      "optimal_min": 40,
+      "optimal_max": 70,
+      "high_threshold": 85,
+      "high_stress_factor": 0.88
+    },
+    "precipitation": {
+      "heavy_rain_threshold_mm": 5,
+      "heavy_rain_factor": 0.90
+    }
+  },
+
+  "training": {
+    "samples_per_crop": 3000,
+    "noise_std": 0.05,
+    "cv_folds": 5,
+    "xgb_params": {
+      "n_estimators": 300,
+      "max_depth": 5,
+      "learning_rate": 0.05,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8,
+      "random_state": 42
+    }
+  }
+}

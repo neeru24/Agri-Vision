@@ -915,7 +915,7 @@ def generate_gradcam_explanation(
     return grad_cam_image_b64, heatmap_only_b64
 
 
-def analyze_image(image: np.ndarray,*,weather:Optional[dict]=None,field_acres: float=1.0) -> Dict[str, Any]:
+def analyze_image(image: np.ndarray,*,weather:Optional[dict]=None,field_acres: float=1.0, crop_type: str="cotton") -> Dict[str, Any]:
     import time
     start_time = time.time()
     field_acres=normalize_field_acres(field_acres)
@@ -1005,7 +1005,7 @@ def analyze_image(image: np.ndarray,*,weather:Optional[dict]=None,field_acres: f
 
         recs = generate_recommendations(disease, growth,weather=weather)
         severity = calculate_disease_severity(disease["health_score"])
-        yield_est = estimate_yield(disease, growth, weather=weather, field_acres=field_acres)
+        yield_est = estimate_yield(disease, growth, weather=weather, field_acres=field_acres, crop_type=crop_type)
         adv_recs = generate_advanced_recommendations(disease, growth)
         treatment_recs = generate_treatment_recommendations(disease)
         insights = generate_farmer_insights(disease, growth)
@@ -1881,10 +1881,11 @@ def analyze():
             lon = request.form.get("lon", type=float)
             city = request.form.get("city", type=str)
             field_acres=normalize_field_acres(request.form.get("field_acres"))
+            crop_type = request.form.get("crop_type", "cotton").lower().strip()
 
             weather=resolve_weather_for_analysis(lat=lat,lon=lon,city=city)
 
-            results = analyze_image(compressed_rgb,weather=weather,field_acres=field_acres)
+            results = analyze_image(compressed_rgb,weather=weather,field_acres=field_acres,crop_type=crop_type)
 
             if results.get("error"):
                 raise ValueError(results["error"])
@@ -2225,7 +2226,7 @@ def demo():
         
         # Use estimate_yield from service
         from services.yield_service import estimate_yield
-        yield_est = estimate_yield(demo_disease, demo_growth, weather=None, field_acres=1.0)
+        yield_est = estimate_yield(demo_disease, demo_growth, weather=None, field_acres=1.0, crop_type="cotton")
         
         # Generate advanced recommendations
         adv_recs = generate_advanced_recommendations(demo_disease, demo_growth)
@@ -2384,7 +2385,8 @@ def api_analyze():
         field_acres,field_acres_error=parse_api_field_acres(request.form.get("field_acres"))
         if field_acres_error:
             return jsonify({"error":field_acres_error}),400
-            
+        raw_crop = request.form.get("crop_type", "cotton").lower().strip()
+        crop_type = raw_crop if raw_crop in ("cotton", "tomato", "potato") else "cotton"  
         lat=request.form.get("lat",type=float)
         lon=request.form.get("lon",type=float)
         city=request.form.get("city",type=str)

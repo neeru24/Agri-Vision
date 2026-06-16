@@ -225,3 +225,5 @@ Thumbs.db
 *.pth
 *.h5
 *.onnx
+ai_models/*.pkl
+ai_models/*.png
