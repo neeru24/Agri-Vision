@@ -19,6 +19,7 @@ from werkzeug.utils import secure_filename
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from io import BytesIO
+from services.market_price_service import build_market_price_report
 from services.weather_service import get_weather
 from sqlalchemy import inspect, text
 
@@ -2367,6 +2368,17 @@ def api_weather():
 
     weather["weather_recommendations"] = generate_weather_recommendations(weather)
     return jsonify({"status": "success", "weather": weather})
+
+
+@app.route("/api/market/prices")
+def market_prices():
+    """Return crop market price analytics and procurement guidance."""
+    return jsonify(
+        build_market_price_report(
+            crop=request.args.get("crop"),
+            state=request.args.get("state"),
+        )
+    )
 
 
 @app.route("/api/analyze", methods=["POST"])
