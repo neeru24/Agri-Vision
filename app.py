@@ -262,7 +262,7 @@ csp = {
     ],
     'connect-src': ["'self'"]
 }
-Talisman(app, content_security_policy=csp, force_https=False)
+Talisman(app, content_security_policy=csp, force_https=False, session_cookie_secure=False)
 
 
 app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -2458,49 +2458,51 @@ def api_analyze():
 
 
 @app.route("/api/analyze_stream", methods=["POST"])
+@limiter.limit(lambda: app.config.get("API_UPLOAD_RATE_LIMIT", "10 per minute"))
 def api_analyze_stream():
     """Streaming endpoint for real-time analysis progress"""
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file uploaded'}), 400
-    file = request.files['file']
-    image_bytes = file.read()
-    if file.filename == '':
-        return jsonify({'error': 'No file selected'}), 400
-    
-    def generate():
-        try:
-            yield f"data: {json.dumps({'step': 'upload_received', 'progress': 25, 'message': 'Uploading image...'})}\n\n"
+    temp_path = None
+    try:
+        enforce_request_size(get_upload_max_bytes())
 
-            image = cv2.imdecode(
-                np.frombuffer(image_bytes, np.uint8),
-                cv2.IMREAD_COLOR
-            )
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file uploaded'}), 400
 
-            if image is None:
-                yield f"data: {json.dumps({'step': 'error', 'progress': 0, 'message': 'Invalid image file'})}\n\n"
-                return
+        file = request.files['file']
+        
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
 
-            yield f"data: {json.dumps({'step': 'preprocessing', 'progress': 50, 'message': 'Analyzing crop health...'})}\n\n"
+        _safe_filename, image, image_rgb, temp_path = read_validated_upload_image(file)
 
-            image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            results = analyze_image(image_rgb)
+        def generate():
+            try:
+                import json
+                yield f"data: {json.dumps({'step': 'upload_received', 'progress': 25, 'message': 'Uploading image...'})}\n\n"
+                yield f"data: {json.dumps({'step': 'preprocessing', 'progress': 50, 'message': 'Analyzing crop health...'})}\n\n"
+                
+                results = analyze_image(image_rgb)
+                
+                yield f"data: {json.dumps({'step': 'recommendations', 'progress': 75, 'message': 'Generating prediction...'})}\n\n"
+                yield f"data: {json.dumps({'step': 'complete', 'progress': 100, 'message': 'Analysis complete', 'data': results})}\n\n"
+            except Exception as e:
+                import json
+                logger.error(f"Streaming analysis error: {e}")
+                yield f"data: {json.dumps({'step': 'error', 'progress': 0, 'message': str(e)})}\n\n"
 
-            yield f"data: {json.dumps({'step': 'recommendations', 'progress': 75, 'message': 'Generating prediction...'})}\n\n"
+        return Response(
+            stream_with_context(generate()),
+            mimetype='text/event-stream',
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
+        )
 
-            yield f"data: {json.dumps({'step': 'complete', 'progress': 100, 'message': 'Analysis complete', 'data': results})}\n\n"
-
-        except Exception as e:
-            logger.error(f"Streaming analysis error: {e}")
-            yield f"data: {json.dumps({'step': 'error', 'progress': 0, 'message': str(e)})}\n\n"
-
-    return Response(
-        stream_with_context(generate()),
-        mimetype='text/event-stream',
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no"
-        }
-    )
+    except UploadValidationError as exc:
+        return jsonify({"error": str(exc)}), exc.status_code
+    except Exception as e:
+        logger.error(f"Streaming analysis setup error: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cleanup_temp_upload(temp_path)
 
 
 # --- Batch Processing Endpoints ---
