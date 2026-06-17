@@ -262,7 +262,12 @@ csp = {
     ],
     'connect-src': ["'self'"]
 }
-Talisman(app, content_security_policy=csp, force_https=False)
+Talisman(
+    app,
+    content_security_policy=csp,
+    force_https=False,
+    session_cookie_secure=is_production_env(os.environ)
+)
 
 
 app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -2911,6 +2916,10 @@ def login():
         
         from models import User
         user = User.query.filter_by(email=email).first()
+        
+        print(f"DEBUG LOGIN - Email: {email}, User found: {user is not None}")
+        if user:
+            print(f"DEBUG LOGIN - Password match: {user.check_password(password)}")
 
         if user:
             lockout_state = lockout_service.check_lockout(user)
@@ -2952,7 +2961,9 @@ def login():
                     user_agent=user_agent,
                 )
                 db.session.commit()
-            flash('Invalid email or password', 'danger')
+                flash('Invalid password', 'danger')
+            else:
+                flash(f"No account found for email: '{email}'", 'danger')
     
     return render_template('login.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
 
@@ -3034,7 +3045,7 @@ def register():
     
     if request.method == 'POST':
         full_name = request.form.get('full_name')
-        email = request.form.get('email')
+        email = (request.form.get('email') or '').strip().lower()
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
         role = request.form.get('role', 'farmer')
@@ -3068,8 +3079,8 @@ def register():
         db.session.add(user)
         db.session.commit()
         
-        flash('Account created successfully! Please login.', 'success')
-        return redirect(url_for('login'))
+        flash('Account created successfully. Please log in.', 'success')
+        return redirect(url_for('login', next=request.args.get('next')))
     
     return render_template('register.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
 
