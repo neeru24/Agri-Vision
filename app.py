@@ -20,6 +20,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from io import BytesIO
 from services.weather_service import get_weather
+from services.irrigation_service import build_irrigation_advice
 from sqlalchemy import inspect, text
 
 import redis
@@ -2367,6 +2368,19 @@ def api_weather():
 
     weather["weather_recommendations"] = generate_weather_recommendations(weather)
     return jsonify({"status": "success", "weather": weather})
+
+
+@app.route("/api/irrigation/advice")
+def irrigation_advice():
+    """Return soil-moisture based irrigation guidance for farmers."""
+    return jsonify(
+        build_irrigation_advice(
+            soil_moisture=request.args.get("soil_moisture"),
+            rainfall_mm=request.args.get("rainfall_mm", 0),
+            temperature_c=request.args.get("temperature_c"),
+            crop_stage=request.args.get("crop_stage", "vegetative"),
+        )
+    )
 
 
 @app.route("/api/analyze", methods=["POST"])
