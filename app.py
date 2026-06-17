@@ -20,6 +20,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from io import BytesIO
 from services.weather_service import get_weather
+from services.education_service import list_education_resources
 from sqlalchemy import inspect, text
 
 import redis
@@ -1194,6 +1195,18 @@ def datetimeformat_filter(value):
 @app.route("/tutorials")
 def tutorials():
     return render_template("tutorials.html")
+
+
+@app.route("/api/education/resources")
+def education_resources():
+    """Return curated farmer education resources with optional filters."""
+    return jsonify(
+        list_education_resources(
+            crop=request.args.get("crop"),
+            topic=request.args.get("topic"),
+            language=request.args.get("language"),
+        )
+    )
 
 
 @app.route("/support")
