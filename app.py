@@ -19,6 +19,7 @@ from werkzeug.utils import secure_filename
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from io import BytesIO
+from services.crop_rotation_service import build_rotation_plan
 from services.weather_service import get_weather
 from sqlalchemy import inspect, text
 
@@ -2367,6 +2368,18 @@ def api_weather():
 
     weather["weather_recommendations"] = generate_weather_recommendations(weather)
     return jsonify({"status": "success", "weather": weather})
+
+
+@app.route("/api/crop-rotation/plan")
+def crop_rotation_plan():
+    """Return crop rotation and soil health recommendations."""
+    return jsonify(
+        build_rotation_plan(
+            previous_crop=request.args.get("previous_crop"),
+            soil_type=request.args.get("soil_type"),
+            goal=request.args.get("goal"),
+        )
+    )
 
 
 @app.route("/api/analyze", methods=["POST"])
