@@ -20,6 +20,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from io import BytesIO
 from services.weather_service import get_weather
+from services.pest_detection_service import assess_pest_risk
 from sqlalchemy import inspect, text
 
 import redis
@@ -2367,6 +2368,19 @@ def api_weather():
 
     weather["weather_recommendations"] = generate_weather_recommendations(weather)
     return jsonify({"status": "success", "weather": weather})
+
+
+@app.route("/api/pests/risk")
+def pest_risk():
+    """Return pest early-warning risk and treatment guidance."""
+    return jsonify(
+        assess_pest_risk(
+            pest=request.args.get("pest", "aphids"),
+            humidity=request.args.get("humidity"),
+            temperature_c=request.args.get("temperature_c"),
+            visible_damage=request.args.get("visible_damage"),
+        )
+    )
 
 
 @app.route("/api/analyze", methods=["POST"])
