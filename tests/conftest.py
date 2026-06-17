@@ -5,6 +5,9 @@ from PIL import Image
 import numpy as np
 
 os.environ.setdefault("SECRET_KEY", "test-secret")
+# Avoid reusing a local sqlite file whose schema may lag behind models.py
+# (create_all skips existing tables, which breaks inserts after ORM changes).
+os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 
 import app as app_module
 
@@ -22,6 +25,29 @@ def _load_models_for_legacy_tests():
 app_module.load_models = _load_models_for_legacy_tests
 
 flask_app = app_module.app
+
+
+@pytest.fixture(autouse=True)
+def _stub_magic_mime_when_unavailable(monkeypatch):
+    """CI/Linux usually has libmagic; Windows dev boxes often do not. Keep /api/analyze tests runnable."""
+    import security_utils as _su
+
+    if _su.magic is not None:
+        yield
+        return
+
+    def _fallback_mime(sample: bytes) -> str:
+        if len(sample) >= 8 and sample.startswith(b"\x89PNG\r\n\x1a\n"):
+            return "image/png"
+        if len(sample) >= 3 and sample[:3] == b"\xff\xd8\xff":
+            return "image/jpeg"
+        if len(sample) >= 6 and sample[:6] in (b"GIF87a", b"GIF89a"):
+            return "image/gif"
+        raise _su.UploadValidationError("Invalid image content.", status_code=400)
+
+    monkeypatch.setattr(_su, "detect_mime_type", _fallback_mime)
+    yield
+
 
 @pytest.fixture
 def app():
@@ -44,6 +70,25 @@ def allow_synthetic_test_images(monkeypatch):
         lambda _image: ({"is_blocking": False, "warnings": []}, False),
         raising=False,
     )
+
+
+@pytest.fixture(autouse=True)
+def _disable_rate_limiter_for_most_tests(request):
+    """Many tests POST /api/analyze; Flask-Limiter keys by IP → shared 127.0.0.1 hits 429 on CI.
+
+    Keep the limiter enabled only for ``test_api_analyze_rate_limit``, which asserts 429 behavior.
+    """
+    if request.node.name == "test_api_analyze_rate_limit":
+        yield
+        return
+    limiter = app_module.limiter
+    previous = limiter.enabled
+    limiter.enabled = False
+    try:
+        yield
+    finally:
+        limiter.enabled = previous
+
 
 @pytest.fixture
 def client(app):

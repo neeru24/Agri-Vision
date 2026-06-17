@@ -9,13 +9,21 @@ from PIL import Image
 import cv2
 
 import app
-
 @pytest.fixture
 def client():
+    """LOGIN_DISABLED lets api_login_required match Flask-Login test semantics."""
     app.app.config["TESTING"] = True
-    with app.app.test_client() as client:
-        yield client
-
+    prev = app.app.config.get("LOGIN_DISABLED")
+    app.app.config["LOGIN_DISABLED"] = True
+    try:
+        with app.app.test_client() as c:
+            yield c
+    finally:
+        if prev is None:
+            app.app.config.pop("LOGIN_DISABLED", None)
+        else:
+            app.app.config["LOGIN_DISABLED"] = prev
+            
 @pytest.fixture
 def valid_image():
     img_byte_arr = io.BytesIO()

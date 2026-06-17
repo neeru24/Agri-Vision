@@ -5,6 +5,7 @@ Unified inference for disease classification (ResNet50) and growth stage predict
 import hashlib
 import logging
 from flask import Flask, render_template, request, jsonify, flash, redirect, url_for, send_file
+from flask import current_app 
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import os
@@ -49,7 +50,7 @@ from torchvision import transforms
 from ultralytics import YOLO
 import json
 from jinja2 import Environment, FileSystemLoader
-from model_registry import registry
+from model_registry import ModelPathValidationError, registry
 from services.weather_service import generate_weather_recommendations
 from services.yield_service import estimate_yield
 from services.auth_security_service import (
@@ -204,6 +205,9 @@ from functools import wraps
 def api_login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
+        # Match Flask-Login's login_required: honor LOGIN_DISABLED for tests/tools.
+        if app.config.get("LOGIN_DISABLED"):
+            return f(*args, **kwargs)
         if not current_user.is_authenticated:
             from flask import jsonify
             return jsonify({"status": "error", "error": "Authentication required"}), 401
@@ -960,6 +964,16 @@ def generate_gradcam_explanation(
     return grad_cam_image_b64, heatmap_only_b64
 
 
+def api_login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if current_app.config.get("LOGIN_DISABLED"):
+            return f(*args, **kwargs)
+        if not current_user.is_authenticated:
+            return jsonify({"status": "error", "error": "Authentication required"}), 401
+        return f(*args, **kwargs)
+    return decorated
+
 def analyze_image(image: np.ndarray,*,weather:Optional[dict]=None,field_acres: float=1.0) -> Dict[str, Any]:
     import time
     start_time = time.time()
@@ -1118,6 +1132,30 @@ def parse_api_field_acres(raw:object)->Tuple[Optional[float],Optional[str]]:
         return None,"field_acres must be a positive finite number"
     return fa,None
 
+def parse_api_coordinates(
+    lat: object, lon: object
+) -> Tuple[Optional[Tuple[float, float]], Optional[str]]:
+    """
+    Validate lat/lon for weather APIs: finite WGS84 ranges.
+    Returns ((lat, lon), None) on success, or (None, error message) on failure.
+    """
+    try:
+        la = float(lat)  # type: ignore[arg-type]
+        lo = float(lon)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return None, "lat and lon must be valid numbers"
+
+    if not math.isfinite(la) or not math.isfinite(lo):
+        return None, "lat and lon must be finite numbers"
+
+    if la < -90.0 or la > 90.0:
+        return None, "lat must be between -90 and 90"
+
+    if lo < -180.0 or lo > 180.0:
+        return None, "lon must be between -180 and 180"
+
+    return (la, lo), None
+
 def resolve_weather_for_analysis(lat:Optional[float]=None,lon:Optional[float]=None,city:Optional[str]=None)->Optional[dict]:
     """
     Fetch current weather from lat/lon, or from city name via geocoding.
@@ -1126,7 +1164,12 @@ def resolve_weather_for_analysis(lat:Optional[float]=None,lon:Optional[float]=No
     owm_key=os.getenv("OPENWEATHER_API_KEY")
     if lat is not None and lon is not None:
         try:
-            return get_weather(float(lat),float(lon),owm_key)
+            coords,coord_err=parse_api_coordinates(lat,lon)
+            if coord_err:
+                pass
+            else:
+                la,lo=coords
+                return get_weather(la,lo,owm_key)
         except (TypeError,ValueError):
             pass
     
@@ -1134,7 +1177,10 @@ def resolve_weather_for_analysis(lat:Optional[float]=None,lon:Optional[float]=No
         try:
             geo=geocode_city(str(city).strip())
             if geo:
-                return get_weather(float(geo["lat"]),float(geo["lon"]),owm_key)
+                coords, coord_err = parse_api_coordinates(geo["lat"], geo["lon"])
+                if not coord_err:
+                    la, lo = coords
+                    return get_weather(la, lo, owm_key)
         except (ValueError,KeyError):
             pass 
     
@@ -1251,6 +1297,8 @@ def stories():
     return render_template("stories.html")
 
 
+
+
 @app.route("/model-admin")
 @login_required
 @require_any_role(['researcher', 'admin'])
@@ -1319,6 +1367,8 @@ def register_model():
             "message": f"Model {data['model_type']} version {data['version']} registered successfully",
             "metadata": metadata.to_dict()
         })
+    except ModelPathValidationError as e:
+        return jsonify({"error": str(e)}), 400
     except FileNotFoundError as e:
         return jsonify({"error": str(e)}), 404
     except Exception as e:
@@ -2404,6 +2454,11 @@ def api_weather():
 
     if lat is None or lon is None:
         return jsonify({"error": "Provide lat & lon, or city"}), 400
+    
+    coords, coord_err = parse_api_coordinates(lat, lon)
+    if coord_err:
+        return jsonify({"error": coord_err}), 400
+    lat, lon = coords
 
     owm_key = os.getenv("OPENWEATHER_API_KEY")
     weather = get_weather(lat, lon, owm_key)

@@ -15,6 +15,64 @@ from ultralytics import YOLO
 logger = logging.getLogger(__name__)
 
 
+class ModelPathValidationError(Exception):
+    """Raised when a model file path is missing, invalid, or outside the allowed directory."""
+
+
+def get_models_allowed_root() -> str:
+    """
+    Absolute, normalized directory under which model weights must live.
+
+    Override with env AGRISION_MODELS_ROOT (expanded user, then abspath).
+    Default: <this package>/models
+    """
+    override = (os.environ.get("AGRISION_MODELS_ROOT") or "").strip()
+    if override:
+        root = os.path.abspath(os.path.expanduser(override))
+    else:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        root = os.path.abspath(os.path.join(base_dir, "models"))
+    return os.path.realpath(root)
+
+
+def validate_model_path(path: object) -> Tuple[Optional[str], Optional[str]]:
+    """
+    Ensure path resolves inside get_models_allowed_root() (no traversal).
+
+    Returns (canonical_path, None) on success, or (None, error_message).
+    Does not check file existence — call os.path.exists after validation.
+    """
+    if path is None:
+        return None, "Model path is required"
+    if not isinstance(path, str):
+        return None, "Model path must be a string"
+    raw = path.strip()
+    if not raw:
+        return None, "Model path is required"
+
+    allowed_root = get_models_allowed_root()
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    try:
+        normalized = os.path.normpath(raw)
+        if not os.path.isabs(normalized):
+            # Resolve relative paths against the app package dir, not process CWD
+            normalized = os.path.join(base_dir, normalized)
+        candidate = os.path.realpath(os.path.abspath(normalized))
+    except (OSError, ValueError):
+        return None, "Model path is invalid"
+
+    try:
+        common = os.path.commonpath([allowed_root, candidate])
+    except ValueError:
+        # e.g. different drive letters on Windows
+        return None, "Model path must be under the application's models directory"
+
+    if common != allowed_root:
+        return None, "Model path must be under the application's models directory"
+
+    return candidate, None
+
+
 class ModelMetadata:
     """Metadata for a model version"""
     def __init__(self, version: str, model_type: str, path: str, 
@@ -165,13 +223,17 @@ class ModelRegistry:
                       parameters: int = 0, is_active: bool = False,
                       ab_test_ratio: float = 0.0) -> ModelMetadata:
         """Register a new model version"""
-        if not os.path.exists(path):
-            raise FileNotFoundError(f"Model file not found: {path}")
+        canonical, path_err = validate_model_path(path)
+        if path_err or canonical is None:
+            raise ModelPathValidationError(path_err or "Invalid model path")
+
+        if not os.path.exists(canonical):
+            raise FileNotFoundError(f"Model file not found: {canonical}")
         
         metadata = ModelMetadata(
             version=version,
             model_type=model_type,
-            path=path,
+            path=canonical,
             accuracy=accuracy,
             dataset_version=dataset_version,
             parameters=parameters,

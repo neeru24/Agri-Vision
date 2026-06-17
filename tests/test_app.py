@@ -700,7 +700,10 @@ def test_api_analyze_rate_limit(client, valid_image):
         )
         assert resp_two.status_code == 429
     finally:
-        app.app.config["API_UPLOAD_RATE_LIMIT"] = original_limit
+        if original_limit is None:
+            app.app.config.pop("API_UPLOAD_RATE_LIMIT", None)
+        else:
+            app.app.config["API_UPLOAD_RATE_LIMIT"] = original_limit
 
 
 def test_api_analyze_cleans_temp_upload(client, valid_image, tmp_path):

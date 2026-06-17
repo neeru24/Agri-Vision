@@ -3,6 +3,7 @@ numpy
 opencv-python-headless
 Pillow
 flask-cors
+flask-talisman
 tensorflow-cpu
 matplotlib
 scikit-learn
