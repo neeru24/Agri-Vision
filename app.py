@@ -210,6 +210,11 @@ def api_login_required(f):
         return f(*args, **kwargs)
     return decorated
 
+
+def api_internal_error(message="An unexpected server error occurred. Please try again later."):
+    """Return a generic API error without exposing internal exception details."""
+    return jsonify({"status": "error", "error": message}), 500
+
 # --- Security Configuration ---
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # Increased to 50MB for batch uploads
@@ -2024,7 +2029,7 @@ def api_explain():
         })
     except Exception as exc:
         logger.error("Error in API explain endpoint: %s", exc)
-        return jsonify({"status": "error", "error": str(exc)}), 500
+        return api_internal_error("Unable to generate explanation right now. Please try again later.")
 
 
 @app.route("/api/explain/target", methods=["POST"])
@@ -2096,7 +2101,7 @@ def api_explain_target():
             
     except Exception as exc:
         logger.error("Dynamic target Grad-CAM generation failed: %s", exc)
-        return jsonify({"status": "error", "error": str(exc)}), 500
+        return api_internal_error("Unable to generate target explanation right now. Please try again later.")
 
 
 @app.route("/comparison", methods=["GET", "POST"])
@@ -2452,7 +2457,7 @@ def api_analyze():
     except Exception as e:
         filename = request.files.get("file", {}).filename if request.files.get("file") else "unknown"
         logger.error("API analysis error (file=%s): %s", filename, e)
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Unable to analyze the image right now. Please try again later."}), 500
     finally:
         cleanup_temp_upload(temp_path)
 
@@ -2491,7 +2496,7 @@ def api_analyze_stream():
 
         except Exception as e:
             logger.error(f"Streaming analysis error: {e}")
-            yield f"data: {json.dumps({'step': 'error', 'progress': 0, 'message': str(e)})}\n\n"
+            yield f"data: {json.dumps({'step': 'error', 'progress': 0, 'message': 'Unable to analyze the image right now. Please try again later.'})}\n\n"
 
     return Response(
         stream_with_context(generate()),
@@ -2609,7 +2614,7 @@ def api_batch_upload():
         
     except Exception as e:
         logger.error(f"Batch upload error: {e}")
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': 'Unable to start batch processing right now. Please try again later.'}), 500
 
 
 @app.route("/api/batch_status/<job_id>", methods=["GET"])
