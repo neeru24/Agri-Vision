@@ -3221,6 +3221,7 @@ def api_disease_map():
     
     # Get filter parameters
     disease_filter = request.args.get('disease', 'all')
+    normalized_disease_filter = disease_filter.strip().lower()
     time_filter = request.args.get('time', 'all')
     confidence_filter = float(request.args.get('confidence', 0))
     
@@ -3247,8 +3248,9 @@ def api_disease_map():
     filtered_analyses = []
     for a in analyses:
         # Apply disease filter
-        if disease_filter != 'all':
-            if not a.disease_result or a.disease_result.get('predicted_class') != disease_filter:
+        if normalized_disease_filter != 'all':
+            predicted_class = (a.disease_result or {}).get('predicted_class', '').strip().lower()
+            if predicted_class != normalized_disease_filter:
                 continue
         
         # Apply confidence filter
@@ -3262,7 +3264,11 @@ def api_disease_map():
     
     # Calculate statistics
     total_analyses = len(filtered_analyses)
-    healthy_count = sum(1 for a in filtered_analyses if a.disease_result and a.disease_result.get('predicted_class') == 'healthy')
+    healthy_count = sum(
+        1
+        for a in filtered_analyses
+        if ((a.disease_result or {}).get('predicted_class', '').strip().lower() == 'healthy')
+    )
     diseased_count = total_analyses - healthy_count
     avg_health_score = sum(a.health_score for a in filtered_analyses if a.health_score) / len([a for a in filtered_analyses if a.health_score]) if filtered_analyses else 0
     regions = set(a.region for a in filtered_analyses if a.region)
@@ -3304,7 +3310,11 @@ def api_dashboard_stats():
     
     # Calculate basic statistics
     total_analyses = len(analyses)
-    healthy_count = sum(1 for a in analyses if a.disease_result and a.disease_result.get('predicted_class') == 'healthy')
+    healthy_count = sum(
+        1
+        for a in analyses
+        if ((a.disease_result or {}).get('predicted_class', '').strip().lower() == 'healthy')
+    )
     diseased_count = total_analyses - healthy_count
     avg_health_score = sum(a.health_score for a in analyses if a.health_score) / len([a for a in analyses if a.health_score]) if analyses else 0
     
@@ -3312,7 +3322,7 @@ def api_dashboard_stats():
     disease_counts = defaultdict(int)
     for a in analyses:
         if a.disease_result:
-            disease = a.disease_result.get('predicted_class', 'unknown')
+            disease = (a.disease_result.get('predicted_class', 'unknown') or 'unknown').strip().lower()
             disease_counts[disease] += 1
     
     disease_distribution = {
@@ -3325,13 +3335,11 @@ def api_dashboard_stats():
     trend_data = defaultdict(list)
     for i in range(7):
         date = datetime.utcnow() - timedelta(days=6-i)
-        date_str = date.strftime('%Y-%m-%d')
         trend_labels.append(date.strftime('%b %d'))
-        
         day_analyses = [a for a in analyses if a.created_at.date() == date.date()]
         for a in day_analyses:
             if a.disease_result:
-                disease = a.disease_result.get('predicted_class', 'unknown')
+                disease = (a.disease_result.get('predicted_class', 'unknown') or 'unknown').strip().lower()
                 trend_data[disease].append(1)
     
     # Create trend datasets
@@ -3343,7 +3351,11 @@ def api_dashboard_stats():
         for i in range(7):
             date = datetime.utcnow() - timedelta(days=6-i)
             day_analyses = [a for a in analyses if a.created_at.date() == date.date()]
-            count = sum(1 for a in day_analyses if a.disease_result and a.disease_result.get('predicted_class') == disease)
+            count = sum(
+                1
+                for a in day_analyses
+                if ((a.disease_result or {}).get('predicted_class', '').strip().lower() == disease)
+            )
             daily_counts.append(count)
         
         trend_datasets.append({
@@ -3387,9 +3399,10 @@ def api_dashboard_stats():
     recent_analyses = sorted(analyses, key=lambda x: x.created_at, reverse=True)[:10]
     recent_activity = []
     for a in recent_analyses:
-        disease = a.disease_result.get('predicted_class', 'unknown') if a.disease_result else 'unknown'
-        activity_type = 'disease' if disease != 'healthy' else 'healthy'
-        icon = 'exclamation-triangle' if disease != 'healthy' else 'check-circle'
+        disease = (a.disease_result.get('predicted_class', 'unknown') if a.disease_result else 'unknown') or 'unknown'
+        normalized_disease = disease.strip().lower()
+        activity_type = 'disease' if normalized_disease != 'healthy' else 'healthy'
+        icon = 'exclamation-triangle' if normalized_disease != 'healthy' else 'check-circle'
         
         recent_activity.append({
             'type': activity_type,

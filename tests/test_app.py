@@ -13,6 +13,7 @@ from PIL import Image
 
 import app
 import security_utils
+from models import AnalysisHistory
 
 
 # --- Add Missing Fixtures Here ---
@@ -889,3 +890,44 @@ def test_api_batch_status_stream_valid(client):
     assert payload["job"]["id"] == "test-sse-job"
 
 
+def test_stats_treat_healthy_predictions_case_insensitively(client):
+    from models import db
+
+    with app.app.app_context():
+        records = [
+            AnalysisHistory(
+                user_id="1",
+                disease_result={"predicted_class": "Healthy"},
+                health_score=80.0,
+                latitude=10.0,
+                longitude=20.0,
+                region="North",
+            ),
+            AnalysisHistory(
+                user_id="1",
+                disease_result={"predicted_class": "Aphids"},
+                health_score=40.0,
+                latitude=11.0,
+                longitude=21.0,
+                region="North",
+            ),
+        ]
+        db.session.add_all(records)
+        db.session.commit()
+
+        try:
+            dashboard_resp = client.get("/api/dashboard-stats")
+            assert dashboard_resp.status_code == 200
+            dashboard_data = json.loads(dashboard_resp.data)
+            assert dashboard_data["stats"]["healthy_count"] == 1
+            assert dashboard_data["stats"]["diseased_count"] == 1
+
+            map_resp = client.get("/api/disease-map")
+            assert map_resp.status_code == 200
+            map_data = json.loads(map_resp.data)
+            assert map_data["stats"]["healthy_count"] == 1
+            assert map_data["stats"]["diseased_count"] == 1
+        finally:
+            for record in records:
+                db.session.delete(record)
+            db.session.commit()
