@@ -2314,7 +2314,7 @@ main{
 
 .footer-brand h2 { font-size: 1.3rem; color: var(--footer-text); margin: 0; }
 
-.footer-links-compact { display: flex; gap: 2rem; }
+.footer-links-compact { display: flex; gap: 0; flex-wrap: wrap;}
 
 .footer-links-compact a {
     color: var(--footer-text);
@@ -2323,6 +2323,9 @@ main{
     opacity: 0.95;
     transition: var(--transition-smooth);
     font-weight: 600;
+    padding: 6px 20px;
+    border-radius: 4px;
+    border-right: 1px solid var(--footer-text);
 }
 
 .footer-links-compact a:hover { opacity: 1; text-decoration: underline; }
