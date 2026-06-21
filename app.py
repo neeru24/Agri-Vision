@@ -64,6 +64,7 @@ from services.auth_security_service import (
     get_client_ip,
     get_user_agent,
 )
+from services.chatbot_fallback_service import get_huggingface_chat_reply
 from security_utils import (
     UploadValidationError,
     cleanup_temp_upload,
@@ -2470,12 +2471,21 @@ def api_chat():
         ],
     }
 
-    reply = "I'm your Agri-Vision AI assistant. I specialize in cotton farming, crop diseases, and yield optimization. How can I help you?"
+    reply = None
 
     for pattern, reply_options in responses.items():
         if re.search(pattern, message):
             reply = random.choice(reply_options)
             break
+
+    if reply is None:
+        try:
+            reply = get_huggingface_chat_reply(message)
+        except Exception as exc:
+            logger.warning("Hugging Face chatbot fallback failed: %s", exc)
+
+    if reply is None:
+        reply = "I'm your Agri-Vision AI assistant. I specialize in cotton farming, crop diseases, and yield optimization. How can I help you?"
     return jsonify({"reply": reply})
 
 
