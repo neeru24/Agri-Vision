@@ -1097,7 +1097,18 @@
 
       <details class="results-details">
         <summary class="results-summary">Show Full Model Output (JSON)</summary>
-        <pre class="results-pre">{{ raw_json }}</pre>
+        <div style="display:flex; justify-content:flex-end; margin:0.75rem 0;">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            id="copy-json-output"
+            aria-label="Copy full model JSON output to clipboard"
+            style="padding:0.45rem 0.9rem; font-size:0.85rem;"
+          >
+            <i class="fas fa-copy"></i> Copy JSON
+          </button>
+        </div>
+        <pre class="results-pre" id="full-model-json">{{ raw_json }}</pre>
       </details>
 
     </div>
@@ -1110,6 +1121,41 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+    const copyJsonButton = document.getElementById("copy-json-output");
+    const fullModelJson = document.getElementById("full-model-json");
+
+    if (copyJsonButton && fullModelJson) {
+      copyJsonButton.addEventListener("click", async function () {
+        const text = fullModelJson.textContent.trim();
+
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.opacity = "0";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textArea);
+          }
+
+          copyJsonButton.innerHTML = '<i class="fas fa-check"></i> Copied';
+          setTimeout(function () {
+            copyJsonButton.innerHTML = '<i class="fas fa-copy"></i> Copy JSON';
+          }, 1800);
+        } catch (error) {
+          copyJsonButton.innerHTML = '<i class="fas fa-triangle-exclamation"></i> Copy failed';
+          setTimeout(function () {
+            copyJsonButton.innerHTML = '<i class="fas fa-copy"></i> Copy JSON';
+          }, 2200);
+        }
+      });
+    }
+
     var opacitySlider = document.getElementById('heatmap-opacity-slider');
     var heatmapImg = document.getElementById('explain-heatmap-img');
     var opacityBadge = document.getElementById('opacity-badge');
