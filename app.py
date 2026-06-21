@@ -21,6 +21,12 @@ from flask_limiter.util import get_remote_address
 from flask_talisman import Talisman
 from io import BytesIO
 from services.weather_service import get_weather
+from services.model_cache import (
+    init_cache_backend,
+    get_cached_prediction,
+    cache_prediction,
+    cache_stats as inference_cache_stats,
+)
 from sqlalchemy import inspect, text
 
 import redis
@@ -51,6 +57,7 @@ import json
 from jinja2 import Environment, FileSystemLoader
 from model_registry import registry
 from services.weather_service import generate_weather_recommendations
+from services.yield_history_service import build_yield_history_report
 from services.yield_service import estimate_yield
 from services.auth_security_service import (
     AccountLockoutService,
@@ -87,6 +94,13 @@ redis_port = int(os.getenv("REDIS_PORT", "6379"))
 redis_db = int(os.getenv("REDIS_DB", "0"))
 limiter_storage_uri = "memory://"
 
+# Model warm-up configuration
+MODEL_LOAD_TIMEOUT: int = int(os.getenv("MODEL_LOAD_TIMEOUT", "60"))  # seconds
+
+# Async model warm-up state — set by background thread, read by /health
+_model_load_event: threading.Event = threading.Event()
+_model_load_status: dict = {"status": "loading", "error": None}
+
 is_prod = is_production_env(os.environ)
 
 try:
@@ -100,8 +114,11 @@ try:
     redis_client.ping()
     limiter_storage_uri = f"redis://{redis_host}:{redis_port}/{redis_db}"
     logger.info("redis connected for caching and rate limiting")
+    # Wire Redis into the inference result cache backend
+    init_cache_backend(redis_client)
 except (redis.exceptions.ConnectionError, ModuleNotFoundError) as err:
     redis_client = None
+    init_cache_backend(None)  # fall back to in-memory inference cache
     if is_prod:
         logger.warning(f"limiter falling back to memory storage in production! Redis is required for rate limit consistency across workers. Error: {err}")
     else:
@@ -500,6 +517,38 @@ def load_models():
 
 def ensure_models_loaded() -> None:
     load_models()
+
+
+def _background_model_warmup() -> None:
+    """
+    Load both models in a daemon thread so the Flask app can accept requests
+    immediately.  Sets _model_load_event once complete (success or failure).
+    Logs CRITICAL if loading exceeds MODEL_LOAD_TIMEOUT seconds.
+    """
+    import time
+    global _model_load_status
+    start = time.monotonic()
+    try:
+        logger.info("[warm-up] Starting async model loading (timeout=%ds)...", MODEL_LOAD_TIMEOUT)
+        model_manager.load_models()  # thread-safe double-checked locking inside
+        elapsed = time.monotonic() - start
+        if elapsed > MODEL_LOAD_TIMEOUT:
+            msg = (
+                f"[warm-up] Models loaded but exceeded timeout threshold "
+                f"({elapsed:.1f}s > {MODEL_LOAD_TIMEOUT}s). "
+                "Consider increasing MODEL_LOAD_TIMEOUT or using a GPU."
+            )
+            logger.critical(msg)
+            _model_load_status = {"status": "timeout", "error": msg}
+        else:
+            logger.info("[warm-up] Models ready in %.2fs.", elapsed)
+            _model_load_status = {"status": "ready", "error": None}
+    except Exception as exc:  # pragma: no cover
+        logger.critical("[warm-up] Model loading FAILED: %s", exc, exc_info=True)
+        _model_load_status = {"status": "error", "error": str(exc)}
+    finally:
+        _model_load_event.set()  # unblock /health waiters regardless of outcome
+
 
 
 # -------------------------------------------------------------------
@@ -961,12 +1010,28 @@ def generate_gradcam_explanation(
     return grad_cam_image_b64, heatmap_only_b64
 
 
-def analyze_image(image: np.ndarray,*,weather:Optional[dict]=None,field_acres: float=1.0) -> Dict[str, Any]:
+def analyze_image(image: np.ndarray, image_bytes: Optional[bytes] = None, *, weather: Optional[dict] = None, field_acres: float = 1.0) -> Dict[str, Any]:
     import time
     start_time = time.time()
-    field_acres=normalize_field_acres(field_acres)
-    
-    
+    field_acres = normalize_field_acres(field_acres)
+
+    # --- Inference result cache check (skip blobs; they come from GradCAM cache) ---
+    if image_bytes is not None:
+        cached = get_cached_prediction(image_bytes)
+        if cached is not None:
+            logger.info("[cache] Inference result cache HIT — skipping ML inference")
+            # Re-attach heatmaps from in-process GradCAM cache if available
+            image_hash = hashlib.sha256(image_bytes).hexdigest()
+            gradcam_hit = get_cached_grad_cam(image_hash)
+            if gradcam_hit:
+                cached["grad_cam_image_b64"] = gradcam_hit[0]
+                cached["heatmap_only_b64"] = gradcam_hit[1]
+                if "disease" in cached:
+                    cached["disease"]["heatmap_b64"] = gradcam_hit[0]
+                    cached["disease"]["heatmap_only_b64"] = gradcam_hit[1]
+            cached.setdefault("_cache_hit", True)
+            return cached
+
     resnet_model, yolo_model = model_manager.load_models()
     try:
         try:
@@ -1080,6 +1145,14 @@ def analyze_image(image: np.ndarray,*,weather:Optional[dict]=None,field_acres: f
                 "Disease analysis is still provided, but comparison may be less reliable without a confirmed cotton crop detection.",
                 "Grad-CAM explainability may also be affected if the primary crop is not detected.",
             ]
+
+        # --- Store result in inference cache (blobs stripped inside cache_prediction) ---
+        if image_bytes is not None:
+            try:
+                cache_prediction(image_bytes, result)
+                logger.info("[cache] Inference result cached for future requests")
+            except Exception as cache_exc:
+                logger.warning("[cache] Failed to cache inference result: %s", cache_exc)
 
         return result
     except Exception as exc:
@@ -1217,6 +1290,27 @@ def add_no_cache_headers(response):
 
 def is_pytest_mode() -> bool:
     return "PYTEST_CURRENT_TEST" in os.environ
+
+
+@app.route("/health")
+def health_check():
+    """
+    Readiness endpoint.
+
+    Returns HTTP 503 with {"status": "loading"} while models are being warmed up
+    in the background thread, and HTTP 200 with {"status": "ready"} once they are
+    available.  Kubernetes / Docker HEALTHCHECK probes should wait for 200.
+    """
+    ready = _model_load_event.is_set()
+    status = _model_load_status.get("status", "loading")
+    payload = {
+        "status": status if ready else "loading",
+        "models": model_manager.diagnostics() if ready else {},
+        "cache": inference_cache_stats(),
+    }
+    if not ready or status not in ("ready", "timeout"):
+        return jsonify(payload), 503
+    return jsonify(payload), 200
 
 
 @app.route("/")
@@ -1892,18 +1986,8 @@ def compare():
 
 @app.route("/health")
 def health():
-    ensure_models_loaded()
-    diagnostics = model_manager.diagnostics()
-    model_loaded = diagnostics["resnet"]["loaded"] and diagnostics["yolo"]["loaded"]
-    status_code = 200 if model_loaded else 503
-    return jsonify({
-        "status": "healthy" if model_loaded else "degraded",
-        "mode": "ready" if model_loaded else "degraded",
-        "timestamp": datetime.now().isoformat(),
-        "model_loaded": model_loaded,
-        "models": diagnostics,
-        "service": "Agri-Vision Cotton Analysis API",
-    }), status_code
+    """Alias kept for backwards compatibility — delegates to health_check."""
+    return health_check()
 
 
 @app.route("/analyze", methods=["GET", "POST"])
@@ -1921,6 +2005,9 @@ def analyze():
 
             file = request.files["file"]
             safe_filename, image, image_rgb, temp_path = read_validated_upload_image(file)
+            # Read raw bytes for cache keying (file already consumed; re-read from temp)
+            file.seek(0)
+            _raw_image_bytes = file.read() or None
             compressed_rgb = resize_image(image_rgb, MAX_INFERENCE_DIMENSION)
 
             lat = request.form.get("lat", type=float)
@@ -1930,7 +2017,7 @@ def analyze():
 
             weather=resolve_weather_for_analysis(lat=lat,lon=lon,city=city)
 
-            results = analyze_image(compressed_rgb,weather=weather,field_acres=field_acres)
+            results = analyze_image(compressed_rgb, image_bytes=_raw_image_bytes, weather=weather, field_acres=field_acres)
 
             if results.get("error"):
                 raise ValueError(results["error"])
@@ -2005,9 +2092,11 @@ def api_explain():
     try:
         _, image, image_rgb = read_uploaded_image(file)
         compressed_rgb = resize_image(image_rgb, MAX_INFERENCE_DIMENSION)
+        file.seek(0)
+        _raw_image_bytes = file.read() or None
         
         # We just need to call analyze_image to generate the Grad-CAM and get results
-        results = analyze_image(compressed_rgb)
+        results = analyze_image(compressed_rgb, image_bytes=_raw_image_bytes)
         
         if "error" in results:
             return jsonify({"status": "error", "error": results["error"]}), 500
@@ -2424,6 +2513,17 @@ def api_weather():
     return jsonify({"status": "success", "weather": weather})
 
 
+@app.route("/api/yield/history")
+def api_yield_history():
+    """Return historical crop yield trend analytics."""
+    return jsonify(
+        build_yield_history_report(
+            crop=request.args.get("crop", "cotton"),
+            region=request.args.get("region"),
+        )
+    )
+
+
 @app.route("/api/analyze", methods=["POST"])
 @app.route("/api/predict", methods=["POST"])
 @app.route("/predict", methods=["POST"])
@@ -2438,6 +2538,9 @@ def api_analyze():
 
         file = request.files["file"]
         _safe_filename, image, image_rgb, temp_path = read_validated_upload_image(file)
+        # Preserve raw bytes for cache keying before temp file cleanup
+        file.seek(0)
+        _raw_image_bytes = file.read() or None
         field_acres,field_acres_error=parse_api_field_acres(request.form.get("field_acres"))
         if field_acres_error:
             return jsonify({"error":field_acres_error}),400
@@ -2447,7 +2550,7 @@ def api_analyze():
         city=request.form.get("city",type=str)
         weather=resolve_weather_for_analysis(lat=lat,lon=lon,city=city)
         compressed_rgb = resize_image(image_rgb, MAX_INFERENCE_DIMENSION)
-        results = analyze_image(compressed_rgb, weather=weather, field_acres=field_acres)
+        results = analyze_image(compressed_rgb, image_bytes=_raw_image_bytes, weather=weather, field_acres=field_acres)
         return jsonify({
             "status": "success",
             "timestamp": datetime.now().isoformat(),
@@ -2493,7 +2596,7 @@ def api_analyze_stream():
             yield f"data: {json.dumps({'step': 'preprocessing', 'progress': 50, 'message': 'Analyzing crop health...'})}\n\n"
 
             image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            results = analyze_image(image_rgb)
+            results = analyze_image(image_rgb, image_bytes=image_bytes)
 
             yield f"data: {json.dumps({'step': 'recommendations', 'progress': 75, 'message': 'Generating prediction...'})}\n\n"
 
@@ -3809,8 +3912,19 @@ if __name__ == '__main__':
         except Exception as exc:
             logger.warning(f"RBAC seed skipped/failed: {exc}")
 
-
-    ensure_models_loaded()
+    # --- Async model warm-up: start background thread so Flask is immediately responsive ---
+    warmup_thread = threading.Thread(
+        target=_background_model_warmup,
+        name="model-warmup",
+        daemon=True,
+    )
+    warmup_thread.start()
+    logger.info(
+        "[warm-up] Model loading started in background thread '%s'. "
+        "Server will accept requests immediately. "
+        "Poll GET /health for readiness.",
+        warmup_thread.name,
+    )
     
     # Register models in the registry
     try:
