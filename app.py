@@ -21,6 +21,7 @@ from flask_limiter.util import get_remote_address
 from flask_talisman import Talisman
 from io import BytesIO
 from services.weather_service import get_weather
+from services.weather_service import geocode_city
 from services.model_cache import (
     init_cache_backend,
     get_cached_prediction,
@@ -57,6 +58,7 @@ import json
 from jinja2 import Environment, FileSystemLoader
 from model_registry import registry
 from services.weather_service import generate_weather_recommendations
+from services.weather_service import build_weather_advisory
 from services.yield_history_service import build_yield_history_report
 from services.yield_service import estimate_yield
 from services.auth_security_service import (
@@ -2500,6 +2502,7 @@ def api_weather():
         return jsonify({"error": "Weather data unavailable"}), 503
 
     weather["weather_recommendations"] = generate_weather_recommendations(weather)
+    weather["weather_advisory"] = build_weather_advisory(weather)
     return jsonify({"status": "success", "weather": weather})
 
 

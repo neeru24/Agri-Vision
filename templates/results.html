@@ -250,6 +250,23 @@
           </div>
           {% endif %}
         </div>
+        {% if weather.weather_advisory %}
+        <div style="margin-top: 1.2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.9rem;">
+          {% for item in [
+            ('Irrigation', 'fa-droplet', weather.weather_advisory.irrigation_suggestion),
+            ('Rain Alert', 'fa-cloud-rain', weather.weather_advisory.rain_alert),
+            ('Heat Stress', 'fa-temperature-high', weather.weather_advisory.heat_stress_warning),
+            ('Crop Protection', 'fa-shield-halved', weather.weather_advisory.crop_protection_recommendation)
+          ] %}
+          <div style="border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 0.9rem; background: rgba(255,255,255,0.04);">
+            <h4 style="font-size: 0.95rem; margin: 0 0 0.5rem; color: #343a40;">
+              <i class="fas {{ item[1] }}"></i> {{ item[0] }}
+            </h4>
+            <p style="margin: 0; color: #4b5563; font-size: 0.88rem; line-height: 1.5;">{{ item[2] }}</p>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
       </section>
       {% endif %}
 
