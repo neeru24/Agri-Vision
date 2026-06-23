@@ -1983,6 +1983,62 @@ def compare():
     )
 
 
+@app.route("/api/analysis/compare", methods=["POST"])
+@login_required
+def api_analysis_compare():
+    """Compare saved analyses by id and return normalized fields."""
+    from models import AnalysisHistory
+
+    payload = request.get_json(silent=True) or {}
+    analysis_ids = payload.get("analysis_ids") or payload.get("ids") or []
+    if isinstance(analysis_ids, str):
+        analysis_ids = [item.strip() for item in analysis_ids.split(",") if item.strip()]
+
+    analysis_ids = list(dict.fromkeys(analysis_ids))
+    if len(analysis_ids) < 2:
+        return jsonify({"status": "error", "error": "Select at least two analyses to compare."}), 400
+    if len(analysis_ids) > 6:
+        return jsonify({"status": "error", "error": "Compare up to six analyses at a time."}), 400
+
+    query = AnalysisHistory.query.filter(AnalysisHistory.id.in_(analysis_ids))
+    if not current_user.is_researcher():
+        query = query.filter(AnalysisHistory.user_id == current_user.id)
+
+    analyses = query.all()
+    found_ids = {analysis.id for analysis in analyses}
+    missing_ids = [analysis_id for analysis_id in analysis_ids if analysis_id not in found_ids]
+    if missing_ids:
+        return jsonify({
+            "status": "error",
+            "error": "One or more analyses were not found or are not accessible.",
+            "missing_ids": missing_ids,
+        }), 404
+
+    analyses_by_id = {analysis.id: analysis for analysis in analyses}
+    ordered_analyses = [analyses_by_id[analysis_id] for analysis_id in analysis_ids]
+
+    def disease_name(analysis):
+        return (analysis.disease_result or {}).get("predicted_class") or "Unknown"
+
+    rows = [
+        {"key": "prediction", "label": "Prediction Outcome", "values": [disease_name(a) for a in ordered_analyses]},
+        {"key": "confidence", "label": "Confidence Score", "values": [a.confidence for a in ordered_analyses]},
+        {"key": "classification", "label": "Disease Classification", "values": [disease_name(a) for a in ordered_analyses]},
+        {
+            "key": "analysis_date",
+            "label": "Analysis Date",
+            "values": [a.created_at.isoformat() if a.created_at else None for a in ordered_analyses],
+        },
+        {"key": "health_score", "label": "Health Score", "values": [a.health_score for a in ordered_analyses]},
+    ]
+
+    return jsonify({
+        "status": "success",
+        "analyses": [analysis.to_dict() for analysis in ordered_analyses],
+        "comparison": rows,
+    })
+
+
 @app.route("/health")
 def health():
     """Alias kept for backwards compatibility — delegates to health_check."""
