@@ -753,6 +753,44 @@
         </div>
       </div>
 
+      {% set smart_plan = results.smart_farming_plan|default({}) %}
+      {% if smart_plan %}
+      <div class="result-card" id="smart-farming-plan" role="region" aria-label="Smart farming recommendations">
+        <h2 class="results-section-title">
+          <i class="fas fa-seedling"></i> Smart Farming Next Steps
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.2rem;">
+          A concise action plan generated from the detected crop condition{% if smart_plan.disease_name and smart_plan.disease_name != 'unknown' %}: <b>{{ smart_plan.disease_name }}</b>{% endif %}.
+        </p>
+        {% if smart_plan.confidence_advisory %}
+        <div role="alert" style="margin-bottom: 1rem; padding: 0.9rem 1rem; border-radius: 12px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: var(--text-primary);">
+          <i class="fas fa-triangle-exclamation"></i> {{ smart_plan.confidence_advisory }}
+        </div>
+        {% endif %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+          {% for group in [
+            ('Prevention Tips', 'fa-shield-halved', smart_plan.prevention_tips),
+            ('Treatment Steps', 'fa-kit-medical', smart_plan.treatment_steps),
+            ('Irrigation Suggestions', 'fa-droplet', smart_plan.irrigation_suggestions),
+            ('Monitoring Recommendations', 'fa-clipboard-check', smart_plan.monitoring_recommendations)
+          ] %}
+          {% if group[2] %}
+          <section style="border: 1px solid var(--card-border); border-radius: 12px; padding: 1rem; background: rgba(255,255,255,0.04);">
+            <h3 style="font-size: 1rem; margin: 0 0 0.75rem; color: var(--emerald-green);">
+              <i class="fas {{ group[1] }}"></i> {{ group[0] }}
+            </h3>
+            <ul class="results-list" style="margin: 0; padding-left: 1rem;">
+              {% for item in group[2] %}
+              <li style="margin-bottom: 0.4rem; font-size: 0.9rem; line-height: 1.5;">{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </section>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
       <!-- Context-Aware Treatment & Management Guide -->
       {% set tr = treatment_recommendations|default({}) %}
       {% if tr and tr.treatment is defined %}

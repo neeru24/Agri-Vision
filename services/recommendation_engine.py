@@ -499,3 +499,36 @@ def get_recommendations(
         "confidence_advisory": get_confidence_advisory(confidence),
         "is_fallback": False,
     }
+
+
+def build_smart_farming_plan(
+    recommendation_data: Dict[str, Any],
+    *,
+    health_score: Optional[float] = None,
+) -> Dict[str, Any]:
+    """
+    Build a short post-analysis action plan for farmers.
+
+    The full recommendation object can be long. This helper extracts the most
+    useful next steps into the four categories requested by the results UI.
+    """
+    if not recommendation_data:
+        recommendation_data = get_fallback_recommendations()
+
+    monitoring = list(recommendation_data.get("severity_advice") or [])
+    if health_score is not None:
+        if health_score < 50:
+            monitoring.insert(0, "Scout the affected area every 2 days until the crop health score improves.")
+        elif health_score < 70:
+            monitoring.insert(0, "Recheck the crop within 4-5 days and compare symptoms with the current scan.")
+        else:
+            monitoring.insert(0, "Keep weekly scouting records so future scans can confirm the healthy trend.")
+
+    return {
+        "prevention_tips": list(recommendation_data.get("prevention") or [])[:3],
+        "treatment_steps": list(recommendation_data.get("treatment") or [])[:3],
+        "irrigation_suggestions": list(recommendation_data.get("irrigation") or [])[:3],
+        "monitoring_recommendations": monitoring[:3],
+        "confidence_advisory": recommendation_data.get("confidence_advisory"),
+        "disease_name": recommendation_data.get("disease_name", "unknown"),
+    }
