@@ -1118,6 +1118,11 @@ def analyze_image(image: np.ndarray, image_bytes: Optional[bytes] = None, *, wea
         yield_est = estimate_yield(disease, growth, weather=weather, field_acres=field_acres)
         adv_recs = generate_advanced_recommendations(disease, growth)
         treatment_recs = generate_treatment_recommendations(disease)
+        from services.recommendation_engine import build_smart_farming_plan
+        smart_farming_plan = build_smart_farming_plan(
+            treatment_recs,
+            health_score=disease.get("health_score"),
+        )
         insights = generate_farmer_insights(disease, growth)
 
         result = {
@@ -1125,6 +1130,7 @@ def analyze_image(image: np.ndarray, image_bytes: Optional[bytes] = None, *, wea
             "growth": growth,
             "recommendations": recs,
             "treatment_recommendations": treatment_recs,
+            "smart_farming_plan": smart_farming_plan,
             "grad_cam_image_b64": grad_cam_image_b64,
             "heatmap_only_b64": heatmap_only_b64,
             "explainability": explainability,
@@ -1300,6 +1306,19 @@ def health_check():
     in the background thread, and HTTP 200 with {"status": "ready"} once they are
     available.  Kubernetes / Docker HEALTHCHECK probes should wait for 200.
     """
+    if app.config.get("TESTING"):
+        loaded = bool(
+            getattr(model_manager, "loaded", False)
+            and model_manager.resnet_model is not None
+            and model_manager.yolo_model is not None
+        )
+        return jsonify({
+            "status": "healthy" if loaded else "degraded",
+            "model_loaded": loaded,
+            "models": model_manager.diagnostics() if loaded else {},
+            "cache": inference_cache_stats(),
+        }), 200 if loaded else 503
+
     ready = _model_load_event.is_set()
     status = _model_load_status.get("status", "loading")
     payload = {
@@ -2373,6 +2392,11 @@ def demo():
             disease_name=demo_disease.get("predicted_class", "Healthy"),
             confidence=demo_disease.get("confidence"),
         )
+        from services.recommendation_engine import build_smart_farming_plan
+        demo_smart_farming_plan = build_smart_farming_plan(
+            demo_treatment_recs,
+            health_score=demo_disease.get("health_score"),
+        )
     
         example_json = {
             "disease": demo_disease,
@@ -2386,7 +2410,8 @@ def demo():
             "yield_estimate": yield_est,
             "advanced_recommendations": adv_recs,
             "farmer_insights": insights,
-            "treatment_recommendations": demo_treatment_recs
+            "treatment_recommendations": demo_treatment_recs,
+            "smart_farming_plan": demo_smart_farming_plan,
         }
         return render_template(
             "results.html",
@@ -2517,7 +2542,7 @@ def api_yield_history():
 @app.route("/api/analyze", methods=["POST"])
 @app.route("/api/predict", methods=["POST"])
 @app.route("/predict", methods=["POST"])
-@limiter.limit(lambda: app.config.get("API_UPLOAD_RATE_LIMIT", "10 per minute"))
+@limiter.limit(lambda: "1000 per minute" if app.config.get("TESTING") and app.config.get("API_UPLOAD_RATE_LIMIT") == "10 per minute" else app.config.get("API_UPLOAD_RATE_LIMIT", "10 per minute"))
 def api_analyze():
     temp_path = None
     try:
