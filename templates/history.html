@@ -1,4 +1,5 @@
 {% extends "index.html" %}
+{% from "partials/empty_state.html" import empty_state %}
 
 {% block content %}
 
@@ -101,7 +102,13 @@
                 </div>
                 {% endfor %}
             {% else %}
-                <p>No scan history found in your account.</p>
+                {{ empty_state(
+                    "fa-clock-rotate-left",
+                    "No analysis history yet",
+                    "Upload a crop image to create your first saved analysis and unlock comparison, reports, and health trends.",
+                    "Analyze Crop",
+                    url_for("analyze")
+                ) }}
             {% endif %}
         </div>
 
@@ -109,6 +116,46 @@
 .main-content{
 
     min-height:75vh;
+}
+
+.empty-state{
+    width:100%;
+    padding:2.5rem 1.5rem;
+    text-align:center;
+    border:1px dashed rgba(255,255,255,0.24);
+    border-radius:14px;
+    background:rgba(255,255,255,0.06);
+}
+
+.empty-state-icon{
+    width:56px;
+    height:56px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:rgba(102,126,234,0.18);
+    color:#ffffff;
+    margin-bottom:1rem;
+    font-size:1.35rem;
+}
+
+.empty-state h3{
+    color:#ffffff;
+    margin:0 0 0.5rem;
+}
+
+.empty-state p{
+    color:rgba(255,255,255,0.78);
+    max-width:560px;
+    margin:0 auto 1.25rem;
+    line-height:1.6;
+}
+
+.empty-state-action{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
 }
 
 /* Historical Analysis Section */

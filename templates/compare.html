@@ -1,4 +1,5 @@
 {% extends "index.html" %}
+{% from "partials/empty_state.html" import empty_state %}
 
 {% block content %}
 <section class="main-content comparison-page">
@@ -60,14 +61,13 @@
         </div>
         {% else %}
         <div class="comparison-error-card glass-card fade-in" style="text-align:center; padding: 3rem;">
-            <div class="comparison-error-icon">
-                <i class="fas fa-search"></i>
-            </div>
-            <h2>No Analyses Selected</h2>
-            <p>Select analyses from your history to compare them side-by-side.</p>
-            <a href="/history" class="btn btn-primary" style="display:inline-block; margin-top: 1rem;">
-                <i class="fas fa-clock-rotate-left"></i> View History
-            </a>
+            {{ empty_state(
+                "fa-search",
+                "No analyses selected",
+                "Run crop analyses first, then return to compare predictions, confidence, health score, and dates side by side.",
+                "Analyze Crop",
+                url_for("analyze")
+            ) }}
         </div>
         {% endif %}
     </div>
