@@ -3414,6 +3414,90 @@ def api_dashboard_stats():
     })
 
 
+@app.route("/api/crop-health-trends")
+@login_required
+def api_crop_health_trends():
+    """Return crop health trend analytics for the dashboard."""
+    from collections import Counter, defaultdict
+    from datetime import datetime, timedelta
+    from models import AnalysisHistory
+
+    days = min(max(int(request.args.get("days", 30)), 7), 365)
+    start_date = datetime.utcnow() - timedelta(days=days - 1)
+
+    if current_user.is_researcher():
+        query = AnalysisHistory.query
+    else:
+        query = AnalysisHistory.query.filter_by(user_id=current_user.id)
+
+    analyses = query.filter(AnalysisHistory.created_at >= start_date).all()
+    total = len(analyses)
+
+    def disease_name(analysis):
+        if not analysis.disease_result:
+            return "unknown"
+        return str(analysis.disease_result.get("predicted_class", "unknown")).strip() or "unknown"
+
+    def is_healthy(analysis):
+        return disease_name(analysis).lower() == "healthy"
+
+    healthy_count = sum(1 for analysis in analyses if is_healthy(analysis))
+    diseased_count = total - healthy_count
+    disease_counts = Counter(disease_name(analysis) for analysis in analyses)
+
+    daily_counts = defaultdict(lambda: {"healthy": 0, "diseased": 0, "total": 0})
+    weekly_counts = defaultdict(lambda: {"healthy": 0, "diseased": 0, "total": 0})
+    monthly_counts = defaultdict(lambda: {"healthy": 0, "diseased": 0, "total": 0})
+
+    for analysis in analyses:
+        day_key = analysis.created_at.strftime("%Y-%m-%d")
+        week_key = analysis.created_at.strftime("%G-W%V")
+        month_key = analysis.created_at.strftime("%Y-%m")
+        bucket = "healthy" if is_healthy(analysis) else "diseased"
+        for counts in (daily_counts[day_key], weekly_counts[week_key], monthly_counts[month_key]):
+            counts[bucket] += 1
+            counts["total"] += 1
+
+    disease_trends = []
+    for disease, _count in disease_counts.most_common(6):
+        disease_trends.append({
+            "disease": disease.replace("_", " ").title(),
+            "daily_counts": [
+                {
+                    "date": date_key,
+                    "count": sum(
+                        1
+                        for analysis in analyses
+                        if analysis.created_at.strftime("%Y-%m-%d") == date_key
+                        and disease_name(analysis) == disease
+                    ),
+                }
+                for date_key in sorted(daily_counts.keys())
+            ],
+        })
+
+    return jsonify({
+        "status": "success",
+        "range_days": days,
+        "summary": {
+            "total_analyses": total,
+            "healthy_count": healthy_count,
+            "diseased_count": diseased_count,
+            "healthy_ratio": round((healthy_count / total) * 100, 1) if total else 0,
+            "diseased_ratio": round((diseased_count / total) * 100, 1) if total else 0,
+            "average_health_score": round(
+                sum(a.health_score for a in analyses if a.health_score is not None)
+                / len([a for a in analyses if a.health_score is not None]),
+                1,
+            ) if any(a.health_score is not None for a in analyses) else 0,
+        },
+        "weekly_prediction_statistics": dict(sorted(weekly_counts.items())),
+        "monthly_analysis_summary": dict(sorted(monthly_counts.items())),
+        "disease_distribution": dict(disease_counts),
+        "disease_occurrence_trends": disease_trends,
+    })
+
+
 # --- Automated Reporting ---
 
 @app.route("/reports")
