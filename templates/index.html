@@ -126,7 +126,7 @@
 
             <ul class="nav-menu" id="nav-menu">
                 <li><a href="/" data-i18n="home">Home</a></li>
-                <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+                <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-controls="nav-menu" aria-expanded="false">
                     <i class="fas fa-bars"></i>
                 </button>
                 {% if current_user.is_authenticated %}
@@ -173,7 +173,7 @@
      Temporary Merge Conflict Text Cleanup
 ========================================================= -->
     <!-- Main Content -->
-    <main id="main-content">
+    <main id="main-content" tabindex="-1">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <div class="main-content">
@@ -1075,41 +1075,38 @@
     const navToggle = document.getElementById('nav-toggle');
     const navMenu = document.getElementById('nav-menu');
 
-    console.log('Nav toggle:', navToggle);
-    console.log('Nav menu:', navMenu);
-
     if (navToggle && navMenu) {
-        navToggle.addEventListener('click', () => {
-            console.log('Toggle clicked, current classes:', navMenu.classList);
-            navMenu.classList.toggle('active');
-            console.log('After toggle, classes:', navMenu.classList);
+        const setMenuState = (isOpen) => {
+            navMenu.classList.toggle('active', isOpen);
+            navToggle.setAttribute('aria-expanded', String(isOpen));
             const icon = navToggle.querySelector('i');
-            if (navMenu.classList.contains('active')) {
-                icon.classList.remove('fa-bars');
-                icon.classList.add('fa-times');
-            } else {
-                icon.classList.remove('fa-times');
-                icon.classList.add('fa-bars');
-            }
+            if (!icon) return;
+            icon.classList.toggle('fa-bars', !isOpen);
+            icon.classList.toggle('fa-times', isOpen);
+        };
+
+        navToggle.addEventListener('click', () => {
+            setMenuState(!navMenu.classList.contains('active'));
         });
 
         // Close menu when clicking on a link
         navMenu.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', () => {
-                navMenu.classList.remove('active');
-                const icon = navToggle.querySelector('i');
-                icon.classList.remove('fa-times');
-                icon.classList.add('fa-bars');
+                setMenuState(false);
             });
         });
 
         // Close menu when clicking outside
         document.addEventListener('click', (e) => {
             if (!navMenu.contains(e.target) && !navToggle.contains(e.target)) {
-                navMenu.classList.remove('active');
-                const icon = navToggle.querySelector('i');
-                icon.classList.remove('fa-times');
-                icon.classList.add('fa-bars');
+                setMenuState(false);
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && navMenu.classList.contains('active')) {
+                setMenuState(false);
+                navToggle.focus();
             }
         });
     } else {
