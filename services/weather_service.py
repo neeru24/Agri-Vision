@@ -367,6 +367,53 @@ def generate_weather_recommendations(weather: dict) -> list:
     return recs[:3]  # Cap at 3 weather tips to avoid overwhelming the recommendations list
 
 
+def build_weather_advisory(weather: dict) -> dict:
+    """Create farmer-facing weather advisories from current conditions."""
+    if not weather:
+        return {}
+
+    temp = weather.get("temperature")
+    humidity = weather.get("humidity")
+    precipitation = weather.get("precipitation", 0) or 0
+    wind_speed = weather.get("wind_speed", 0) or 0
+    uv_index = weather.get("uv_index")
+
+    irrigation = "Maintain the usual irrigation schedule and verify soil moisture before watering."
+    if precipitation >= 5:
+        irrigation = "Pause irrigation today and inspect drainage because recent rainfall is sufficient."
+    elif precipitation == 0 and humidity is not None and humidity < 45:
+        irrigation = "Increase irrigation frequency and check for water stress during the afternoon."
+    elif temp is not None and temp >= 34:
+        irrigation = "Water early in the morning or evening to reduce heat-related moisture loss."
+
+    rain_alert = "No immediate rain alert from the current weather reading."
+    if precipitation >= 10:
+        rain_alert = "Heavy rainfall detected. Check drainage channels and avoid field operations until soil firms up."
+    elif precipitation > 0:
+        rain_alert = "Rainfall detected. Delay spraying and inspect leaves for fungal symptoms after moisture persists."
+
+    heat_stress = "Heat stress risk is low under the current temperature reading."
+    if temp is not None and temp >= 38:
+        heat_stress = "Extreme heat risk. Avoid pesticide application during peak afternoon hours and protect young plants."
+    elif temp is not None and temp >= 32:
+        heat_stress = "Moderate heat stress risk. Prioritize morning irrigation and scout for mite pressure."
+
+    crop_protection = "Continue routine scouting for pests and disease symptoms."
+    if humidity is not None and humidity >= 80:
+        crop_protection = "High humidity can favor fungal disease. Improve airflow and avoid overhead irrigation."
+    elif wind_speed >= 30:
+        crop_protection = "Strong wind can cause spray drift. Postpone pesticide or nutrient spraying."
+    elif uv_index is not None and uv_index >= 8:
+        crop_protection = "Very high UV may stress seedlings. Plan field work for cooler hours."
+
+    return {
+        "irrigation_suggestion": irrigation,
+        "rain_alert": rain_alert,
+        "heat_stress_warning": heat_stress,
+        "crop_protection_recommendation": crop_protection,
+    }
+
+
 # --- WMO Weather Code helpers ---
 
 WMO_DESCRIPTIONS = {
