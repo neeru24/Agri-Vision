@@ -2,6 +2,7 @@ import base64
 import io
 import json
 import html
+import threading
 from flask_login import login_user
 from models import User, db
 
@@ -293,22 +294,29 @@ def test_health_check_endpoint(client, monkeypatch):
     monkeypatch.setattr(app.model_manager, "resnet_model", MockResNetModel())
     monkeypatch.setattr(app.model_manager, "yolo_model", MockYOLOModel())
     monkeypatch.setattr(app.model_manager, "loaded", True)
+    ready_event = threading.Event()
+    ready_event.set()
+    monkeypatch.setattr(app, "_model_load_event", ready_event)
+    monkeypatch.setattr(app, "_model_load_status", {"status": "ready", "error": None})
     resp = client.get("/health")
     assert resp.status_code == 200
     data = json.loads(resp.data)
-    assert data["status"] == "healthy"
-    assert data["model_loaded"] is True
+    assert data["status"] == "ready"
+    assert data["models"]["resnet"]["loaded"] is True
+    assert data["models"]["yolo"]["loaded"] is True
 
 
 def test_health_check_endpoint_fallback(client, monkeypatch):
     monkeypatch.setattr(app.model_manager, "resnet_model", None)
     monkeypatch.setattr(app.model_manager, "yolo_model", None)
     monkeypatch.setattr(app.model_manager, "loaded", True)
+    not_ready_event = threading.Event()
+    monkeypatch.setattr(app, "_model_load_event", not_ready_event)
+    monkeypatch.setattr(app, "_model_load_status", {"status": "loading", "error": None})
     resp = client.get("/health")
     assert resp.status_code == 503
     data = json.loads(resp.data)
-    assert data["status"] == "degraded"
-    assert data["model_loaded"] is False
+    assert data["status"] == "loading"
 
 
 def test_demo_route(client):
@@ -777,7 +785,9 @@ def test_post_api_analyze_exception(client, monkeypatch, valid_image):
     assert resp.status_code == 500
     res_data = json.loads(resp.data)
     assert "error" in res_data
-    assert "Mock API error" in res_data["error"]
+    # API intentionally returns a generic message instead of the raw exception
+    # to avoid leaking internal error details to clients.
+    assert res_data["error"] == "An internal server error occurred"
 
 
 def test_generate_mock_heatmap():
