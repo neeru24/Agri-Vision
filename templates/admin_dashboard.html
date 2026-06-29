@@ -280,9 +280,82 @@
         .comparison-table tr:hover {
             background: #f8f9fa;
         }
+        .confirm-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.45); z-index: 10000;
+            align-items: center; justify-content: center;
+        }
+        .confirm-overlay.show { display: flex; }
+        .confirm-box {
+            background: white; border-radius: 10px; padding: 30px;
+            max-width: 420px; width: 90%;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        }
+        .confirm-box h3 { margin: 0 0 10px 0; color: #333; font-size: 18px; }
+        .confirm-box p  { margin: 0 0 24px 0; color: #666; line-height: 1.5; }
+        .confirm-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .prompt-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.45); z-index: 10000;
+            align-items: center; justify-content: center;
+        }
+        .prompt-overlay.show { display: flex; }
+        .prompt-box {
+            background: white; border-radius: 10px; padding: 30px;
+            max-width: 420px; width: 90%;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        }
+        .prompt-box h3 { margin: 0 0 10px 0; color: #333; font-size: 18px; }
+        .prompt-box p  { margin: 0 0 12px 0; color: #666; line-height: 1.5; }
+        .prompt-box input {
+            width: 100%; padding: 10px; border: 1px solid #ddd;
+            border-radius: 5px; font-size: 14px; margin-bottom: 20px; box-sizing: border-box;
+        }
+        .prompt-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .toast-container {
+            position: fixed; top: 20px; right: 20px;
+            z-index: 11000; display: flex; flex-direction: column; gap: 10px;
+        }  
+        .toast {
+            display: flex; align-items: center; gap: 10px;
+            padding: 14px 18px; border-radius: 8px;
+            font-size: 14px; font-weight: 500; color: white;
+            min-width: 260px; max-width: 380px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideIn 0.3s ease;
+        }
+        .toast.error   { background: #ef4444; }
+        .toast.warning { background: #f59e0b; }
+        .toast.success { background: #22c55e; }
+        @keyframes slideIn {
+            from { transform: translateX(110%); opacity: 0; }
+            to   { transform: translateX(0);    opacity: 1; }
+        }
     </style>
 </head>
 <body>
+    <div id="toast-container" class="toast-container"></div>
+    <div id="confirm-overlay" class="confirm-overlay">
+        <div class="confirm-box">
+            <h3 id="confirm-title">Confirm</h3>
+            <p  id="confirm-message"></p>
+            <div class="confirm-actions">
+                <button class="btn" id="confirm-cancel" style="background:#e9ecef;color:#333;">Cancel</button>
+                <button class="btn btn-danger" id="confirm-ok">Confirm</button>
+            </div>
+        </div>
+    </div>
+    <div id="prompt-overlay" class="prompt-overlay">
+        <div class="prompt-box">
+            <h3 id="prompt-title">Input required</h3>
+            <p  id="prompt-message"></p>
+            <input type="text" id="prompt-input" />
+            <div class="prompt-actions">
+                <button class="btn" id="prompt-cancel" style="background:#e9ecef;color:#333;">Cancel</button>
+                <button class="btn btn-primary" id="prompt-ok">OK</button>
+            </div>
+        </div>
+    </div>
     <nav>
         <a href="/">Home</a>
         <a href="/analyze">Analyze</a>
@@ -392,6 +465,58 @@
     </div>
 
     <script>
+        function showToast(message, type = 'error', duration = 4000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const icons = { error:'fa-circle-xmark', warning:'fa-triangle-exclamation', success:'fa-circle-check' };
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas ${icons[type]||icons.error}"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), duration);
+        }
+        function showConfirm(title, message, okLabel = 'Confirm', okClass = 'btn-danger') {
+            return new Promise(resolve => {
+                document.getElementById('confirm-title').textContent   = title;
+                document.getElementById('confirm-message').textContent = message;
+                const okBtn = document.getElementById('confirm-ok');
+                okBtn.textContent = okLabel;
+                okBtn.className   = `btn ${okClass}`;
+                document.getElementById('confirm-overlay').classList.add('show');
+                function cleanup(result) {
+                    document.getElementById('confirm-overlay').classList.remove('show');
+                    okBtn.removeEventListener('click', onOk);
+                    document.getElementById('confirm-cancel').removeEventListener('click', onCancel);
+                    resolve(result);
+                }
+                const onOk     = () => cleanup(true);
+                const onCancel = () => cleanup(false);
+                okBtn.addEventListener('click', onOk);
+                document.getElementById('confirm-cancel').addEventListener('click', onCancel);
+            });
+        }
+        function showPrompt(title, message, placeholder = '') {
+            return new Promise(resolve => {
+                document.getElementById('prompt-title').textContent   = title;
+                document.getElementById('prompt-message').textContent = message;
+                const input = document.getElementById('prompt-input');
+                input.value = ''; input.placeholder = placeholder;
+                document.getElementById('prompt-overlay').classList.add('show');
+                input.focus();
+                function cleanup(result) {
+                    document.getElementById('prompt-overlay').classList.remove('show');
+                    document.getElementById('prompt-ok').removeEventListener('click', onOk);
+                    document.getElementById('prompt-cancel').removeEventListener('click', onCancel);
+                    input.removeEventListener('keydown', onKey);
+                    resolve(result);
+                }
+                const onOk     = () => cleanup(input.value);
+                const onCancel = () => cleanup(null);
+                const onKey    = e => { if(e.key==='Enter') cleanup(input.value); if(e.key==='Escape') cleanup(null); };
+                document.getElementById('prompt-ok').addEventListener('click', onOk);
+                document.getElementById('prompt-cancel').addEventListener('click', onCancel);
+                input.addEventListener('keydown', onKey);
+            });
+        }
         let currentData = null;
         let requestsChart, confidenceChart, successRateChart, inferenceTimeChart;
         let historicalData = {
@@ -608,7 +733,7 @@
 
         function exportCSV() {
             if (!currentData || !currentData.models) {
-                alert('No data to export');
+                showToast('No data to export.', 'warning');
                 return;
             }
 
@@ -746,7 +871,9 @@
         }
 
         async function activateModel(modelType, version) {
-            if (!confirm(`Activate ${modelType} version ${version}?`)) return;
+            const ok = await showConfirm('Activate model',
+                `Activate ${modelType} version ${version}?`, 'Activate', 'btn-success');
+            if (!ok) return;
             
             try {
                 const response = await fetch('/admin/models/activate', {
@@ -766,12 +893,13 @@
         }
 
         async function setABRatio(modelType, version) {
-            const ratio = prompt(`Enter A/B test ratio for ${modelType} ${version} (0.0 to 1.0):`);
-            if (ratio === null || ratio === '') return;
+            const raw = await showPrompt('Set A/B ratio',
+                `Enter A/B test ratio for ${modelType} ${version}:`, '0.0 – 1.0');
+            if (raw === null || raw === '') return;
             
-            const ratioValue = parseFloat(ratio);
+            const ratioValue = parseFloat(raw);
             if (isNaN(ratioValue) || ratioValue < 0 || ratioValue > 1) {
-                alert('Please enter a valid ratio between 0.0 and 1.0');
+                showToast('Please enter a valid ratio between 0.0 and 1.0.', 'warning');
                 return;
             }
 
@@ -793,7 +921,9 @@
         }
 
         async function deleteModel(modelType, version) {
-            if (!confirm(`Delete ${modelType} version ${version}? This cannot be undone.`)) return;
+            const ok = await showConfirm('Delete model',
+                `Delete ${modelType} version ${version}? This cannot be undone.`, 'Delete', 'btn-danger');
+            if (!ok) return;
             
             try {
                 const response = await fetch('/admin/models/delete', {

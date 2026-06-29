@@ -20,3 +20,17 @@ def log_security_event(*, event: str, user_id: Optional[str], session_id: Option
 
     logger.warning(payload)
 
+
+def log_audit_event(event_type: str, message: str, user_id: Optional[str] = None) -> None:
+    log_security_event(
+        event=event_type,
+        user_id=user_id,
+        session_id=None,
+        family_id=None,
+        request_id=None,
+        ip=None,
+        user_agent=None,
+        details={"message": message}
+    )
+
+

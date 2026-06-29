@@ -12,29 +12,29 @@ def update_css():
     --hover-transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94), border-color 0.25s ease;
 """
     if '--hover-translate-y' not in css:
-        css = re.sub(r'(:root\s*\{[^\}]*)(\})', r'\1' + root_vars + r'\2', css, count=1)
+        css = re.sub(r'(:root\s*\{[^}]*)(\})', lambda m: m.group(1) + root_vars + m.group(2), css, count=1, flags=re.DOTALL)
         
     # 2. Add dark mode variables
     dark_vars = """
     --hover-shadow-modern: 0 10px 20px -5px rgba(0, 0, 0, 0.35);
 """
     if '10px 20px -5px rgba(0, 0, 0, 0.35)' not in css:
-        css = re.sub(r'(\[data-theme="dark"\]\s*\{[^\}]*)(\})', r'\1' + dark_vars + r'\2', css, count=1)
+        css = re.sub(r'(\[data-theme="dark"\]\s*\{[^}]*)(\})', lambda m: m.group(1) + dark_vars + m.group(2), css, count=1, flags=re.DOTALL)
 
     # 3. Replace .feature-card:hover and related overly dramatic animations
     # We will just replace the entire block for .feature-card:hover and its children
     
     # Feature card hover replacement
-    css = re.sub(r'\.feature-card:hover\s*\{[^\}]+\}', 
+    css = re.sub(r'\.feature-card:hover\s*\{[^}]*\}',
                  '.feature-card:hover {\n    transform: translateY(var(--hover-translate-y));\n    box-shadow: var(--hover-shadow-modern);\n    border-color: var(--success-border);\n    cursor: pointer;\n}', css)
                  
-    css = re.sub(r'\.feature-card:hover::before\s*\{[^\}]+\}', 
+    css = re.sub(r'\.feature-card:hover::before\s*\{[^}]*\}',
                  '.feature-card:hover::before {\n    left: 100%;\n    opacity: 0.5;\n}', css)
                  
-    css = re.sub(r'\.feature-card:hover\s+\.feature-icon-wrapper\s*\{[^\}]+\}', 
+    css = re.sub(r'\.feature-card:hover\s+\.feature-icon-wrapper\s*\{[^}]*\}',
                  '.feature-card:hover .feature-icon-wrapper {\n    transform: translateY(-2px);\n    background: var(--emerald-green);\n    color: white;\n}', css)
                  
-    css = re.sub(r'\.feature-card:hover\s+i,\s*\.feature-card:hover\s+svg\.lucide\s*\{[^\}]+\}', 
+    css = re.sub(r'\.feature-card:hover\s+i,\s*\.feature-card:hover\s+svg\.lucide\s*\{[^}]*\}',
                  '.feature-card:hover i, .feature-card:hover svg.lucide {\n    transform: scale(1.05);\n    color: white;\n}', css)
 
     # Update .feature-card base transition
@@ -117,11 +117,8 @@ def update_css():
     grouped_hover = ",\n".join(card_types) + " {\n    transition: var(--hover-transition);\n    will-change: transform, box-shadow;\n}\n"
     grouped_hover += ",\n".join([c + ":hover" for c in card_types]) + " {\n    transform: translateY(var(--hover-translate-y));\n    box-shadow: var(--hover-shadow-modern);\n}\n"
     
-    if 'transition: var(--hover-transition);' not in grouped_hover:
-        pass # just to bypass
-    
-    if "transition: var(--hover-transition);" not in css.split('/* Modern Card Hover System */')[-1]:
-         css += "\n/* Apply to specific cards */\n" + grouped_hover
+    if "/* Apply to specific cards */" not in css:
+        css += "\n/* Apply to specific cards */\n" + grouped_hover
 
     with open('static/css/style.css', 'w', encoding='utf-8') as f:
         f.write(css)

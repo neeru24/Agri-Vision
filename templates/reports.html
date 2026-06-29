@@ -209,9 +209,39 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 18px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: white;
+            min-width: 260px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideIn 0.3s ease;
+        }
+        .toast.error  { background: #ef4444; }
+        .toast.warning { background: #f59e0b; }
+        .toast.success { background: #22c55e; }
+        @keyframes slideIn {
+            from { transform: translateX(110%); opacity: 0; }
+            to   { transform: translateX(0);    opacity: 1; }
+        }
     </style>
 </head>
 <body>
+    <div id="toast-container" class="toast-container"></div>
     <nav class="navbar">
         <div class="container">
             <a href="/" class="logo">
@@ -316,8 +346,18 @@
             </div>
         </div>
     </div>
-
+    
     <script>
+        function showToast(message, type = 'error', duration = 4000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const icons = { error: 'fa-circle-xmark', warning: 'fa-triangle-exclamation',
+                    success: 'fa-circle-check' };
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas ${icons[type] || icons.error}"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), duration);
+        }
         async function loadAnalyses() {
             try {
                 const response = await fetch('/api/analyses');
@@ -382,7 +422,7 @@
                 
             } catch (error) {
                 console.error('Error generating report:', error);
-                alert('Failed to generate report. Please try again.');
+                showToast('Failed to generate report. Please try again.');
             } finally {
                 btn.disabled = false;
                 loading.classList.remove('show');
@@ -395,7 +435,7 @@
             const loading = document.getElementById('individual-loading');
             
             if (!analysisId) {
-                alert('Please select an analysis first');
+                showToast('Please select an analysis first.', 'warning');
                 return;
             }
             
@@ -422,7 +462,7 @@
                 
             } catch (error) {
                 console.error('Error generating report:', error);
-                alert('Failed to generate report. Please try again.');
+                showToast('Failed to generate report. Please try again.');
             } finally {
                 btn.disabled = false;
                 loading.classList.remove('show');

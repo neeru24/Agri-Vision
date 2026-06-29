@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,48 +18,48 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             padding: 20px 0;
         }
-        
+
         .register-container {
             background: white;
             border-radius: 20px;
             padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             width: 100%;
             max-width: 450px;
         }
-        
+
         .logo {
             text-align: center;
             margin-bottom: 30px;
         }
-        
+
         .logo i {
             font-size: 60px;
             color: #667eea;
         }
-        
+
         .logo h1 {
             margin: 10px 0 0 0;
             color: #333;
             font-size: 28px;
         }
-        
+
         .logo p {
             color: #666;
             margin: 5px 0 0 0;
         }
-        
+
         .form-group {
             margin-bottom: 20px;
         }
-        
+
         .form-group label {
             display: block;
             margin-bottom: 8px;
             color: #333;
             font-weight: 500;
         }
-        
+
         .form-group input {
             width: 100%;
             padding: 12px 15px;
@@ -68,16 +69,16 @@
             transition: border-color 0.3s;
             box-sizing: border-box;
         }
-        
+
         .form-group input:focus {
             outline: none;
             border-color: #667eea;
         }
-        
+
         .form-group input::placeholder {
             color: #999;
         }
-        
+
         .form-group select {
             width: 100%;
             padding: 12px 15px;
@@ -88,12 +89,12 @@
             cursor: pointer;
             box-sizing: border-box;
         }
-        
+
         .form-group select:focus {
             outline: none;
             border-color: #667eea;
         }
-        
+
         .password-strength {
             margin-top: 8px;
             height: 4px;
@@ -101,19 +102,19 @@
             border-radius: 2px;
             overflow: hidden;
         }
-        
+
         .password-strength-bar {
             height: 100%;
             width: 0%;
             transition: width 0.3s, background 0.3s;
         }
-        
+
         .strength-text {
             font-size: 12px;
             margin-top: 5px;
             color: #666;
         }
-        
+
         .btn-register {
             width: 100%;
             padding: 15px;
@@ -126,7 +127,7 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        
+
         .btn-register:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
@@ -159,14 +160,13 @@
             height: 20px;
             margin-right: 10px;
         }
-        
         .divider {
             text-align: center;
             margin: 25px 0;
             color: #999;
             position: relative;
         }
-        
+
         .divider::before,
         .divider::after {
             content: '';
@@ -176,49 +176,49 @@
             height: 1px;
             background: #e5e7eb;
         }
-        
+
         .divider::before {
             left: 0;
         }
-        
+
         .divider::after {
             right: 0;
         }
-        
+
         .login-link {
             text-align: center;
             color: #666;
         }
-        
+
         .login-link a {
             color: #667eea;
             text-decoration: none;
             font-weight: 600;
         }
-        
+
         .login-link a:hover {
             text-decoration: underline;
         }
-        
+
         .alert {
             padding: 12px 15px;
             border-radius: 10px;
             margin-bottom: 20px;
             font-size: 14px;
         }
-        
+
         .alert-danger {
             background: #fee2e2;
             color: #dc2626;
             border: 1px solid #fecaca;
         }
-        
+
         .alert-success {
             background: #dcfce7;
             color: #16a34a;
             border: 1px solid #bbf7d0;
         }
-        
+
         .alert-info {
             background: #dbeafe;
             color: #2563eb;
@@ -226,6 +226,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="register-container">
         <div class="logo">
@@ -233,31 +234,34 @@
             <h1>Create Account</h1>
             <p>Join Agri-Vision</p>
         </div>
-        
+
         {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
         {% endwith %}
-        
+
         <form method="POST" action="{{ url_for('register') }}">
             <div class="form-group">
                 <label for="full_name">Full Name</label>
-                <input type="text" id="full_name" name="full_name" placeholder="Enter your full name" required>
+                <input type="text" id="full_name" name="full_name" placeholder="Enter your full name"
+                    value="{{ request.form.get('full_name', '') }}" required>
             </div>
-            
+
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                <input type="email" id="email" name="email" placeholder="Enter your email"
+                    value="{{ request.form.get('email', '') }}" required>
             </div>
-            
+
             <div class="form-group">
                 <label for="password">Password</label>
                 <div style="position: relative;">
+
                 <input
                     type="password"
                     id="password"
@@ -286,26 +290,25 @@
                 </div>
                 <div class="strength-text" id="strength-text">Password strength</div>
             </div>
-            
+
             <div class="form-group">
                 <label for="confirm_password">Confirm Password</label>
-                <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm your password" required>
+                <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm your password"
+                    required>
             </div>
-            
-            <div class="form-group">
-                <label for="role">Role</label>
-                <select id="role" name="role">
+
+            <div class="form-group"> <label for="role">Role</label> <select id="role" name="role">
                     <option value="farmer">Farmer</option>
                     <option value="researcher">Researcher</option>
-                </select>
-            </div>
-            
+                </select> </div>
+
             <button type="submit" class="btn-register">
                 <i class="fas fa-user-plus"></i> Create Account
             </button>
         </form>
-        
+
         <div class="divider">or</div>
+
         
         {% if google_oauth_enabled %}
         <a href="{{ url_for('auth_google') }}" class="btn-google" style="margin-bottom: 20px;">
@@ -318,22 +321,22 @@
             Already have an account? <a href="{{ url_for('login') }}">Login</a>
         </div>
     </div>
-    
+
     <script>
         function checkPasswordStrength() {
             const password = document.getElementById('password').value;
             const strengthBar = document.getElementById('strength-bar');
             const strengthText = document.getElementById('strength-text');
-            
+
             let strength = 0;
-            
+
             if (password.length >= 8) strength += 25;
             if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength += 25;
             if (password.match(/\d/)) strength += 25;
             if (password.match(/[^a-zA-Z\d]/)) strength += 25;
-            
+
             strengthBar.style.width = strength + '%';
-            
+
             if (strength <= 25) {
                 strengthBar.style.background = '#ef4444';
                 strengthText.textContent = 'Weak';
@@ -350,15 +353,16 @@
         }
 
         const togglePassword = document.getElementById("togglePassword");
-    const password = document.getElementById("password");
-        
-    togglePassword.addEventListener("click", function () {
-        const type = password.type === "password" ? "text" : "password";
-        password.type = type;
-    
-        this.classList.toggle("fa-eye");
-        this.classList.toggle("fa-eye-slash");
-    });
+        const password = document.getElementById("password");
+
+        togglePassword.addEventListener("click", function () {
+            const type = password.type === "password" ? "text" : "password";
+            password.type = type;
+
+            this.classList.toggle("fa-eye");
+            this.classList.toggle("fa-eye-slash");
+        });
     </script>
 </body>
+
 </html>

@@ -114,6 +114,9 @@ class User(UserMixin, db.Model):
     analyses = db.relationship(
         "AnalysisHistory", backref="user", lazy=True, cascade="all, delete-orphan"
     )
+    user_roles = db.relationship(
+        "UserRole", backref="user", lazy="dynamic", cascade="all, delete-orphan"
+    )
 
     def set_password(self, password):
         """Hash and set password"""

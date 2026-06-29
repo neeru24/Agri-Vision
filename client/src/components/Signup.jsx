@@ -79,7 +79,7 @@ const Signup = () => {
     if (!/[A-Z]/.test(password)) return 'Password must contain an uppercase letter';
     if (!/[a-z]/.test(password)) return 'Password must contain a lowercase letter';
     if (!/\d/.test(password)) return 'Password must contain a number';
-    return '';
+    return ;
   };
 
   const handlePasswordChange = (e) => {

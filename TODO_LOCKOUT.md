@@ -24,11 +24,10 @@
   - [x] counter increment / threshold
   - [x] lock TTL / cooldown
 
-- [ ] Integration tests for Flask `/login`:
+- [x] Integration tests for Flask `/login`:
   - [x] configured failures -> locked -> 423
   - [x] cooldown expiry -> successful login allowed
 
 ## Phase 4 (Quality / CI)
-- [ ] Run `pytest` locally
-- [ ] Fix any lint/test regressions
-
+- [x] Run `pytest` locally
+- [x] Fix any lint/test regressions

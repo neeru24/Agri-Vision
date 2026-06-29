@@ -144,8 +144,10 @@ def validate_image_upload(
             claimed_mime=claimed_mime,
         )
         if not ok:
-            raise UploadValidationError(reason, status_code=400)
+            raise UploadValidationError(f"Invalid image content: {reason}", status_code=400)
         detected = detect_mime_type(file_bytes[:2048])
+        if detected not in allowed_mime_types:
+            raise UploadValidationError("Invalid image content.", status_code=400)
         return sanitized_name, file_bytes, detected
     except UploadValidationError:
         raise

@@ -11,7 +11,7 @@
 <section class="main-content" aria-label="Crop analysis results">
   <div class="container" style="padding-bottom: 4rem">
     <div class="glass-card reveal reveal-fade-up results-card">
-      
+
       <div class="results-header">
         <h1 class="results-title">
           <i class="fas fa-leaf"></i> Crop Analysis Results
@@ -25,43 +25,25 @@
       {% if image_b64 %}
       <div class="result-img-container" style="position: relative; margin-bottom: 2rem;">
         <div id="original-image-view" style="position: relative;">
-          <img
-            id="result-img"
-            alt="Analyzed Crop Image"
-            src="data:image/jpeg;base64,{{ image_b64 }}"
-            class="result-img"
-          />
-          <svg
-            id="bbox-svg"
-            class="result-svg"
-            style="position: absolute; top: 0; left: 0;"
-            width="410"
-            height="{{ (img_shape.height|default(1) / img_shape.width|default(1) * 410)|int }}"
-          ></svg>
+          <img id="result-img" alt="Analyzed Crop Image" src="data:image/jpeg;base64,{{ image_b64 }}"
+            class="result-img" />
+          <svg id="bbox-svg" class="result-svg" style="position: absolute; top: 0; left: 0;" width="410"
+            height="{{ (img_shape.height|default(1) / img_shape.width|default(1) * 410)|int }}"></svg>
         </div>
 
         {% if grad_cam_image_b64 %}
         <div id="grad-cam-view" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none;">
-          <img
-            id="grad-cam-img"
-            alt="Grad-CAM Heatmap"
-            src="data:image/jpeg;base64,{{ grad_cam_image_b64 }}"
-            class="result-img"
-            style="border: 2px solid var(--ai-blue);"
-          />
+          <img id="grad-cam-img" alt="Grad-CAM Heatmap" src="data:image/jpeg;base64,{{ grad_cam_image_b64 }}"
+            class="result-img" style="border: 2px solid var(--ai-blue);" />
         </div>
-        <button
-          id="toggle-ai-focus"
-          class="btn btn-secondary"
-          style="
+        <button id="toggle-ai-focus" class="btn btn-secondary" style="
             position: absolute; bottom: 15px; left: 50%;
             transform: translateX(-50%); z-index: 10;
             padding: 0.6rem 1.2rem; font-size: 0.85rem;
             border-radius: 50px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             background: var(--card-bg); color: var(--deep-forest);
             border: 1px solid var(--card-border); transition: var(--transition-smooth);
-          "
-        >
+          ">
           <i class="fas fa-eye"></i> Show AI Focus
         </button>
         {% endif %}
@@ -73,48 +55,55 @@
         <h2 class="results-section-title">
           <i class="fas fa-stethoscope"></i> Disease Analysis
         </h2>
-        
+
         <div class="results-list">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+          <div
+            style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
             <div>
-              <b style="font-size: 1.1rem;">Detected Issue:</b> 
+              <b style="font-size: 1.1rem;">Detected Issue:</b>
               <span style="font-size: 1.2rem; color: var(--emerald-green); font-weight: 700; margin-left: 0.5rem;">
                 {{ disease.predicted_class|default("Unknown") }}
               </span>
             </div>
-            
+
             {% set d_issue = disease.predicted_class|default("Unknown") %}
             {% set d_conf = (disease.confidence|default(0)|float * 100) %}
-            
+
             <div class="severity-wrapper">
               {% if 'Healthy' in d_issue %}
-                <span class="severity-pill severity-healthy"><i class="fas fa-check-circle"></i> Healthy</span>
+              <span class="severity-pill severity-healthy"><i class="fas fa-check-circle"></i> Healthy</span>
               {% else %}
-                {% if d_conf > 70 %}
-                  <span class="severity-pill severity-high"><i class="fas fa-exclamation-triangle"></i> High Severity</span>
-                {% elif d_conf >= 40 %}
-                  <span class="severity-pill severity-moderate"><i class="fas fa-exclamation-circle"></i> Moderate Severity</span>
-                {% else %}
-                  <span class="severity-pill" style="background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1;"><i class="fas fa-info-circle"></i> Low Severity</span>
-                {% endif %}
+              {% if d_conf > 70 %}
+              <span class="severity-pill severity-high"><i class="fas fa-exclamation-triangle"></i> High Severity</span>
+              {% elif d_conf >= 40 %}
+              <span class="severity-pill severity-moderate"><i class="fas fa-exclamation-circle"></i> Moderate
+                Severity</span>
+              {% else %}
+              <span class="severity-pill" style="background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1;"><i
+                  class="fas fa-info-circle"></i> Low Severity</span>
+              {% endif %}
               {% endif %}
             </div>
           </div>
-          
+
           <div class="confidence-meter-container">
             <div class="meter-label-wrap">
               <span>Model Confidence</span>
               <span>{{ d_conf|round(1) }}%</span>
             </div>
             <div class="confidence-progress-bg">
-              <div class="confidence-progress-fill {% if d_conf > 75 %}meter-green{% elif d_conf > 50 %}meter-yellow{% else %}meter-red{% endif %}" style="width: {{ d_conf }}%;"></div>
+              <div
+                class="confidence-progress-fill {% if d_conf > 75 %}meter-green{% elif d_conf > 50 %}meter-yellow{% else %}meter-red{% endif %}"
+                style="width: {{ d_conf }}%;"></div>
             </div>
             <p style="margin-top: 0.8rem; color: var(--text-muted); font-size: 0.85rem; line-height: 1.4;">
-              <i class="fas fa-info-circle"></i> This score represents how certain the AI is about this specific disease pattern.
+              <i class="fas fa-info-circle"></i> This score represents how certain the AI is about this specific disease
+              pattern.
             </p>
           </div>
 
-          <div class="health-metrics" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem;">
+          <div class="health-metrics"
+            style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem;">
             <div class="metric-item">
               <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
                 <b>Overall Health</b>
@@ -132,7 +121,9 @@
                 <span>{{ results.disease_severity|float|round(2) }}%</span>
               </div>
               <div class="health-bar" style="background: rgba(0,0,0,0.05);">
-                <div class="health-fill" style="width: {{ results.disease_severity|float|round(0) }}%; background: linear-gradient(90deg, #ff4e50, #f9d423); box-shadow: 0 0 10px rgba(255, 78, 80, 0.3);"></div>
+                <div class="health-fill"
+                  style="width: {{ results.disease_severity|float|round(0) }}%; background: linear-gradient(90deg, #ff4e50, #f9d423); box-shadow: 0 0 10px rgba(255, 78, 80, 0.3);">
+                </div>
               </div>
             </div>
             {% endif %}
@@ -167,7 +158,8 @@
         <div class="results-list">
           <div style="margin-bottom: 1.5rem;">
             <b style="font-size: 1.1rem;">Detected Stage:</b>
-            <span style="font-size: 1.2rem; color: var(--emerald-green); font-weight: 700; margin-left: 0.5rem;">{{ growth.main_class }}</span>
+            <span style="font-size: 1.2rem; color: var(--emerald-green); font-weight: 700; margin-left: 0.5rem;">{{
+              growth.main_class }}</span>
           </div>
 
           <div class="confidence-meter-container">
@@ -177,7 +169,9 @@
               <span>{{ g_conf|round(1) }}%</span>
             </div>
             <div class="confidence-progress-bg">
-              <div class="confidence-progress-fill {% if g_conf > 75 %}meter-green{% elif g_conf > 50 %}meter-yellow{% else %}meter-red{% endif %}" style="width: {{ g_conf }}%;"></div>
+              <div
+                class="confidence-progress-fill {% if g_conf > 75 %}meter-green{% elif g_conf > 50 %}meter-yellow{% else %}meter-red{% endif %}"
+                style="width: {{ g_conf }}%;"></div>
             </div>
           </div>
         </div>
@@ -196,20 +190,22 @@
             <tr>
               <td>{{ box.class_name }}</td>
               <td>{{ (box.confidence|default(0)|float * 100)|round(1) }}%</td>
-              <td style="font-family: monospace; font-size: 0.8rem;">[{{ box.bbox[0]|int }}, {{ box.bbox[1]|int }}, {{ box.bbox[2]|int }}, {{ box.bbox[3]|int }}]</td>
+              <td style="font-family: monospace; font-size: 0.8rem;">[{{ box.bbox[0]|int }}, {{ box.bbox[1]|int }}, {{
+                box.bbox[2]|int }}, {{ box.bbox[3]|int }}]</td>
             </tr>
             {% endfor %}
           </table>
         </details>
         {% else %}
-        <p style="color: var(--text-muted); padding: 1rem; background: rgba(0,0,0,0.02); border-radius: 12px; border: 1px dashed var(--card-border);">
+        <p
+          style="color: var(--text-muted); padding: 1rem; background: rgba(0,0,0,0.02); border-radius: 12px; border: 1px dashed var(--card-border);">
           <i class="fas fa-info-circle"></i> No specific growth stages were clearly identified in this image.
         </p>
         {% endif %}
-      </section>
+</section>
 
-      {% if weather %}
-      <section class="weather-card" role="region" aria-label="Current weather conditions" style="
+{% if weather %}
+<section class="weather-card" role="region" aria-label="Current weather conditions" style="
           margin: 2rem 0;
           padding: 1.5rem;
           background: linear-gradient(135deg, #667eea15, #764ba215);
@@ -217,45 +213,49 @@
           border-radius: 16px;
           box-shadow: 0 2px 8px rgba(0,0,0,0.06);
       ">
-        <h3 style="margin: 0 0 1rem; color: #343a40; font-size: 1.1rem;">
-          ☁️ Current Weather Conditions
-        </h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem;">
-          {% if weather.temperature is not none %}
-          <div class="w-stat" style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
-            <div style="font-size: 1.8rem;">🌡️</div>
-            <div style="font-size: 1.3rem; font-weight: 600; color: #e74c3c;">{{ weather.temperature }}°C</div>
-            <div style="font-size: 0.75rem; color: #6c757d;">Temperature</div>
-          </div>
-          {% endif %}
-          {% if weather.humidity is not none %}
-          <div class="w-stat" style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
-            <div style="font-size: 1.8rem;">💧</div>
-            <div style="font-size: 1.3rem; font-weight: 600; color: #3498db;">{{ weather.humidity }}%</div>
-            <div style="font-size: 0.75rem; color: #6c757d;">Humidity</div>
-          </div>
-          {% endif %}
-          {% if weather.precipitation is not none %}
-          <div class="w-stat" style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
-            <div style="font-size: 1.8rem;">🌧️</div>
-            <div style="font-size: 1.3rem; font-weight: 600; color: #2980b9;">{{ weather.precipitation }} mm</div>
-            <div style="font-size: 0.75rem; color: #6c757d;">Precipitation</div>
-          </div>
-          {% endif %}
-          {% if weather.description is not none %}
-          <div class="w-stat" style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
-            <div style="font-size: 1.8rem;">{{ weather.icon|default('🌤️') }}</div>
-            <div style="font-size: 1.3rem; font-weight: 600; color: #2ecc71;">{{ weather.description }}</div>
-            <div style="font-size: 0.75rem; color: #6c757d;">Condition</div>
-          </div>
-          {% endif %}
-        </div>
-      </section>
-      {% endif %}
+  <h3 style="margin: 0 0 1rem; color: #343a40; font-size: 1.1rem;">
+    ☁️ Current Weather Conditions
+  </h3>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem;">
+    {% if weather.temperature is not none %}
+    <div class="w-stat"
+      style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+      <div style="font-size: 1.8rem;">🌡️</div>
+      <div style="font-size: 1.3rem; font-weight: 600; color: #e74c3c;">{{ weather.temperature }}°C</div>
+      <div style="font-size: 0.75rem; color: #6c757d;">Temperature</div>
+    </div>
+    {% endif %}
+    {% if weather.humidity is not none %}
+    <div class="w-stat"
+      style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+      <div style="font-size: 1.8rem;">💧</div>
+      <div style="font-size: 1.3rem; font-weight: 600; color: #3498db;">{{ weather.humidity }}%</div>
+      <div style="font-size: 0.75rem; color: #6c757d;">Humidity</div>
+    </div>
+    {% endif %}
+    {% if weather.precipitation is not none %}
+    <div class="w-stat"
+      style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+      <div style="font-size: 1.8rem;">🌧️</div>
+      <div style="font-size: 1.3rem; font-weight: 600; color: #2980b9;">{{ weather.precipitation }} mm</div>
+      <div style="font-size: 0.75rem; color: #6c757d;">Precipitation</div>
+    </div>
+    {% endif %}
+    {% if weather.description is not none %}
+    <div class="w-stat"
+      style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+      <div style="font-size: 1.8rem;">{{ weather.icon|default('🌤️') }}</div>
+      <div style="font-size: 1.3rem; font-weight: 600; color: #2ecc71;">{{ weather.description }}</div>
+      <div style="font-size: 0.75rem; color: #6c757d;">Condition</div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
 
-      <!-- Disease Forecast & Risk Analysis -->
-      {% if forecast %}
-      <section class="forecast-card" role="region" aria-label="Disease forecast and risk analysis" style="
+<!-- Disease Forecast & Risk Analysis -->
+{% if forecast %}
+<section class="forecast-card" role="region" aria-label="Disease forecast and risk analysis" style="
           margin: 2rem 0;
           padding: 1.5rem;
           background: linear-gradient(135deg, #f093fb15, #f5576c15);
@@ -263,91 +263,105 @@
           border-radius: 16px;
           box-shadow: 0 2px 8px rgba(0,0,0,0.06);
       ">
-        <h3 style="margin: 0 0 1rem; color: #343a40; font-size: 1.1rem;">
-          📊 Disease Forecast & Risk Analysis
-        </h3>
-        <p style="margin: 0 0 1rem; color: #6c757d; font-size: 0.9rem;">
-          Location: {{ forecast.location }}
-        </p>
-        
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-          {% if forecast.weather_risk %}
-          <div style="text-align:center; padding: 1rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
-            <div style="font-size: 1.5rem;">⚠️</div>
-            <div style="font-size: 1.1rem; font-weight: 600; color: #e74c3c;">{{ forecast.weather_risk.risk_level|default('Moderate')|title }}</div>
-            <div style="font-size: 0.75rem; color: #6c757d;">Weather-Based Risk</div>
-          </div>
-          {% endif %}
-          
-          {% if forecast.seasonal_risk %}
-          <div style="text-align:center; padding: 1rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
-            <div style="font-size: 1.5rem;">📅</div>
-            <div style="font-size: 1.1rem; font-weight: 600; color: #9b59b6;">{{ forecast.seasonal_risk.risk_percentage|round(1) }}%</div>
-            <div style="font-size: 0.75rem; color: #6c757d;">{{ forecast.seasonal_risk.month_name }} Risk</div>
-          </div>
-          {% endif %}
-          
-          {% if forecast.peak_season %}
-          <div style="text-align:center; padding: 1rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
-            <div style="font-size: 1.5rem;">🏔️</div>
-            <div style="font-size: 1.1rem; font-weight: 600; color: #f39c12;">{{ forecast.peak_season.month_name }}</div>
-            <div style="font-size: 0.75rem; color: #6c757d;">Peak Season</div>
-          </div>
-          {% endif %}
-        </div>
-        
-        {% if forecast.recommendations %}
-        <div style="background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
-          <h4 style="margin: 0 0 0.75rem; color: #343a40; font-size: 1rem;">💡 Weather-Based Recommendations</h4>
-          <ul style="margin: 0; padding-left: 1.25rem; color: #495057; font-size: 0.9rem;">
-            {% for rec in forecast.recommendations %}
-            <li style="margin-bottom: 0.5rem;">{{ rec }}</li>
-            {% endfor %}
-          </ul>
-        </div>
-        {% endif %}
-      </section>
-      {% endif %}
+  <h3 style="margin: 0 0 1rem; color: #343a40; font-size: 1.1rem;">
+    📊 Disease Forecast & Risk Analysis
+  </h3>
+  <p style="margin: 0 0 1rem; color: #6c757d; font-size: 0.9rem;">
+    Location: {{ forecast.location }}
+  </p>
 
-      <!-- Analyzed Image + Bounding Boxes -->
-      {% if image_b64 %}
-      <div class="result-img-container" style="position: relative; margin-bottom: 2rem">
-        <div id="original-image-view" style="position: relative">
-          <img id="result-img" alt="Analyzed Crop Image showing uploaded cotton crop" src="data:image/jpeg;base64,{{ image_b64 }}" class="result-img" />
-          <svg id="bbox-svg" class="result-svg" role="img" aria-label="Bounding box annotations showing detected growth stages on the crop image" style="position: absolute; top: 0; left: 0" width="410" height="{{ (img_shape.height|default(1) / img_shape.width|default(1) * 410)|int }}">
-            <title>Growth stage detection bounding boxes</title>
-            <desc>Visual annotations drawn by YOLOv8 object detection model highlighting detected cotton growth stages in the image. {% for box in growth_boxes %}{{ box.class_name }} detected at confidence {{ (box.confidence * 100)|round(1) }}%. {% endfor %}</desc>
-          </svg>
-        </div>
-        {% if grad_cam_image_b64 %}
-        <div id="grad-cam-view" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none;">
-          <img id="grad-cam-img" alt="Grad-CAM Heatmap" src="data:image/jpeg;base64,{{ grad_cam_image_b64 }}" class="result-img" style="border: 2px solid var(--ai-blue)" />
-        </div>
-        <button id="toggle-ai-focus" class="btn btn-secondary" style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); z-index: 10; padding: 0.6rem 1.2rem; font-size: 0.85rem; border-radius: 50px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); background: var(--card-bg); color: var(--deep-forest); border: 1px solid var(--card-border); transition: var(--transition-smooth);">
-          <i class="fas fa-eye"></i> Show AI Focus
-        </button>
-        {% endif %}
-      </div>
-      {% endif %}
+  <div
+    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+    {% if forecast.weather_risk %}
+    <div
+      style="text-align:center; padding: 1rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+      <div style="font-size: 1.5rem;">⚠️</div>
+      <div style="font-size: 1.1rem; font-weight: 600; color: #e74c3c;">{{
+        forecast.weather_risk.risk_level|default('Moderate')|title }}</div>
+      <div style="font-size: 0.75rem; color: #6c757d;">Weather-Based Risk</div>
+    </div>
+    {% endif %}
 
-      {% if results.warnings %}
-      <div class="result-card" style="border-left: 4px solid #f59e0b" role="alert" aria-label="Degraded mode notice">
-        <h2 class="results-section-title"><i class="fas fa-triangle-exclamation"></i> Degraded Mode Notice</h2>
-        <ul class="results-list">
-          {% for warning in results.warnings %}
-          <li>{{ warning }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-      {% endif %}
+    {% if forecast.seasonal_risk %}
+    <div
+      style="text-align:center; padding: 1rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+      <div style="font-size: 1.5rem;">📅</div>
+      <div style="font-size: 1.1rem; font-weight: 600; color: #9b59b6;">{{
+        forecast.seasonal_risk.risk_percentage|round(1) }}%</div>
+      <div style="font-size: 0.75rem; color: #6c757d;">{{ forecast.seasonal_risk.month_name }} Risk</div>
+    </div>
+    {% endif %}
 
-      <div class="result-card" role="region" aria-label="Growth stage and disease classification results">
-        <h2 class="results-section-title" data-i18n="res_growth_title">
-          <i class="fas fa-seedling"></i> Growth Stage Detection (YOLOv8)
-        </h2>
+    {% if forecast.peak_season %}
+    <div
+      style="text-align:center; padding: 1rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+      <div style="font-size: 1.5rem;">🏔️</div>
+      <div style="font-size: 1.1rem; font-weight: 600; color: #f39c12;">{{ forecast.peak_season.month_name }}</div>
+      <div style="font-size: 0.75rem; color: #6c757d;">Peak Season</div>
+    </div>
+    {% endif %}
+  </div>
 
-        <!-- Growth Stage Timeline -->
-        <div class="growth-ti
+  {% if forecast.recommendations %}
+  <div style="background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+    <h4 style="margin: 0 0 0.75rem; color: #343a40; font-size: 1rem;">💡 Weather-Based Recommendations</h4>
+    <ul style="margin: 0; padding-left: 1.25rem; color: #495057; font-size: 0.9rem;">
+      {% for rec in forecast.recommendations %}
+      <li style="margin-bottom: 0.5rem;">{{ rec }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</section>
+{% endif %}
+
+<!-- Analyzed Image + Bounding Boxes -->
+{% if image_b64 %}
+<div class="result-img-container" style="position: relative; margin-bottom: 2rem">
+  <div id="original-image-view" style="position: relative">
+    <img id="result-img" alt="Analyzed Crop Image showing uploaded cotton crop"
+      src="data:image/jpeg;base64,{{ image_b64 }}" class="result-img" />
+    <svg id="bbox-svg" class="result-svg" role="img"
+      aria-label="Bounding box annotations showing detected growth stages on the crop image"
+      style="position: absolute; top: 0; left: 0" width="410"
+      height="{{ (img_shape.height|default(1) / img_shape.width|default(1) * 410)|int }}">
+      <title>Growth stage detection bounding boxes</title>
+      <desc>Visual annotations drawn by YOLOv8 object detection model highlighting detected cotton growth stages in the
+        image. {% for box in growth_boxes %}{{ box.class_name }} detected at confidence {{ (box.confidence *
+        100)|round(1) }}%. {% endfor %}</desc>
+    </svg>
+  </div>
+  {% if grad_cam_image_b64 %}
+  <div id="grad-cam-view" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none;">
+    <img id="grad-cam-img" alt="Grad-CAM Heatmap" src="data:image/jpeg;base64,{{ grad_cam_image_b64 }}"
+      class="result-img" style="border: 2px solid var(--ai-blue)" />
+  </div>
+  <button id="toggle-ai-focus" class="btn btn-secondary"
+    style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); z-index: 10; padding: 0.6rem 1.2rem; font-size: 0.85rem; border-radius: 50px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); background: var(--card-bg); color: var(--deep-forest); border: 1px solid var(--card-border); transition: var(--transition-smooth);">
+    <i class="fas fa-eye"></i> Show AI Focus
+  </button>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if results.warnings %}
+<div class="result-card" style="border-left: 4px solid #f59e0b" role="alert" aria-label="Degraded mode notice">
+  <h2 class="results-section-title"><i class="fas fa-triangle-exclamation"></i> Degraded Mode Notice</h2>
+  <ul class="results-list">
+    {% for warning in results.warnings %}
+    <li>{{ warning }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<div class="result-card" role="region" aria-label="Growth stage and disease classification results">
+  <h2 class="results-section-title" data-i18n="res_growth_title">
+    <i class="fas fa-seedling"></i> Growth Stage Detection (YOLOv8)
+  </h2>
+
+  <!-- Growth Stage Timeline -->
+  <div class="growth-ti
         meline" style="
             display: flex;
             justify-content: space-between;
@@ -356,7 +370,7 @@
             position: relative;
             padding: 0 10px;
         ">
-          <div style="
+    <div style="
               position: absolute;
               top: 50%;
               left: 0;
@@ -367,21 +381,21 @@
               transform: translateY(-50%);
           "></div>
 
-          {% set stages = [
-              "Cotton Bud",
-              "Cotton Blossom",
-              "Early Boll",
-              "Green Cotton Boll",
-              "Matured Cotton Boll",
-              "Split Cotton Boll"
-          ] %}
+    {% set stages = [
+    "Cotton Bud",
+    "Cotton Blossom",
+    "Early Boll",
+    "Green Cotton Boll",
+    "Matured Cotton Boll",
+    "Split Cotton Boll"
+    ] %}
 
-          {% set current_stage = growth.main_class %}
-          {% set found_current = false %}
+    {% set current_stage = growth.main_class %}
+    {% set found_current = false %}
 
-          {% for stage in stages %}
-            {% set is_current = (stage == current_stage) %}
-            <div class="timeline-step" style="
+    {% for stage in stages %}
+    {% set is_current = (stage == current_stage) %}
+    <div class="timeline-step" style="
                 position: relative;
                 z-index: 2;
                 display: flex;
@@ -389,7 +403,7 @@
                 align-items: center;
                 flex: 1;
             ">
-              <div class="step-circle" style="
+      <div class="step-circle" style="
                   width: 20px;
                   height: 20px;
                   border-radius: 50%;
@@ -400,7 +414,7 @@
                   transition: all 0.3s ease;
                   {% if is_current %}transform: scale(1.3); box-shadow: 0 0 10px var(--ai-blue);{% endif %}
               "></div>
-              <span style="
+      <span style="
                   font-size: 0.6rem;
                   font-weight: {% if is_current %}700{% else %}500{% endif %};
                   color: {% if is_current %}var(--ai-blue){% else %}#6c757d{% endif %};
@@ -408,43 +422,45 @@
                   max-width: 50px;
                   line-height: 1.1;
               " data-i18n="{{ stage }}">{{ stage }}</span>
-            </div>
-            {% if is_current %}{% set found_current = true %}{% endif %}
-          {% endfor %}
-        </div>
+    </div>
+    {% if is_current %}{% set found_current = true %}{% endif %}
+    {% endfor %}
+  </div>
 
-        {% if growth.main_class %}
-        <h2 class="results-section-title"><i class="fas fa-stethoscope"></i> Disease Classification (ResNet50)</h2>
-        <ul class="results-list">
-          <li><b>Detected Issue:</b> {{ disease.detected_issue|default("Unknown") }}
-            {% if disease.model_confidence %}
-            <span class="badge badge-confidence" style="background: linear-gradient(135deg, #17a2b8 0%, #117a8b 100%); color: white; padding: 0.25rem 0.6rem; font-size: 0.8rem; font-weight: 600; border-radius: 50px; margin-left: 0.5rem; display: inline-block;">
-              {% if disease.health_score %}
-                {% if disease.health_score < 40 %}
-                  <span class="badge" style="background:#dc3545;color:white;padding:0.3rem 0.7rem;border-radius:20px;margin-left:0.5rem;">
-                    Severe <span class="sr-only">(Health score below 40%)</span>
-                  </span>
-                {% elif disease.health_score < 75 %}
-                  <span class="badge" style="background:#ffc107;color:black;padding:0.3rem 0.7rem;border-radius:20px;margin-left:0.5rem;">
-                    Moderate <span class="sr-only">(Health score between 40% and 75%)</span>
-                  </span>
-                {% else %}
-                  <span class="badge" style="background:#28a745;color:white;padding:0.3rem 0.7rem;border-radius:20px;margin-left:0.5rem;">
-                    Healthy <span class="sr-only">(Health score above 75%)</span>
-                  </span>
-                {% endif %}
-              {% endif %}
-              <i class="fas fa-circle-check"></i> {{ disease.model_confidence|round(1) }}% Confidence
-            </span>
-            {% endif %}
-            {% if heatmap_only_b64 %}
-            <a href="#explainability-dashboard" id="btn-view-explanation" class="btn btn-primary" style="margin-left: 1rem; font-size: 0.8rem; padding: 0.35rem 0.9rem; border-radius: 50px; background: linear-gradient(135deg, var(--ai-blue, #3b82f6) 0%, var(--electric-blue, #6366f1) 100%); border: none; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2); color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600; transition: transform 0.2s;">
-              <i class="fas fa-brain"></i> View AI Explanation
-            </a>
-            {% endif %}
-          </li>
-          {% if disease.model_confidence and disease.model_confidence < 70 %}
-          <div class="low-confidence-alert" style="
+  {% if growth.main_class %}
+  <h2 class="results-section-title"><i class="fas fa-stethoscope"></i> Disease Classification (ResNet50)</h2>
+  <ul class="results-list">
+    <li><b>Detected Issue:</b> {{ disease.detected_issue|default("Unknown") }}
+      {% if disease.model_confidence %}
+      <span class="badge badge-confidence"
+        style="background: linear-gradient(135deg, #17a2b8 0%, #117a8b 100%); color: white; padding: 0.25rem 0.6rem; font-size: 0.8rem; font-weight: 600; border-radius: 50px; margin-left: 0.5rem; display: inline-block;">
+        {% if disease.health_score %}
+        {% if disease.health_score < 40 %} <span class="badge"
+          style="background:#dc3545;color:white;padding:0.3rem 0.7rem;border-radius:20px;margin-left:0.5rem;">
+          Severe <span class="sr-only">(Health score below 40%)</span>
+      </span>
+      {% elif disease.health_score < 75 %} <span class="badge"
+        style="background:#ffc107;color:black;padding:0.3rem 0.7rem;border-radius:20px;margin-left:0.5rem;">
+        Moderate <span class="sr-only">(Health score between 40% and 75%)</span>
+        </span>
+        {% else %}
+        <span class="badge"
+          style="background:#28a745;color:white;padding:0.3rem 0.7rem;border-radius:20px;margin-left:0.5rem;">
+          Healthy <span class="sr-only">(Health score above 75%)</span>
+        </span>
+        {% endif %}
+        {% endif %}
+        <i class="fas fa-circle-check"></i> {{ disease.model_confidence|round(1) }}% Confidence
+        </span>
+        {% endif %}
+        {% if heatmap_only_b64 %}
+        <a href="#explainability-dashboard" id="btn-view-explanation" class="btn btn-primary"
+          style="margin-left: 1rem; font-size: 0.8rem; padding: 0.35rem 0.9rem; border-radius: 50px; background: linear-gradient(135deg, var(--ai-blue, #3b82f6) 0%, var(--electric-blue, #6366f1) 100%); border: none; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2); color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600; transition: transform 0.2s;">
+          <i class="fas fa-brain"></i> View AI Explanation
+        </a>
+        {% endif %}
+    </li>
+    {% if disease.model_confidence and disease.model_confidence < 70 %} <div class="low-confidence-alert" style="
               margin-top: 1rem;
               padding: 1rem;
               border-radius: 12px;
@@ -453,79 +469,85 @@
               color: #664d03;
               animation: pulseWarning 2s infinite;
           ">
-            <h4 style="margin-bottom: 0.5rem;">
-              <i class="fas fa-triangle-exclamation"></i>
-              Low Confidence Detection
-            </h4>
-            <p style="margin:0; line-height:1.6;">
-              The AI model is uncertain about this prediction.
-              Please upload a clearer leaf image with proper lighting
-              or consult an agricultural expert for manual verification.
-            </p>
-          </div>
-          {% endif %}
-          <li><b>Health Score:</b> {{ disease.health_score|default(0)|round(2) }}%
-            <span class="sr-only">{% if disease.health_score|default(0)|float < 40 %}Severity level: Critical{% elif disease.health_score|default(0)|float < 75 %}Severity level: Moderate{% else %}Severity level: Good{% endif %}</span>
-            <div class="health-bar" role="progressbar" aria-valuenow="{{ disease.health_score|default(0)|round(0) }}" aria-valuemin="0" aria-valuemax="100" aria-label="Crop health score: {{ disease.health_score|default(0)|round(2) }} percent" style="margin-top: 0.4rem">
-              <div class="health-fill" style="width: {{ disease.health_score|default(0)|round(0) }}%;"></div>
-            </div>
-          </li>
-          <div class="xai-probability-card">
-            <div class="xai-confidence-title">
-              <i class="fas fa-brain"></i>
-              AI Prediction Confidence Meter
-            </div>
-            <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
-              <span>Prediction Reliability</span>
-              <span>{{ disease.model_confidence|default(0)|round(1) }}%</span>
-            </div>
-            <div class="xai-confidence-meter">
-              <div class="xai-confidence-fill" style="width: {{ disease.model_confidence|default(0) }}%;"></div>
-            </div>
-            <p style="
+      <h4 style="margin-bottom: 0.5rem;">
+        <i class="fas fa-triangle-exclamation"></i>
+        Low Confidence Detection
+      </h4>
+      <p style="margin:0; line-height:1.6;">
+        The AI model is uncertain about this prediction.
+        Please upload a clearer leaf image with proper lighting
+        or consult an agricultural expert for manual verification.
+      </p>
+</div>
+{% endif %}
+<li><b>Health Score:</b> {{ disease.health_score|default(0)|round(2) }}%
+  <span class="sr-only">{% if disease.health_score|default(0)|float < 40 %}Severity level: Critical{% elif
+      disease.health_score|default(0)|float < 75 %}Severity level: Moderate{% else %}Severity level: Good{% endif
+      %}</span>
+      <div class="health-bar" role="progressbar" aria-valuenow="{{ disease.health_score|default(0)|round(0) }}"
+        aria-valuemin="0" aria-valuemax="100"
+        aria-label="Crop health score: {{ disease.health_score|default(0)|round(2) }} percent"
+        style="margin-top: 0.4rem">
+        <div class="health-fill" style="width: {{ disease.health_score|default(0)|round(0) }}%;"></div>
+      </div>
+</li>
+<div class="xai-probability-card">
+  <div class="xai-confidence-title">
+    <i class="fas fa-brain"></i>
+    AI Prediction Confidence Meter
+  </div>
+  <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+    <span>Prediction Reliability</span>
+    <span>{{ disease.model_confidence|default(0)|round(1) }}%</span>
+  </div>
+  <div class="xai-confidence-meter">
+    <div class="xai-confidence-fill" style="width: {{ disease.model_confidence|default(0) }}%;"></div>
+  </div>
+  <p style="
                 margin-top:0.8rem;
                 color: var(--text-muted);
                 line-height:1.6;
                 font-size:0.9rem;
             ">
-              Higher confidence indicates the model found stronger
-              visual disease patterns inside the crop image.
-            </p>
-          </div>
-        </ul>
-        {% endif %}
-      </div>
+    Higher confidence indicates the model found stronger
+    visual disease patterns inside the crop image.
+  </p>
+</div>
+</ul>
+{% endif %}
+</div>
 
-      {% if image_b64 and (grad_cam_image_b64 or heatmap_image_path) %}
-      <div class="result-card">
-        <h2 class="results-section-title"><i class="fas fa-brain"></i> Grad-CAM Explainability</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
-          <div>
-            <p style="margin: 0 0 0.5rem; color: var(--text-muted); font-weight: 600;">Original Image</p>
-            <img src="data:image/jpeg;base64,{{ image_b64 }}" alt="Original uploaded crop" class="result-img" />
-          </div>
-          <div>
-            <p style="margin: 0 0 0.5rem; color: var(--text-muted); font-weight: 600;">Grad-CAM Heatmap Overlay</p>
-            {% if heatmap_image_path %}
-            <img src="/{{ heatmap_image_path }}" alt="Grad-CAM heatmap overlay" class="result-img" />
-            {% else %}
-            <img src="data:image/jpeg;base64,{{ grad_cam_image_b64 }}" alt="Grad-CAM heatmap overlay" class="result-img" />
-            {% endif %}
-          </div>
-        </div>
-      </div>
+{% if image_b64 and (grad_cam_image_b64 or heatmap_image_path) %}
+<div class="result-card">
+  <h2 class="results-section-title"><i class="fas fa-brain"></i> Grad-CAM Explainability</h2>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+    <div>
+      <p style="margin: 0 0 0.5rem; color: var(--text-muted); font-weight: 600;">Original Image</p>
+      <img src="data:image/jpeg;base64,{{ image_b64 }}" alt="Original uploaded crop" class="result-img" />
+    </div>
+    <div>
+      <p style="margin: 0 0 0.5rem; color: var(--text-muted); font-weight: 600;">Grad-CAM Heatmap Overlay</p>
+      {% if heatmap_image_path %}
+      <img src="/{{ heatmap_image_path }}" alt="Grad-CAM heatmap overlay" class="result-img" />
+      {% else %}
+      <img src="data:image/jpeg;base64,{{ grad_cam_image_b64 }}" alt="Grad-CAM heatmap overlay" class="result-img" />
       {% endif %}
+    </div>
+  </div>
+</div>
+{% endif %}
 
-      <div class="agri-leaf-compare-wrap fade-in">
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
-          <div>
-            <h2 class="results-section-title" style="margin-top: 0; margin-bottom: 0.2rem;"><i class="fas fa-microscope"></i> Visual Health Comparison</h2>
-            <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">
-              Compare the expected healthy appearance with your uploaded crop image.
-            </p>
-      </div>
-      {% if weather %}
-      <div class="weather-card" style="
+<div class="agri-leaf-compare-wrap fade-in">
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
+    <div>
+      <h2 class="results-section-title" style="margin-top: 0; margin-bottom: 0.2rem;"><i class="fas fa-microscope"></i>
+        Visual Health Comparison</h2>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">
+        Compare the expected healthy appearance with your uploaded crop image.
+      </p>
+    </div>
+    {% if weather %}
+    <div class="weather-card" style="
           margin: 2rem 0;
           padding: 1.5rem;
           background: linear-gradient(135deg, #667eea15, #764ba215);
@@ -533,242 +555,282 @@
           border-radius: 16px;
           box-shadow: 0 2px 8px rgba(0,0,0,0.06);
       ">
-        <h3 style="margin: 0 0 1rem; color: #343a40; font-size: 1.1rem;">
-          ☁️ Current Weather Conditions
-        </h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem;">
-          {% if weather.temperature is not none %}
-          <div class="w-stat" style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
-            <div style="font-size: 1.8rem;">🌡️</div>
-            <div style="font-size: 1.3rem; font-weight: 600; color: #e74c3c;">{{ weather.temperature }}°C</div>
-            <div style="font-size: 0.75rem; color: #6c757d;">Temperature</div>
-          </div>
-          {% endif %}
-          {% if weather.humidity is not none %}
-          <div class="w-stat" style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
-            <div style="font-size: 1.8rem;">💧</div>
-            <div style="font-size: 1.3rem; font-weight: 600; color: #3498db;">{{ weather.humidity }}%</div>
-            <div style="font-size: 0.75rem; color: #6c757d;">Humidity</div>
-          </div>
-          {% endif %}
-          {% if weather.precipitation is not none %}
-          <div class="w-stat" style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
-            <div style="font-size: 1.8rem;">🌧️</div>
-            <div style="font-size: 1.3rem; font-weight: 600; color: #2980b9;">{{ weather.precipitation }} mm</div>
-            <div style="font-size: 0.75rem; color: #6c757d;">Precipitation</div>
-          </div>
-          {% endif %}
-          {% if weather.description is not none %}
-          <div class="w-stat" style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
-            <div style="font-size: 1.8rem;">{{ weather.icon|default('🌤️') }}</div>
-            <div style="font-size: 1.3rem; font-weight: 600; color: #2ecc71;">{{ weather.description }}</div>
-            <div style="font-size: 0.75rem; color: #6c757d;">Condition</div>
-          </div>
-          {% endif %}
+      <h3 style="margin: 0 0 1rem; color: #343a40; font-size: 1.1rem;">
+        ☁️ Current Weather Conditions
+      </h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem;">
+        {% if weather.temperature is not none %}
+        <div class="w-stat"
+          style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+          <div style="font-size: 1.8rem;">🌡️</div>
+          <div style="font-size: 1.3rem; font-weight: 600; color: #e74c3c;">{{ weather.temperature }}°C</div>
+          <div style="font-size: 0.75rem; color: #6c757d;">Temperature</div>
         </div>
-        {% if weather %}
-        <p style="margin:0.75rem 0 0; font-size:0.75rem; color:#adb5bd; text-align:right;">
-          Source: {{ weather.source|default('open-meteo')|title }} · Lat {{ "%.3f"|format(weather.lat|default(0)) }}, Lon {{ "%.3f"|format(weather.lon|default(0)) }}
-        </p>
+        {% endif %}
+        {% if weather.humidity is not none %}
+        <div class="w-stat"
+          style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+          <div style="font-size: 1.8rem;">💧</div>
+          <div style="font-size: 1.3rem; font-weight: 600; color: #3498db;">{{ weather.humidity }}%</div>
+          <div style="font-size: 0.75rem; color: #6c757d;">Humidity</div>
+        </div>
+        {% endif %}
+        {% if weather.precipitation is not none %}
+        <div class="w-stat"
+          style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+          <div style="font-size: 1.8rem;">🌧️</div>
+          <div style="font-size: 1.3rem; font-weight: 600; color: #2980b9;">{{ weather.precipitation }} mm</div>
+          <div style="font-size: 0.75rem; color: #6c757d;">Precipitation</div>
+        </div>
+        {% endif %}
+        {% if weather.description is not none %}
+        <div class="w-stat"
+          style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+          <div style="font-size: 1.8rem;">{{ weather.icon|default('🌤️') }}</div>
+          <div style="font-size: 1.3rem; font-weight: 600; color: #2ecc71;">{{ weather.description }}</div>
+          <div style="font-size: 0.75rem; color: #6c757d;">Condition</div>
+        </div>
         {% endif %}
       </div>
+      {% if weather %}
+      <p style="margin:0.75rem 0 0; font-size:0.75rem; color:#adb5bd; text-align:right;">
+        Source: {{ weather.source|default('open-meteo')|title }} · Lat {{ "%.3f"|format(weather.lat|default(0)) }}, Lon
+        {{ "%.3f"|format(weather.lon|default(0)) }}
+      </p>
       {% endif %}
+    </div>
+    {% endif %}
 
-          <!-- Healthy Panel -->
-          <div class="agri-leaf-compare-card">
-            <div class="agri-leaf-compare-imagebox">
-              <img src="/{{ disease_info.healthy_image|default('static/images/healthy_leaf.jpg') }}" alt="Healthy Reference" onerror="this.src='https://images.unsplash.com/photo-1592982537447-6f296dbf1708?auto=format&fit=crop&w=800&q=80'" />
-              <div class="agri-leaf-healthy-label"><i class="fas fa-check-circle"></i> Healthy Reference</div>
-            </div>
-            <div class="agri-leaf-symptoms-panel" style="margin: 1rem; border: none; background: transparent; box-shadow: none; padding: 0;">
-              <h3 style="font-size: 1.05rem; color: var(--emerald-green); margin-bottom: 0.5rem;"><i class="fas fa-leaf"></i> Expected Appearance</h3>
-              <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-main); margin-bottom: 0; opacity: 0.9;">
-                A healthy cotton crop should have a uniform green color, normal leaf shape, and no visible spots, mildew, or pest damage.
-              </p>
-            </div>
+    <!-- Healthy Panel -->
+    <div class="agri-leaf-compare-card">
+      <div class="agri-leaf-compare-imagebox">
+        <img src="/{{ disease_info.healthy_image|default('static/images/healthy_leaf.jpg') }}" alt="Healthy Reference"
+          onerror="this.src='https://images.unsplash.com/photo-1592982537447-6f296dbf1708?auto=format&fit=crop&w=800&q=80'" />
+        <div class="agri-leaf-healthy-label"><i class="fas fa-check-circle"></i> Healthy Reference</div>
+      </div>
+      <div class="agri-leaf-symptoms-panel"
+        style="margin: 1rem; border: none; background: transparent; box-shadow: none; padding: 0;">
+        <h3 style="font-size: 1.05rem; color: var(--emerald-green); margin-bottom: 0.5rem;"><i class="fas fa-leaf"></i>
+          Expected Appearance</h3>
+        <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-main); margin-bottom: 0; opacity: 0.9;">
+          A healthy cotton crop should have a uniform green color, normal leaf shape, and no visible spots, mildew, or
+          pest damage.
+        </p>
+      </div>
+    </div>
+
+    <!-- Diseased/Uploaded Panel -->
+    <div class="agri-leaf-compare-card">
+      <div class="agri-leaf-compare-imagebox">
+        {% if grad_cam_image_b64 %}
+        <img src="data:image/jpeg;base64,{{ grad_cam_image_b64 }}" alt="AI Focus Image" />
+        {% else %}
+        <img src="data:image/jpeg;base64,{{ image_b64 }}" alt="Uploaded Image" />
+        {% endif %}
+        {% if disease.detected_issue == 'Healthy' %}
+        <div class="agri-leaf-healthy-label"><i class="fas fa-leaf"></i> Detected: {{
+          disease.detected_issue|default("Healthy") }}</div>
+        {% else %}
+        <div class="agri-leaf-diseased-label"><i class="fas fa-exclamation-triangle"></i> Detected: {{
+          disease.detected_issue|default("Unknown Issue") }}</div>
+        {% endif %}
+      </div>
+      <div class="agri-leaf-treatment-panel"
+        style="margin: 1rem; border: none; background: transparent; box-shadow: none; padding: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <h3
+            style="font-size: 1.05rem; color: {% if disease.detected_issue == 'Healthy' %}var(--emerald-green){% else %}#f87171{% endif %}; margin-bottom: 0;">
+            Analysis Result</h3>
+          <span class="badge badge-confidence"
+            style="background: rgba(255,255,255,0.1); color: var(--text-main); padding: 0.25rem 0.6rem; font-size: 0.75rem; border-radius: 50px;">
+            <i class="fas fa-bullseye"></i> {{ disease.model_confidence|default(0)|round(1) }}% Confidence
+          </span>
+        </div>
+        <div class="health-bar" style="height: 6px; margin: 0.8rem 0 1rem 0; background: rgba(0,0,0,0.2);">
+          <div class="health-fill"
+            style="width: {{ disease.health_score|default(0)|round(0) }}%; {% if disease.health_score|default(0)|float < 50 %}background: linear-gradient(90deg, #f87171, #ef4444); box-shadow: 0 0 10px rgba(239,68,68,0.4);{% elif disease.health_score|default(0)|float < 80 %}background: linear-gradient(90deg, #fbbf24, #f59e0b); box-shadow: 0 0 10px rgba(245,158,11,0.4);{% endif %}">
           </div>
+        </div>
+        <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-main); margin-bottom: 0; opacity: 0.9;">
+          {{ disease_info.symptoms|default("No specific symptoms to report for this diagnosis.") }}
+        </p>
+      </div>
+    </div>
 
-          <!-- Diseased/Uploaded Panel -->
-          <div class="agri-leaf-compare-card">
-            <div class="agri-leaf-compare-imagebox">
-              {% if grad_cam_image_b64 %}
-              <img src="data:image/jpeg;base64,{{ grad_cam_image_b64 }}" alt="AI Focus Image" />
-              {% else %}
-              <img src="data:image/jpeg;base64,{{ image_b64 }}" alt="Uploaded Image" />
-              {% endif %}
-              {% if disease.detected_issue == 'Healthy' %}
-              <div class="agri-leaf-healthy-label"><i class="fas fa-leaf"></i> Detected: {{ disease.detected_issue|default("Healthy") }}</div>
-              {% else %}
-              <div class="agri-leaf-diseased-label"><i class="fas fa-exclamation-triangle"></i> Detected: {{ disease.detected_issue|default("Unknown Issue") }}</div>
-              {% endif %}
-            </div>
-            <div class="agri-leaf-treatment-panel" style="margin: 1rem; border: none; background: transparent; box-shadow: none; padding: 0;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                <h3 style="font-size: 1.05rem; color: {% if disease.detected_issue == 'Healthy' %}var(--emerald-green){% else %}#f87171{% endif %}; margin-bottom: 0;">Analysis Result</h3>
-                <span class="badge badge-confidence" style="background: rgba(255,255,255,0.1); color: var(--text-main); padding: 0.25rem 0.6rem; font-size: 0.75rem; border-radius: 50px;">
-                  <i class="fas fa-bullseye"></i> {{ disease.model_confidence|default(0)|round(1) }}% Confidence
-                </span>
-              </div>
-              <div class="health-bar" style="height: 6px; margin: 0.8rem 0 1rem 0; background: rgba(0,0,0,0.2);">
-                <div class="health-fill" style="width: {{ disease.health_score|default(0)|round(0) }}%; {% if disease.health_score|default(0)|float < 50 %}background: linear-gradient(90deg, #f87171, #ef4444); box-shadow: 0 0 10px rgba(239,68,68,0.4);{% elif disease.health_score|default(0)|float < 80 %}background: linear-gradient(90deg, #fbbf24, #f59e0b); box-shadow: 0 0 10px rgba(245,158,11,0.4);{% endif %}"></div>
-              </div>
-              <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-main); margin-bottom: 0; opacity: 0.9;">
-                {{ disease_info.symptoms|default("No specific symptoms to report for this diagnosis.") }}
-              </p>
-            </div>
-          </div>
+  </div>
+</div>
 
+<!-- Yield Estimate -->
+{% if yield_estimate %}
+<section class="result-card yield-calculator-section" role="region" aria-label="Interactive yield calculator"
+  style="background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur)); border: 1px solid var(--card-border); transition: all 0.3s ease;">
+  <h2 class="results-section-title" data-i18n="res_yield_title">
+    <i class="fas fa-chart-line"></i> Interactive Yield Calculator
+  </h2>
+
+  <!-- Interactive Acreage Slider -->
+  <div class="no-print yield-slider-container"
+    style="margin-bottom: 1.5rem; padding: 1.25rem; background: rgba(255, 255, 255, 0.08); border-radius: 12px; border: 1px solid var(--card-border); box-shadow: 0 2px 10px rgba(0,0,0,0.15); transition: all 0.3s ease;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+      <label for="acreage-slider" style="font-weight: 700; color: var(--emerald-green); font-size: 0.95rem;"
+        data-i18n="res_yield_adj">
+        <i class="fas fa-expand-arrows-alt"></i> Adjust Farm Size (Acres)
+      </label>
+      <span id="acreage-display"
+        style="font-weight: 800; color: white; background: linear-gradient(135deg, var(--emerald-green), var(--fresh-green)); padding: 6px 14px; border-radius: 20px; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(92, 209, 139, 0.3);">
+        {{ yield_estimate.field_acres|default(1.0) }} acres
+      </span>
+    </div>
+    <input type="range" id="acreage-slider" min="0.5" max="50" step="0.5"
+      value="{{ yield_estimate.field_acres|default(1.0) }}"
+      style="width: 100%; accent-color: var(--emerald-green); cursor: pointer; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.15); outline: none;">
+    <div
+      style="display: flex; justify-content: space-between; margin-top: 0.4rem; color: var(--text-muted); font-size: 0.7rem; font-weight: 500;">
+      <span>0.5 Ac</span>
+      <span>25 Ac</span>
+      <span>50 Ac</span>
+    </div>
+  </div>
+
+  <p style="font-size:0.82rem; color:var(--text-muted); margin: 0 0 1.2rem; font-style: italic;">
+    Based on growth stage, crop health{% if weather %}, and current weather{% endif %}.
+    Reference: ICAR Bt cotton baseline (20 q/acre).
+  </p>
+
+  <div style="display:flex; flex-wrap:wrap; gap:1rem; margin-bottom:1.2rem;">
+    <div class="yield-stat-card"
+      style="flex:1; min-width:150px; text-align:center; background:rgba(255, 255, 255, 0.06); border-radius:12px; padding:1.2rem; box-shadow:0 3px 12px rgba(0,0,0,0.2); border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease;">
+      <div
+        style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.4rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"
+        data-i18n="res_yield_per_acre">Per Acre</div>
+      <div style="font-size:1.6rem; font-weight:800; color:var(--emerald-green); margin-bottom: 0.2rem;">
+        {{ yield_estimate.yield_min_acre }}–{{ yield_estimate.yield_max_acre }}
+      </div>
+      <div style="font-size:0.85rem; color:var(--text-color); font-weight: 500;">quintals/acre</div>
+      <div
+        style="font-size:0.72rem; color:var(--text-muted); margin-top:0.4rem; padding-top: 0.4rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        {{ yield_estimate.yield_min_kg_ha }}–{{ yield_estimate.yield_max_kg_ha }} kg/ha
+      </div>
+    </div>
+
+    <div class="yield-stat-card yield-stat-card-primary"
+      style="flex:1; min-width:150px; text-align:center; background: linear-gradient(145deg, rgba(92, 209, 139, 0.15), rgba(109, 220, 144, 0.1)); border-radius:12px; padding:1.2rem; box-shadow:0 3px 12px rgba(92, 209, 139, 0.2); border: 2px solid rgba(92, 209, 139, 0.3); transition: all 0.3s ease;">
+      <div
+        style="font-size:0.75rem; color:var(--emerald-green); margin-bottom:0.4rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;"
+        data-i18n="res_yield_total">Total Field Estimate</div>
+      <div style="font-size:1.8rem; font-weight:900; color:var(--fresh-green); margin-bottom: 0.2rem;"
+        id="total-yield-display">
+        {{ yield_estimate.yield_min_total }}–{{ yield_estimate.yield_max_total }}
+      </div>
+      <div style="font-size:0.9rem; color:var(--emerald-green); font-weight: 600;" id="total-unit-display">quintals
+        total</div>
+      <div
+        style="font-size:0.72rem; color:var(--emerald-green); margin-top:0.4rem; padding-top: 0.4rem; border-top: 1px solid rgba(92, 209, 139, 0.2); font-weight: 500;"
+        id="total-kg-ha-display">
+        {{ (yield_estimate.yield_min_total * 100)|round|int }}–{{ (yield_estimate.yield_max_total * 100)|round|int }} kg
+        total
+      </div>
+    </div>
+
+    <div class="yield-stat-card"
+      style="flex:1; min-width:150px; text-align:center; background:rgba(255, 255, 255, 0.06); border-radius:12px; padding:1.2rem; box-shadow:0 3px 12px rgba(0,0,0,0.2); border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease;">
+      <div
+        style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.5rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"
+        data-i18n="res_yield_conf">Confidence</div>
+      <div
+        style="font-size:1.3rem; font-weight:800; color:{{ yield_estimate.confidence_color }}; margin-bottom: 0.4rem;">
+        {{ yield_estimate.confidence_label }}
+      </div>
+      <div
+        style="background:rgba(255, 255, 255, 0.1); border-radius:10px; height:8px; margin:0.5rem auto; width:85%; overflow: hidden;">
+        <div
+          style="background:{{ yield_estimate.confidence_color }}; width:{{ yield_estimate.confidence_pct }}%; height:100%; border-radius:10px; transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
         </div>
       </div>
+      <div style="font-size:0.8rem; color:var(--text-color); font-weight: 700;"><span id="rel-pct">{{
+          yield_estimate.confidence_pct }}</span>% <span data-i18n="res_yield_reliability">reliability</span></div>
+    </div>
+  </div>
 
-      <!-- Yield Estimate -->
-      {% if yield_estimate %}
-      <section class="result-card yield-calculator-section" role="region" aria-label="Interactive yield calculator" style="background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur)); border: 1px solid var(--card-border); transition: all 0.3s ease;">
-        <h2 class="results-section-title" data-i18n="res_yield_title">
-          <i class="fas fa-chart-line"></i> Interactive Yield Calculator
-        </h2>
+  <script>
+    (function () {
+      const slider = document.getElementById('acreage-slider');
+      const display = document.getElementById('acreage-display');
+      const totalDisplay = document.getElementById('total-yield-display');
+      const kgTotalDisplay = document.getElementById('total-kg-ha-display');
 
-        <!-- Interactive Acreage Slider -->
-        <div class="no-print yield-slider-container" style="margin-bottom: 1.5rem; padding: 1.25rem; background: rgba(255, 255, 255, 0.08); border-radius: 12px; border: 1px solid var(--card-border); box-shadow: 0 2px 10px rgba(0,0,0,0.15); transition: all 0.3s ease;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
-            <label for="acreage-slider" style="font-weight: 700; color: var(--emerald-green); font-size: 0.95rem;" data-i18n="res_yield_adj">
-              <i class="fas fa-expand-arrows-alt"></i> Adjust Farm Size (Acres)
-            </label>
-            <span id="acreage-display" style="font-weight: 800; color: white; background: linear-gradient(135deg, var(--emerald-green), var(--fresh-green)); padding: 6px 14px; border-radius: 20px; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(92, 209, 139, 0.3);">
-              {{ yield_estimate.field_acres|default(1.0) }} acres
-            </span>
-          </div>
-          <input
-            type="range"
-            id="acreage-slider"
-            min="0.5"
-            max="50"
-            step="0.5"
-            value="{{ yield_estimate.field_acres|default(1.0) }}"
-            style="width: 100%; accent-color: var(--emerald-green); cursor: pointer; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.15); outline: none;"
-          >
-          <div style="display: flex; justify-content: space-between; margin-top: 0.4rem; color: var(--text-muted); font-size: 0.7rem; font-weight: 500;">
-            <span>0.5 Ac</span>
-            <span>25 Ac</span>
-            <span>50 Ac</span>
-          </div>
-        </div>
+      const minPerAcre = {{ yield_estimate.yield_min_acre }
+    };
+    const maxPerAcre = {{ yield_estimate.yield_max_acre }};
 
-        <p style="font-size:0.82rem; color:var(--text-muted); margin: 0 0 1.2rem; font-style: italic;">
-          Based on growth stage, crop health{% if weather %}, and current weather{% endif %}.
-          Reference: ICAR Bt cotton baseline (20 q/acre).
-        </p>
+    slider.addEventListener('input', function () {
+      const acres = parseFloat(this.value);
+      display.textContent = acres.toFixed(1) + ' acres';
 
-        <div style="display:flex; flex-wrap:wrap; gap:1rem; margin-bottom:1.2rem;">
-          <div class="yield-stat-card" style="flex:1; min-width:150px; text-align:center; background:rgba(255, 255, 255, 0.06); border-radius:12px; padding:1.2rem; box-shadow:0 3px 12px rgba(0,0,0,0.2); border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease;">
-            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.4rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="res_yield_per_acre">Per Acre</div>
-            <div style="font-size:1.6rem; font-weight:800; color:var(--emerald-green); margin-bottom: 0.2rem;">
-              {{ yield_estimate.yield_min_acre }}–{{ yield_estimate.yield_max_acre }}
-            </div>
-            <div style="font-size:0.85rem; color:var(--text-color); font-weight: 500;">quintals/acre</div>
-            <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.4rem; padding-top: 0.4rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-              {{ yield_estimate.yield_min_kg_ha }}–{{ yield_estimate.yield_max_kg_ha }} kg/ha
-            </div>
-          </div>
+      const totalMin = (minPerAcre * acres).toFixed(2);
+      const totalMax = (maxPerAcre * acres).toFixed(2);
+      totalDisplay.textContent = totalMin + '–' + totalMax;
 
-          <div class="yield-stat-card yield-stat-card-primary" style="flex:1; min-width:150px; text-align:center; background: linear-gradient(145deg, rgba(92, 209, 139, 0.15), rgba(109, 220, 144, 0.1)); border-radius:12px; padding:1.2rem; box-shadow:0 3px 12px rgba(92, 209, 139, 0.2); border: 2px solid rgba(92, 209, 139, 0.3); transition: all 0.3s ease;">
-            <div style="font-size:0.75rem; color:var(--emerald-green); margin-bottom:0.4rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="res_yield_total">Total Field Estimate</div>
-            <div style="font-size:1.8rem; font-weight:900; color:var(--fresh-green); margin-bottom: 0.2rem;" id="total-yield-display">
-              {{ yield_estimate.yield_min_total }}–{{ yield_estimate.yield_max_total }}
-            </div>
-            <div style="font-size:0.9rem; color:var(--emerald-green); font-weight: 600;" id="total-unit-display">quintals total</div>
-            <div style="font-size:0.72rem; color:var(--emerald-green); margin-top:0.4rem; padding-top: 0.4rem; border-top: 1px solid rgba(92, 209, 139, 0.2); font-weight: 500;" id="total-kg-ha-display">
-              {{ (yield_estimate.yield_min_total * 100)|round|int }}–{{ (yield_estimate.yield_max_total * 100)|round|int }} kg total
-            </div>
-          </div>
+      const totalKgMin = Math.round(totalMin * 100);
+      const totalKgMax = Math.round(totalMax * 100);
+      kgTotalDisplay.textContent = totalKgMin + '–' + totalKgMax + ' kg total';
+    });
+          }) ();
+  </script>
+</section>
+{% endif %}
 
-          <div class="yield-stat-card" style="flex:1; min-width:150px; text-align:center; background:rgba(255, 255, 255, 0.06); border-radius:12px; padding:1.2rem; box-shadow:0 3px 12px rgba(0,0,0,0.2); border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease;">
-            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.5rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="res_yield_conf">Confidence</div>
-            <div style="font-size:1.3rem; font-weight:800; color:{{ yield_estimate.confidence_color }}; margin-bottom: 0.4rem;">
-              {{ yield_estimate.confidence_label }}
-            </div>
-            <div style="background:rgba(255, 255, 255, 0.1); border-radius:10px; height:8px; margin:0.5rem auto; width:85%; overflow: hidden;">
-              <div style="background:{{ yield_estimate.confidence_color }}; width:{{ yield_estimate.confidence_pct }}%; height:100%; border-radius:10px; transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);"></div>
-            </div>
-            <div style="font-size:0.8rem; color:var(--text-color); font-weight: 700;"><span id="rel-pct">{{ yield_estimate.confidence_pct }}</span>% <span data-i18n="res_yield_reliability">reliability</span></div>
-          </div>
-        </div>
-
-        <script>
-          (function() {
-            const slider = document.getElementById('acreage-slider');
-            const display = document.getElementById('acreage-display');
-            const totalDisplay = document.getElementById('total-yield-display');
-            const kgTotalDisplay = document.getElementById('total-kg-ha-display');
-
-            const minPerAcre = {{ yield_estimate.yield_min_acre }};
-            const maxPerAcre = {{ yield_estimate.yield_max_acre }};
-
-            slider.addEventListener('input', function() {
-              const acres = parseFloat(this.value);
-              display.textContent = acres.toFixed(1) + ' acres';
-
-              const totalMin = (minPerAcre * acres).toFixed(2);
-              const totalMax = (maxPerAcre * acres).toFixed(2);
-              totalDisplay.textContent = totalMin + '–' + totalMax;
-
-              const totalKgMin = Math.round(totalMin * 100);
-              const totalKgMax = Math.round(totalMax * 100);
-              kgTotalDisplay.textContent = totalKgMin + '–' + totalKgMax + ' kg total';
-            });
-          })();
-        </script>
-      </section>
-      {% endif %}
-
-      <!-- Recommendations -->
-      <div class="result-card">
-        <h2 class="results-section-title" data-i18n="res_recs">
-          <i class="fas fa-lightbulb"></i> Recommendations
-        </h2>
-        <div class="recommendations-grid reveal-stagger">
-          {% for rec in results.recommendations|default([]) %}
-          <div class="rec-card reveal reveal-slide-left">
-            <div class="rec-icon">
-              {% if 'water' in rec.lower() or 'irrigation' in rec.lower() %}
-                <i class="fas fa-tint"></i>
-              {% elif 'fertilizer' in rec.lower() or 'nutrient' in rec.lower() %}
-                <i class="fas fa-vial"></i>
-              {% elif 'pesticide' in rec.lower() or 'insect' in rec.lower() or 'fungicide' in rec.lower() or 'spray' in rec.lower() %}
-                <i class="fas fa-spray-can"></i>
-              {% elif 'harvest' in rec.lower() %}
-                <i class="fas fa-tractor"></i>
-              {% elif 'consult' in rec.lower() or 'expert' in rec.lower() %}
-                <i class="fas fa-user-tie"></i>
-              {% else %}
-                <i class="fas fa-leaf"></i>
-              {% endif %}
-            </div>
-            <div class="rec-content">
-              <h4>{% if 'water' in rec.lower() or 'irrigation' in rec.lower() %}Watering Tip{% elif 'fertilizer' in rec.lower() or 'nutrient' in rec.lower() %}Nutrient Management{% elif 'pesticide' in rec.lower() or 'insect' in rec.lower() or 'fungicide' in rec.lower() %}Crop Protection{% else %}General Advice{% endif %}</h4>
-              <p>{{ rec }}</p>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
+<!-- Recommendations -->
+<div class="result-card">
+  <h2 class="results-section-title" data-i18n="res_recs">
+    <i class="fas fa-lightbulb"></i> Recommendations
+  </h2>
+  <div class="recommendations-grid reveal-stagger">
+    {% for rec in results.recommendations|default([]) %}
+    <div class="rec-card reveal reveal-slide-left">
+      <div class="rec-icon">
+        {% if 'water' in rec.lower() or 'irrigation' in rec.lower() %}
+        <i class="fas fa-tint"></i>
+        {% elif 'fertilizer' in rec.lower() or 'nutrient' in rec.lower() %}
+        <i class="fas fa-vial"></i>
+        {% elif 'pesticide' in rec.lower() or 'insect' in rec.lower() or 'fungicide' in rec.lower() or 'spray' in
+        rec.lower() %}
+        <i class="fas fa-spray-can"></i>
+        {% elif 'harvest' in rec.lower() %}
+        <i class="fas fa-tractor"></i>
+        {% elif 'consult' in rec.lower() or 'expert' in rec.lower() %}
+        <i class="fas fa-user-tie"></i>
+        {% else %}
+        <i class="fas fa-leaf"></i>
+        {% endif %}
       </div>
+      <div class="rec-content">
+        <h4>{% if 'water' in rec.lower() or 'irrigation' in rec.lower() %}Watering Tip{% elif 'fertilizer' in
+          rec.lower() or 'nutrient' in rec.lower() %}Nutrient Management{% elif 'pesticide' in rec.lower() or 'insect'
+          in rec.lower() or 'fungicide' in rec.lower() %}Crop Protection{% else %}General Advice{% endif %}</h4>
+        <p>{{ rec }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
 
-      <!-- Context-Aware Treatment & Management Guide -->
-      {% set tr = treatment_recommendations|default({}) %}
-      {% if tr and tr.treatment is defined %}
-      <div class="result-card" id="treatment-management-guide" role="region" aria-label="Treatment and management guide">
-        <h2 class="results-section-title">
-          <i class="fas fa-prescription-bottle-medical"></i> Treatment &amp; Management Guide
-        </h2>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
-          Actionable agricultural guidance based on the detected condition
-          {% if tr.disease_name and tr.disease_name != 'unknown' %}
-            — <b>{{ tr.disease_name }}</b>
-          {% endif %}
-        </p>
+<!-- Context-Aware Treatment & Management Guide -->
+{% set tr = treatment_recommendations|default({}) %}
+{% if tr and tr.treatment is defined %}
+<div class="result-card" id="treatment-management-guide" role="region" aria-label="Treatment and management guide">
+  <h2 class="results-section-title">
+    <i class="fas fa-prescription-bottle-medical"></i> Treatment &amp; Management Guide
+  </h2>
+  <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+    Actionable agricultural guidance based on the detected condition
+    {% if tr.disease_name and tr.disease_name != 'unknown' %}
+    — <b>{{ tr.disease_name }}</b>
+    {% endif %}
+  </p>
 
-        {% if tr.confidence_advisory %}
-        <div style="
+  {% if tr.confidence_advisory %}
+  <div style="
             margin-bottom: 1.5rem;
             padding: 1rem 1.2rem;
             border-radius: 12px;
@@ -778,297 +840,353 @@
             font-size: 0.9rem;
             line-height: 1.6;
         ">
-          <i class="fas fa-triangle-exclamation"></i>
-          {{ tr.confidence_advisory }}
-        </div>
-        {% endif %}
+    <i class="fas fa-triangle-exclamation"></i>
+    {{ tr.confidence_advisory }}
+  </div>
+  {% endif %}
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.2rem;">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.2rem;">
 
-          {% if tr.treatment %}
-          <div style="background: linear-gradient(135deg, rgba(239,68,68,0.05), rgba(239,68,68,0.02)); border: 1px solid rgba(239,68,68,0.15); border-radius: 12px; padding: 1.2rem;">
-            <h3 style="font-size: 1rem; color: #dc3545; margin: 0 0 0.8rem 0;">
-              <i class="fas fa-first-aid"></i> Treatment Suggestions
-            </h3>
-            <ul class="results-list" style="margin: 0; padding-left: 1rem;">
-              {% for item in tr.treatment %}
-              <li style="margin-bottom: 0.4rem; font-size: 0.88rem; line-height: 1.5;">{{ item }}</li>
-              {% endfor %}
-            </ul>
-          </div>
-          {% endif %}
+    {% if tr.treatment %}
+    <div
+      style="background: linear-gradient(135deg, rgba(239,68,68,0.05), rgba(239,68,68,0.02)); border: 1px solid rgba(239,68,68,0.15); border-radius: 12px; padding: 1.2rem;">
+      <h3 style="font-size: 1rem; color: #dc3545; margin: 0 0 0.8rem 0;">
+        <i class="fas fa-first-aid"></i> Treatment Suggestions
+      </h3>
+      <ul class="results-list" style="margin: 0; padding-left: 1rem;">
+        {% for item in tr.treatment %}
+        <li style="margin-bottom: 0.4rem; font-size: 0.88rem; line-height: 1.5;">{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
 
-          {% if tr.prevention %}
-          <div style="background: linear-gradient(135deg, rgba(40,167,69,0.05), rgba(40,167,69,0.02)); border: 1px solid rgba(40,167,69,0.15); border-radius: 12px; padding: 1.2rem;">
-            <h3 style="font-size: 1rem; color: #28a745; margin: 0 0 0.8rem 0;">
-              <i class="fas fa-shield-alt"></i> Prevention Tips
-            </h3>
-            <ul class="results-list" style="margin: 0; padding-left: 1rem;">
-              {% for item in tr.prevention %}
-              <li style="margin-bottom: 0.4rem; font-size: 0.88rem; line-height: 1.5;">{{ item }}</li>
-              {% endfor %}
-            </ul>
-          </div>
-          {% endif %}
+    {% if tr.prevention %}
+    <div
+      style="background: linear-gradient(135deg, rgba(40,167,69,0.05), rgba(40,167,69,0.02)); border: 1px solid rgba(40,167,69,0.15); border-radius: 12px; padding: 1.2rem;">
+      <h3 style="font-size: 1rem; color: #28a745; margin: 0 0 0.8rem 0;">
+        <i class="fas fa-shield-alt"></i> Prevention Tips
+      </h3>
+      <ul class="results-list" style="margin: 0; padding-left: 1rem;">
+        {% for item in tr.prevention %}
+        <li style="margin-bottom: 0.4rem; font-size: 0.88rem; line-height: 1.5;">{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
 
-          {% if tr.irrigation %}
-          <div style="background: linear-gradient(135deg, rgba(52,152,219,0.05), rgba(52,152,219,0.02)); border: 1px solid rgba(52,152,219,0.15); border-radius: 12px; padding: 1.2rem;">
-            <h3 style="font-size: 1rem; color: #3498db; margin: 0 0 0.8rem 0;">
-              <i class="fas fa-tint"></i> Irrigation Guidance
-            </h3>
-            <ul class="results-list" style="margin: 0; padding-left: 1rem;">
-              {% for item in tr.irrigation %}
-              <li style="margin-bottom: 0.4rem; font-size: 0.88rem; line-height: 1.5;">{{ item }}</li>
-              {% endfor %}
-            </ul>
-          </div>
-          {% endif %}
+    {% if tr.irrigation %}
+    <div
+      style="background: linear-gradient(135deg, rgba(52,152,219,0.05), rgba(52,152,219,0.02)); border: 1px solid rgba(52,152,219,0.15); border-radius: 12px; padding: 1.2rem;">
+      <h3 style="font-size: 1rem; color: #3498db; margin: 0 0 0.8rem 0;">
+        <i class="fas fa-tint"></i> Irrigation Guidance
+      </h3>
+      <ul class="results-list" style="margin: 0; padding-left: 1rem;">
+        {% for item in tr.irrigation %}
+        <li style="margin-bottom: 0.4rem; font-size: 0.88rem; line-height: 1.5;">{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
 
-          {% if tr.organic_control %}
-          <div style="background: linear-gradient(135deg, rgba(16,185,129,0.05), rgba(16,185,129,0.02)); border: 1px solid rgba(16,185,129,0.15); border-radius: 12px; padding: 1.2rem;">
-            <h3 style="font-size: 1rem; color: #10b981; margin: 0 0 0.8rem 0;">
-              <i class="fas fa-leaf"></i> Organic Control
-            </h3>
-            <ul class="results-list" style="margin: 0; padding-left: 1rem;">
-              {% for item in tr.organic_control %}
-              <li style="margin-bottom: 0.4rem; font-size: 0.88rem; line-height: 1.5;">{{ item }}</li>
-              {% endfor %}
-            </ul>
-          </div>
-          {% endif %}
+    {% if tr.organic_control %}
+    <div
+      style="background: linear-gradient(135deg, rgba(16,185,129,0.05), rgba(16,185,129,0.02)); border: 1px solid rgba(16,185,129,0.15); border-radius: 12px; padding: 1.2rem;">
+      <h3 style="font-size: 1rem; color: #10b981; margin: 0 0 0.8rem 0;">
+        <i class="fas fa-leaf"></i> Organic Control
+      </h3>
+      <ul class="results-list" style="margin: 0; padding-left: 1rem;">
+        {% for item in tr.organic_control %}
+        <li style="margin-bottom: 0.4rem; font-size: 0.88rem; line-height: 1.5;">{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
 
-          {% if tr.chemical_control %}
-          <div style="background: linear-gradient(135deg, rgba(255,193,7,0.05), rgba(255,193,7,0.02)); border: 1px solid rgba(255,193,7,0.15); border-radius: 12px; padding: 1.2rem;">
-            <h3 style="font-size: 1rem; color: #e67e22; margin: 0 0 0.8rem 0;">
-              <i class="fas fa-flask"></i> Chemical Control
-            </h3>
-            <ul class="results-list" style="margin: 0; padding-left: 1rem;">
-              {% for item in tr.chemical_control %}
-              <li style="margin-bottom: 0.4rem; font-size: 0.88rem; line-height: 1.5;">{{ item }}</li>
-              {% endfor %}
-            </ul>
-          </div>
-          {% endif %}
+    {% if tr.chemical_control %}
+    <div
+      style="background: linear-gradient(135deg, rgba(255,193,7,0.05), rgba(255,193,7,0.02)); border: 1px solid rgba(255,193,7,0.15); border-radius: 12px; padding: 1.2rem;">
+      <h3 style="font-size: 1rem; color: #e67e22; margin: 0 0 0.8rem 0;">
+        <i class="fas fa-flask"></i> Chemical Control
+      </h3>
+      <ul class="results-list" style="margin: 0; padding-left: 1rem;">
+        {% for item in tr.chemical_control %}
+        <li style="margin-bottom: 0.4rem; font-size: 0.88rem; line-height: 1.5;">{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
 
-          {% if tr.severity_advice %}
-          <div style="background: linear-gradient(135deg, rgba(108,117,125,0.05), rgba(108,117,125,0.02)); border: 1px solid rgba(108,117,125,0.15); border-radius: 12px; padding: 1.2rem;">
-            <h3 style="font-size: 1rem; color: #6c757d; margin: 0 0 0.8rem 0;">
-              <i class="fas fa-exclamation-circle"></i> Severity Advice
-            </h3>
-            <ul class="results-list" style="margin: 0; padding-left: 1rem;">
-              {% for item in tr.severity_advice %}
-              <li style="margin-bottom: 0.4rem; font-size: 0.88rem; line-height: 1.5;">{{ item }}</li>
-              {% endfor %}
-            </ul>
-          </div>
-          {% endif %}
+    {% if tr.severity_advice %}
+    <div
+      style="background: linear-gradient(135deg, rgba(108,117,125,0.05), rgba(108,117,125,0.02)); border: 1px solid rgba(108,117,125,0.15); border-radius: 12px; padding: 1.2rem;">
+      <h3 style="font-size: 1rem; color: #6c757d; margin: 0 0 0.8rem 0;">
+        <i class="fas fa-exclamation-circle"></i> Severity Advice
+      </h3>
+      <ul class="results-list" style="margin: 0; padding-left: 1rem;">
+        {% for item in tr.severity_advice %}
+        <li style="margin-bottom: 0.4rem; font-size: 0.88rem; line-height: 1.5;">{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
 
-        </div>
+  </div>
 
-        {% if tr.is_fallback %}
-        <div style="margin-top: 1.2rem; padding: 0.8rem 1rem; border-radius: 10px; background: rgba(108,117,125,0.08); border: 1px dashed rgba(108,117,125,0.25); font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
-          <i class="fas fa-info-circle"></i>
-          These are general agricultural guidelines. For disease-specific recommendations,
-          upload a clearer image or consult a local agricultural extension officer.
-        </div>
-        {% endif %}
-      </div>
-      {% endif %}
+  {% if tr.is_fallback %}
+  <div
+    style="margin-top: 1.2rem; padding: 0.8rem 1rem; border-radius: 10px; background: rgba(108,117,125,0.08); border: 1px dashed rgba(108,117,125,0.25); font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+    <i class="fas fa-info-circle"></i>
+    These are general agricultural guidelines. For disease-specific recommendations,
+    upload a clearer image or consult a local agricultural extension officer.
+  </div>
+  {% endif %}
+</div>
+{% endif %}
 
-      {% if results.farmer_insights %}
-      <div class="result-card">
-        <h2 class="results-section-title" data-i18n="res_insights_title">
-          <i class="fas fa-comment-dots"></i> Farmer-Friendly Insights
-        </h2>
-        <ul class="results-list reveal-stagger">
-          {% for insight in results.farmer_insights %}
-          <li class="reveal reveal-slide-left"><b>•</b> <span data-i18n="{{ insight }}">{{ insight }}</span></li>
-          {% endfor %}
-        </ul>
-        <button onclick="readInsights()" class="btn btn-secondary" style="margin-top: 1rem;"><i class="fas fa-volume-high"></i> Listen to Insights</button>
-      </div>
-      {% endif %}
+{% if results.farmer_insights %}
+<div class="result-card">
+  <h2 class="results-section-title" data-i18n="res_insights_title">
+    <i class="fas fa-comment-dots"></i> Farmer-Friendly Insights
+  </h2>
+  <ul class="results-list reveal-stagger">
+    {% for insight in results.farmer_insights %}
+    <li class="reveal reveal-slide-left"><b>•</b> <span data-i18n="{{ insight }}">{{ insight }}</span></li>
+    {% endfor %}
+  </ul>
+  <button onclick="readInsights()" class="btn btn-secondary" style="margin-top: 1rem;"><i
+      class="fas fa-volume-high"></i> Listen to Insights</button>
+</div>
+{% endif %}
 
-      {% if heatmap_only_b64 %}
-      <!-- EXPLAINABLE AI (GRAD-CAM) INTERACTIVE DASHBOARD -->
-      <div id="explainability-dashboard" class="result-card reveal fade-in" role="region" aria-label="Explainable AI Grad-CAM diagnostic" style="margin-top: 3rem; border-top: 1px solid var(--card-border); padding-top: 2.5rem; scroll-margin-top: 2rem;">
-        <div style="border-bottom: 1px solid var(--card-border); padding-bottom: 1rem; margin-bottom: 2rem;">
-          <h2 class="results-section-title" style="margin: 0; font-size: 1.5rem;">
-            <i class="fas fa-brain" style="color: var(--ai-blue, #3b82f6);"></i> Explainable AI (Grad-CAM Diagnostic)
-          </h2>
-          <div style="
+{% if heatmap_only_b64 %}
+<!-- EXPLAINABLE AI (GRAD-CAM) INTERACTIVE DASHBOARD -->
+<div id="explainability-dashboard" class="result-card reveal fade-in" role="region"
+  aria-label="Explainable AI Grad-CAM diagnostic"
+  style="margin-top: 3rem; border-top: 1px solid var(--card-border); padding-top: 2.5rem; scroll-margin-top: 2rem;">
+  <div style="border-bottom: 1px solid var(--card-border); padding-bottom: 1rem; margin-bottom: 2rem;">
+    <h2 class="results-section-title" style="margin: 0; font-size: 1.5rem;">
+      <i class="fas fa-brain" style="color: var(--ai-blue, #3b82f6);"></i> Explainable AI (Grad-CAM Diagnostic)
+    </h2>
+    <div style="
               margin-top:1rem;
               padding:1rem;
               border-radius:12px;
               background:rgba(16,185,129,0.08);
               border-left:4px solid #10b981;
           ">
-            <strong>Why this matters:</strong>
-            This Explainable AI system helps farmers visually verify
-            whether the model is focusing on actual infected regions
-            instead of irrelevant background objects.
-          </div>
-          <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.4rem; margin-bottom: 0;">
-            Understand exactly which visual features in your leaf image led the deep learning model to this prediction.
-          </p>
+      <strong>Why this matters:</strong>
+      This Explainable AI system helps farmers visually verify
+      whether the model is focusing on actual infected regions
+      instead of irrelevant background objects.
+    </div>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.4rem; margin-bottom: 0;">
+      Understand exactly which visual features in your leaf image led the deep learning model to this prediction.
+    </p>
+  </div>
+
+  <div class="explainability-grid"
+    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; margin-bottom: 2.5rem;">
+    <!-- Dual Interactive Viewer -->
+    <div class="explainability-viewer-card"
+      style="background: rgba(0,0,0,0.01); border-radius: 16px; padding: 1.5rem; border: 1px solid var(--card-border); text-align: center;">
+      <h3 style="font-size: 1.1rem; color: var(--text-main); margin-top: 0; margin-bottom: 1.2rem;"><i
+          class="fas fa-sliders-h" style="color: var(--ai-blue, #3b82f6);"></i> Interactive Explainability Controls</h3>
+
+      <!-- Controls panel -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; flex-direction: column; gap: 0.4rem; text-align: left;">
+          <label for="gradcam-target-class"
+            style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted);">Target Disease Class:</label>
+          <select id="gradcam-target-class"
+            style="width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid var(--card-border); background-color: white; color: var(--text-main); font-weight: 600; font-size: 0.85rem; cursor: pointer; outline: none;">
+            {% if disease_classes and disease_classes|length > 0 %}
+            {% for idx in range(disease_classes|length) %}
+            <option value="{{ idx }}" {% if disease_classes[idx]==results.disease.predicted_class %}selected{% endif %}>
+              {{ disease_classes[idx] }}</option>
+            {% endfor %}
+            {% else %}
+            <option value="0">Healthy</option>
+            <option value="1">Bacterial Blight</option>
+            <option value="2">Curl Virus</option>
+            <option value="3">Fusarium Wilt</option>
+            <option value="4">Powdery Mildew</option>
+            <option value="5">Target Spot</option>
+            <option value="6">Aphids</option>
+            <option value="7">Army Worm</option>
+            {% endif %}
+          </select>
         </div>
+        <div style="display: flex; flex-direction: column; gap: 0.4rem; text-align: left;">
+          <label for="gradcam-blend-mode"
+            style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted);">Overlay Blend Mode:</label>
+          <select id="gradcam-blend-mode"
+            style="width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid var(--card-border); background-color: white; color: var(--text-main); font-weight: 600; font-size: 0.85rem; cursor: pointer; outline: none;">
+            <option value="normal" selected>Blended Overlay (Standard)</option>
+            <option value="multiply">Multiply (Texture Integrated)</option>
+            <option value="screen">Screen (Neon Highlights)</option>
+            <option value="overlay">Overlay (Balanced Contrast)</option>
+            <option value="color-dodge">Color Dodge (Extreme Focus)</option>
+            <option value="pure-heatmap">Pure Heatmap Only</option>
+            <option value="pure-leaf">Original Leaf Only</option>
+          </select>
+        </div>
+      </div>
 
-        <div class="explainability-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; margin-bottom: 2.5rem;">
-          <!-- Dual Interactive Viewer -->
-          <div class="explainability-viewer-card" style="background: rgba(0,0,0,0.01); border-radius: 16px; padding: 1.5rem; border: 1px solid var(--card-border); text-align: center;">
-            <h3 style="font-size: 1.1rem; color: var(--text-main); margin-top: 0; margin-bottom: 1.2rem;"><i class="fas fa-sliders-h" style="color: var(--ai-blue, #3b82f6);"></i> Interactive Explainability Controls</h3>
-            
-            <!-- Controls panel -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-              <div style="display: flex; flex-direction: column; gap: 0.4rem; text-align: left;">
-                <label for="gradcam-target-class" style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted);">Target Disease Class:</label>
-                <select id="gradcam-target-class" style="width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid var(--card-border); background-color: white; color: var(--text-main); font-weight: 600; font-size: 0.85rem; cursor: pointer; outline: none;">
-                  {% for idx in range(disease_classes|length) %}
-                    <option value="{{ idx }}" {% if disease_classes[idx] == results.disease.predicted_class %}selected{% endif %}>{{ disease_classes[idx] }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-              <div style="display: flex; flex-direction: column; gap: 0.4rem; text-align: left;">
-                <label for="gradcam-blend-mode" style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted);">Overlay Blend Mode:</label>
-                <select id="gradcam-blend-mode" style="width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid var(--card-border); background-color: white; color: var(--text-main); font-weight: 600; font-size: 0.85rem; cursor: pointer; outline: none;">
-                  <option value="normal" selected>Blended Overlay (Standard)</option>
-                  <option value="multiply">Multiply (Texture Integrated)</option>
-                  <option value="screen">Screen (Neon Highlights)</option>
-                  <option value="overlay">Overlay (Balanced Contrast)</option>
-                  <option value="color-dodge">Color Dodge (Extreme Focus)</option>
-                  <option value="pure-heatmap">Pure Heatmap Only</option>
-                  <option value="pure-leaf">Original Leaf Only</option>
-                </select>
-              </div>
-            </div>
+      <!-- Viewer Container with Spinner Overlay -->
+      <div class="blended-viewer-container"
+        style="position: relative; width: 100%; max-width: 420px; margin: 0 auto; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.1); border: 2px solid var(--card-border);">
+        <img id="explain-base-img" src="data:image/jpeg;base64,{{ image_b64 }}" alt="Base Crop Image"
+          style="display: block; width: 100%; height: auto;" />
+        <img id="explain-heatmap-img" src="data:image/jpeg;base64,{{ heatmap_only_b64 }}" alt="Pure Heatmap"
+          style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.5; mix-blend-mode: normal; pointer-events: none; transition: opacity 0.05s ease;" />
+        <div id="gradcam-spinner"
+          style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 10;">
+          <i class="fas fa-spinner fa-spin"
+            style="font-size: 2.2rem; color: var(--ai-blue, #3b82f6); margin-bottom: 0.6rem;"></i>
+          <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-main);">Computing Heatmap...</span>
+        </div>
+      </div>
 
-            <!-- Viewer Container with Spinner Overlay -->
-            <div class="blended-viewer-container" style="position: relative; width: 100%; max-width: 420px; margin: 0 auto; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.1); border: 2px solid var(--card-border);">
-              <img id="explain-base-img" src="data:image/jpeg;base64,{{ image_b64 }}" alt="Base Crop Image" style="display: block; width: 100%; height: auto;" />
-              <img id="explain-heatmap-img" src="data:image/jpeg;base64,{{ heatmap_only_b64 }}" alt="Pure Heatmap" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.5; mix-blend-mode: normal; pointer-events: none; transition: opacity 0.05s ease;" />
-              <div id="gradcam-spinner" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 10;">
-                <i class="fas fa-spinner fa-spin" style="font-size: 2.2rem; color: var(--ai-blue, #3b82f6); margin-bottom: 0.6rem;"></i>
-                <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-main);">Computing Heatmap...</span>
-              </div>
+      <div class="opacity-control-wrap" style="margin-top: 1.5rem; padding: 0 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Original Image</span>
+          <span id="opacity-badge" class="badge"
+            style="background: var(--ai-blue, #3b82f6); color: white; font-size: 0.8rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 50px;">50%
+            Heatmap</span>
+          <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">AI Focus Heatmap</span>
+        </div>
+        <input type="range" id="heatmap-opacity-slider" min="0" max="100" value="50"
+          style="width: 100%; height: 6px; border-radius: 10px; background: #ddd; outline: none; cursor: pointer;" />
+      </div>
+    </div>
+
+    <!-- Scientific Explanation -->
+    <div class="explainability-info-card"
+      style="display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <h3 style="font-size: 1.1rem; color: var(--text-main); margin-top: 0; margin-bottom: 0.8rem;"><i
+            class="fas fa-microscope" style="color: var(--ai-blue, #3b82f6);"></i> How the AI Decided</h3>
+        <p style="font-size: 0.92rem; line-height: 1.6; color: var(--text-main); margin-top: 0; opacity: 0.95;">
+          We use <b>Grad-CAM (Gradient-weighted Class Activation Mapping)</b> to extract gradients from the last
+          convolutional block (<code>layer4[-1]</code> of ResNet50). This represents the highest-level spatial features
+          before classification.
+        </p>
+        <div class="heatmap-legend"
+          style="background: rgba(0,0,0,0.02); border-radius: 10px; padding: 1rem; border-left: 4px solid var(--ai-blue, #3b82f6); margin-bottom: 1.5rem;">
+          <h4 style="margin: 0 0 0.5rem 0; font-size: 0.95rem; color: var(--text-main);"><i
+              class="fas fa-info-circle"></i> Color Code Interpretation</h4>
+          <div style="display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.88rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span
+                style="display: inline-block; width: 12px; height: 12px; border-radius: 3px; background: #ef4444;"></span>
+              <span><b>Red (High Importance):</b> Major infected lesions, symptoms, or pest locations.</span>
             </div>
-            
-            <div class="opacity-control-wrap" style="margin-top: 1.5rem; padding: 0 1rem;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Original Image</span>
-                <span id="opacity-badge" class="badge" style="background: var(--ai-blue, #3b82f6); color: white; font-size: 0.8rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 50px;">50% Heatmap</span>
-                <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">AI Focus Heatmap</span>
-              </div>
-              <input type="range" id="heatmap-opacity-slider" min="0" max="100" value="50" style="width: 100%; height: 6px; border-radius: 10px; background: #ddd; outline: none; cursor: pointer;" />
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span
+                style="display: inline-block; width: 12px; height: 12px; border-radius: 3px; background: #fbbf24;"></span>
+              <span><b>Yellow/Green (Medium):</b> Surrounding affected margins or stressed leaf tissue.</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span
+                style="display: inline-block; width: 12px; height: 12px; border-radius: 3px; background: #3b82f6;"></span>
+              <span><b>Blue (Low Importance):</b> Normal backgrounds, stems, or healthy green foliage ignored by the
+                AI.</span>
             </div>
           </div>
+        </div>
+      </div>
 
-          <!-- Scientific Explanation -->
-          <div class="explainability-info-card" style="display: flex; flex-direction: column; justify-content: space-between;">
-            <div>
-              <h3 style="font-size: 1.1rem; color: var(--text-main); margin-top: 0; margin-bottom: 0.8rem;"><i class="fas fa-microscope" style="color: var(--ai-blue, #3b82f6);"></i> How the AI Decided</h3>
-              <p style="font-size: 0.92rem; line-height: 1.6; color: var(--text-main); margin-top: 0; opacity: 0.95;">
-                We use <b>Grad-CAM (Gradient-weighted Class Activation Mapping)</b> to extract gradients from the last convolutional block (<code>layer4[-1]</code> of ResNet50). This represents the highest-level spatial features before classification.
-              </p>
-              <div class="heatmap-legend" style="background: rgba(0,0,0,0.02); border-radius: 10px; padding: 1rem; border-left: 4px solid var(--ai-blue, #3b82f6); margin-bottom: 1.5rem;">
-                <h4 style="margin: 0 0 0.5rem 0; font-size: 0.95rem; color: var(--text-main);"><i class="fas fa-info-circle"></i> Color Code Interpretation</h4>
-                <div style="display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.88rem;">
-                  <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span style="display: inline-block; width: 12px; height: 12px; border-radius: 3px; background: #ef4444;"></span>
-                    <span><b>Red (High Importance):</b> Major infected lesions, symptoms, or pest locations.</span>
-                  </div>
-                  <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span style="display: inline-block; width: 12px; height: 12px; border-radius: 3px; background: #fbbf24;"></span>
-                    <span><b>Yellow/Green (Medium):</b> Surrounding affected margins or stressed leaf tissue.</span>
-                  </div>
-                  <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span style="display: inline-block; width: 12px; height: 12px; border-radius: 3px; background: #3b82f6;"></span>
-                    <span><b>Blue (Low Importance):</b> Normal backgrounds, stems, or healthy green foliage ignored by the AI.</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Model Probability Chart -->
-            <div class="probability-chart-wrap" style="background: rgba(0,0,0,0.01); border: 1px solid var(--card-border); border-radius: 12px; padding: 1.2rem;">
-              <h4 style="margin: 0 0 1rem 0; font-size: 0.95rem; color: var(--text-main);"><i class="fas fa-chart-bar"></i> Full Probability Distribution</h4>
-              <div class="probability-bars" style="display: flex; flex-direction: column; gap: 0.6rem;">
-                <div style="
+      <!-- Model Probability Chart -->
+      <div class="probability-chart-wrap"
+        style="background: rgba(0,0,0,0.01); border: 1px solid var(--card-border); border-radius: 12px; padding: 1.2rem;">
+        <h4 style="margin: 0 0 1rem 0; font-size: 0.95rem; color: var(--text-main);"><i class="fas fa-chart-bar"></i>
+          Full Probability Distribution</h4>
+        <div class="probability-bars" style="display: flex; flex-direction: column; gap: 0.6rem;">
+          <div style="
                     margin-top:1.5rem;
                     padding:1rem;
                     border-radius:12px;
                     background:rgba(59,130,246,0.08);
                     border:1px solid rgba(59,130,246,0.2);
                 ">
-                  <h4 style="margin-bottom:0.7rem;">
-                    <i class="fas fa-lightbulb"></i>
-                    Alternative Predictions
-                  </h4>
-                  <p style="margin:0;color:var(--text-muted);line-height:1.6;">
-                    The AI also evaluated similar disease patterns before making the final prediction.
-                    Lower-ranked predictions may appear when symptoms visually overlap.
-                  </p>
-                </div>
-                {% for cname, cprob in disease_confidences.items() %}
-                <div class="prob-bar-row" style="display: flex; align-items: center; font-size: 0.85rem;">
-                  <span style="width: 120px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-main);">{{ cname }}</span>
-                  <div style="flex-grow: 1; height: 8px; background: rgba(0,0,0,0.08); border-radius: 4px; overflow: hidden; margin: 0 0.8rem;">
-                    <div style="width: {{ (cprob * 100)|round(1) }}%; height: 100%; background: {% if cname == disease.detected_issue %}linear-gradient(90deg, var(--ai-blue, #3b82f6), var(--electric-blue, #6366f1)){% else %}#94a3b8{% endif %}; border-radius: 4px;"></div>
-                  </div>
-                  <span style="width: 45px; text-align: right; font-weight: 600; color: {% if cname == disease.detected_issue %}var(--ai-blue, #3b82f6){% else %}var(--text-muted){% endif %};">{{ (cprob * 100)|round(1) }}%</span>
-                </div>
-                {% endfor %}
+            <h4 style="margin-bottom:0.7rem;">
+              <i class="fas fa-lightbulb"></i>
+              Alternative Predictions
+            </h4>
+            <p style="margin:0;color:var(--text-muted);line-height:1.6;">
+              The AI also evaluated similar disease patterns before making the final prediction.
+              Lower-ranked predictions may appear when symptoms visually overlap.
+            </p>
+          </div>
+          {% for cname, cprob in disease_confidences.items() %}
+          <div class="prob-bar-row" style="display: flex; align-items: center; font-size: 0.85rem;">
+            <span
+              style="width: 120px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-main);">{{
+              cname }}</span>
+            <div
+              style="flex-grow: 1; height: 8px; background: rgba(0,0,0,0.08); border-radius: 4px; overflow: hidden; margin: 0 0.8rem;">
+              <div
+                style="width: {{ (cprob * 100)|round(1) }}%; height: 100%; background: {% if cname == disease.detected_issue %}linear-gradient(90deg, var(--ai-blue, #3b82f6), var(--electric-blue, #6366f1)){% else %}#94a3b8{% endif %}; border-radius: 4px;">
               </div>
             </div>
+            <span
+              style="width: 45px; text-align: right; font-weight: 600; color: {% if cname == disease.detected_issue %}var(--ai-blue, #3b82f6){% else %}var(--text-muted){% endif %};">{{
+              (cprob * 100)|round(1) }}%</span>
           </div>
-        </div>
-
-        <!-- Bounding Box Secondary Detections -->
-        {% if growth.boxes and growth.boxes|length > 1 %}
-        <div class="secondary-detections-card" style="background: rgba(40, 167, 69, 0.05); border: 1px dashed rgba(40, 167, 69, 0.3); border-radius: 12px; padding: 1.2rem; margin-bottom: 2rem;">
-          <h4 style="margin: 0 0 0.6rem 0; font-size: 1rem; color: var(--deep-forest);"><i class="fas fa-layer-group"></i> Multi-Object Growth Stage Detections (YOLOv8)</h4>
-          <p style="margin: 0 0 1rem 0; font-size: 0.88rem; color: var(--text-muted);">The deep learning object detection model recognized multiple cotton elements in the uploaded frame:</p>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-            {% for box in growth.boxes %}
-            <div style="background: white; border: 1px solid var(--card-border); border-radius: 8px; padding: 1rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
-              <span style="font-size: 1.2rem; color: #10b981;">🌿</span>
-              <div>
-                <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">{{ box.class_name }}</div>
-                <div style="font-size: 0.8rem; color: var(--text-muted);">Confidence: <b>{{ (box.confidence * 100)|round(1) }}%</b></div>
-                <div class="bbox-coordinates">
-                    <span>X1: {{ box.bbox[0]|int }}</span>
-                    <span>Y1: {{ box.bbox[1]|int }}</span>
-                    <span>X2: {{ box.bbox[2]|int }}</span>
-                    <span>Y2: {{ box.bbox[3]|int }}</span>
-                </div>
-              </div>
-            </div>
-            {% endfor %}
-          </div>
-        </div>
-        {% endif %}
-
-        <!-- Report Export -->
-        <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid var(--card-border); padding-top: 1.5rem; margin-top: 1.5rem;">
-          <button id="btn-download-explainability-report" onclick="exportExplainabilityReport()" class="upload-btn" style="background: linear-gradient(135deg, var(--deep-forest) 0%, var(--emerald-green) 100%); border: none; box-shadow: 0 4px 12px rgba(16,185,129,0.25);">
-            <i class="fas fa-file-pdf"></i> Download Explainability Report
-          </button>
+          {% endfor %}
         </div>
       </div>
-      {% endif %}
+    </div>
+  </div>
 
-      <div class="agri-scan-history-panel" style="margin-top: 3rem;">
-        <div class="agri-scan-history-head">
-          <h2 class="results-section-title">
-            <i class="fas fa-clock-rotate-left"></i> Recent Analyses
-          </h2>
+  <!-- Bounding Box Secondary Detections -->
+  {% if growth.boxes and growth.boxes|length > 1 %}
+  <div class="secondary-detections-card"
+    style="background: rgba(40, 167, 69, 0.05); border: 1px dashed rgba(40, 167, 69, 0.3); border-radius: 12px; padding: 1.2rem; margin-bottom: 2rem;">
+    <h4 style="margin: 0 0 0.6rem 0; font-size: 1rem; color: var(--deep-forest);"><i class="fas fa-layer-group"></i>
+      Multi-Object Growth Stage Detections (YOLOv8)</h4>
+    <p style="margin: 0 0 1rem 0; font-size: 0.88rem; color: var(--text-muted);">The deep learning object detection
+      model recognized multiple cotton elements in the uploaded frame:</p>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+      {% for box in growth.boxes %}
+      <div
+        style="background: white; border: 1px solid var(--card-border); border-radius: 8px; padding: 1rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+        <span style="font-size: 1.2rem; color: #10b981;">🌿</span>
+        <div>
+          <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">{{ box.class_name }}</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">Confidence: <b>{{ (box.confidence * 100)|round(1)
+              }}%</b></div>
+          <div class="bbox-coordinates">
+            <span>X1: {{ box.bbox[0]|int }}</span>
+            <span>Y1: {{ box.bbox[1]|int }}</span>
+            <span>X2: {{ box.bbox[2]|int }}</span>
+            <span>Y2: {{ box.bbox[3]|int }}</span>
+          </div>
         </div>
-        <div id="agri-scan-history-empty" class="agri-scan-history-empty">
-          No previous crop analyses found.
-        </div>
-        <div id="agri-scan-history-list" class="agri-scan-history-list"></div>
       </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
 
-      <!-- 
+  <!-- Report Export -->
+</div>
+{% endif %}
+
+<div class="agri-scan-history-panel" style="margin-top: 3rem;">
+  <div class="agri-scan-history-head">
+    <h2 class="results-section-title">
+      <i class="fas fa-clock-rotate-left"></i> Recent Analyses
+    </h2>
+  </div>
+  <div id="agri-scan-history-empty" class="agri-scan-history-empty">
+    No previous crop analyses found.
+  </div>
+  <div id="agri-scan-history-list" class="agri-scan-history-list"></div>
+</div>
+
+<!-- 
         Analysis Action Controls
         
         Provides quick access to post-analysis workflows:
@@ -1084,24 +1202,26 @@
         - Consistent hover feedback
      -->
 
-      <div style="display:flex; justify-content:flex-end; gap:1.2rem; margin-top:2rem; margin-bottom:2rem; flex-wrap:wrap;">
-        <button onclick="readInsights()" class="btn-action btn-action-primary" data-i18n="res_voice" aria-label="Read analysis insights aloud using voice assistant">
-          <i class="fas fa-volume-up"></i> Voice Assistant
-        </button>
-        <button onclick="exportToPDF()" class="btn-action btn-action-secondary" data-i18n="res_pdf" aria-label="Download analysis results as PDF report">
-          <i class="fas fa-file-pdf"></i> Download PDF Report
-        </button>
-      </div>
+<div style="display:flex; justify-content:flex-end; gap:1.2rem; margin-top:2rem; margin-bottom:2rem; flex-wrap:wrap;">
+  <button onclick="readInsights()" class="btn-action btn-action-primary" data-i18n="res_voice"
+    aria-label="Read analysis insights aloud using voice assistant">
+    <i class="fas fa-volume-up"></i> Voice Assistant
+  </button>
+  <button onclick="exportToPDF()" class="btn-action btn-action-secondary" data-i18n="res_pdf"
+    aria-label="Download analysis results as PDF report">
+    <i class="fas fa-file-pdf"></i> Download PDF Report
+  </button>
+</div>
 
-      <div class="results-footer"><b data-i18n="res_time">Analysis Time:</b> {{ timestamp }}</div>
+<div class="results-footer"><b data-i18n="res_time">Analysis Time:</b> {{ timestamp }}</div>
 
-      <details class="results-details">
-        <summary class="results-summary">Show Full Model Output (JSON)</summary>
-        <pre class="results-pre">{{ raw_json }}</pre>
-      </details>
+<details class="results-details">
+  <summary class="results-summary">Show Full Model Output (JSON)</summary>
+  <pre class="results-pre">{{ raw_json }}</pre>
+</details>
 
-    </div>
-  </div>
+</div>
+</div>
 </section>
 
 <!-- Load PDF Generation Libraries -->
@@ -1152,7 +1272,7 @@
       targetClassSelector.addEventListener('change', async function () {
         const classIdx = targetClassSelector.value;
         spinner.style.opacity = '1';
-        
+
         try {
           const response = await fetch('/api/explain/target', {
             method: 'POST',
@@ -1164,11 +1284,11 @@
               target_class_idx: parseInt(classIdx, 10)
             })
           });
-          
+
           if (!response.ok) {
             throw new Error(`API Error: ${response.statusText}`);
           }
-          
+
           const data = await response.json();
           if (data.status === 'success') {
             // Swap in the new pure heatmap base64 source!
@@ -1289,223 +1409,223 @@
     {% if image_b64 %}
     var currentScan = {
       image: "data:image/jpeg;base64,{{ image_b64 }}",
-      disease: {{ disease.detected_issue|default(disease.predicted_class|default("Unknown"))|tojson }},
-      confidence: "{{ disease.model_confidence|default(0)|float|round(2) }}",
-      timestamp: {{ timestamp|default("")|tojson }}
+      disease: {{ disease.detected_issue|default (disease.predicted_class |default ("Unknown")) | tojson }},
+  confidence: "{{ disease.model_confidence|default(0)|float|round(2) }}",
+    timestamp: { { timestamp |default ("") | tojson } }
     };
-    var scanHistory = getScanHistory();
-    if (!scanHistory.length || scanHistory[0].timestamp !== currentScan.timestamp) {
-      scanHistory.unshift(currentScan);
-      saveScanHistory(scanHistory);
-    }
-    {% endif %}
+  var scanHistory = getScanHistory();
+  if (!scanHistory.length || scanHistory[0].timestamp !== currentScan.timestamp) {
+    scanHistory.unshift(currentScan);
+    saveScanHistory(scanHistory);
+  }
+  {% endif %}
 
-    if (historyList) {
-      historyList.addEventListener("click", function (event) {
-        if (!event.target.classList.contains("agri-scan-history-delete")) return;
-        var index = parseInt(event.target.getAttribute("data-index"), 10);
-        var items = getScanHistory();
-        items.splice(index, 1);
-        saveScanHistory(items);
-        renderScanHistory();
+  if (historyList) {
+    historyList.addEventListener("click", function (event) {
+      if (!event.target.classList.contains("agri-scan-history-delete")) return;
+      var index = parseInt(event.target.getAttribute("data-index"), 10);
+      var items = getScanHistory();
+      items.splice(index, 1);
+      saveScanHistory(items);
+      renderScanHistory();
+    });
+  }
+
+  renderScanHistory();
+    });
+
+  // PDF Export Functions
+  async function exportToPDF() {
+    const { jsPDF } = window.jspdf;
+    const element = document.querySelector('.results-card');
+    const exportBtn = document.querySelector('button[onclick*="exportToPDF"]') || event.target.closest('button');
+    const originalBtnText = exportBtn.innerHTML;
+
+    exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
+    exportBtn.disabled = true;
+
+    // Comprehensive element exclusion for cleaner PDF export (Issue #279)
+    const excludeElements = element.querySelectorAll(
+      '.no-print, .export-hide, .upload-btn, #toggle-ai-focus, ' +
+      '.results-summary, .results-pre, .trail-container, .theme-toggle-btn, ' +
+      '[onclick*="exportToPDF"], [onclick*="exportExplainability"], ' +
+      '.agri-scan-history-delete, .results-action-btn, ' +
+      'button[onclick*="readInsights"]'
+    );
+
+    excludeElements.forEach(el => el.setAttribute('data-html2canvas-ignore', 'true'));
+
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        allowTaint: true,
+        foreignObjectRendering: true
       });
-    }
 
-    renderScanHistory();
-    });
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
 
-    // PDF Export Functions
-async function exportToPDF() {
-  const { jsPDF } = window.jspdf;
-  const element = document.querySelector('.results-card');
-  const exportBtn = document.querySelector('button[onclick*="exportToPDF"]') || event.target.closest('button');
-  const originalBtnText = exportBtn.innerHTML;
+      const margin = 12; // Improved margins for professional appearance
+      const imgWidth = pdfWidth - (margin * 2);
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-  exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
-  exportBtn.disabled = true;
+      let heightLeft = imgHeight;
+      let position = margin;
 
-  // Comprehensive element exclusion for cleaner PDF export (Issue #279)
-  const excludeElements = element.querySelectorAll(
-    '.no-print, .export-hide, .upload-btn, #toggle-ai-focus, ' +
-    '.results-summary, .results-pre, .trail-container, .theme-toggle-btn, ' +
-    '[onclick*="exportToPDF"], [onclick*="exportExplainability"], ' +
-    '.agri-scan-history-delete, .results-action-btn, ' +
-    'button[onclick*="readInsights"]'
-  );
-  
-  excludeElements.forEach(el => el.setAttribute('data-html2canvas-ignore', 'true'));
-
-  try {
-    const canvas = await html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      backgroundColor: '#ffffff',
-      allowTaint: true,
-      foreignObjectRendering: true
-    });
-
-    const imgData = canvas.toDataURL('image/jpeg', 1.0);
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-
-    const margin = 12; // Improved margins for professional appearance
-    const imgWidth = pdfWidth - (margin * 2);
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-    let heightLeft = imgHeight;
-    let position = margin;
-
-    pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
-    heightLeft -= (pdfHeight - margin * 2);
-
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight + margin;
-      pdf.addPage();
       pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
       heightLeft -= (pdfHeight - margin * 2);
-    }
 
-    pdf.save(`Agri-Vision-Analysis-Report-${new Date().getTime()}.pdf`);
-  } catch (error) {
-    console.error('PDF Export Error:', error);
-    alert('Could not generate PDF. Using browser print as fallback.');
-    window.print();
-  } finally {
-    exportBtn.innerHTML = originalBtnText;
-    exportBtn.disabled = false;
-    excludeElements.forEach(el => el.removeAttribute('data-html2canvas-ignore'));
-  }
-}
-
-    function exportToScreenshotPDF() {
-      const btn = event?.target?.closest('button');
-      if (btn) {
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating screenshot PDF...';
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight + margin;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight);
+        heightLeft -= (pdfHeight - margin * 2);
       }
 
-      try {
-        const element = document.querySelector('.results-card');
-        if (!element) {
-          throw new Error('Results element not found');
-        }
+      pdf.save(`Agri-Vision-Analysis-Report-${new Date().getTime()}.pdf`);
+    } catch (error) {
+      console.error('PDF Export Error:', error);
+      alert('Could not generate PDF. Using browser print as fallback.');
+      window.print();
+    } finally {
+      exportBtn.innerHTML = originalBtnText;
+      exportBtn.disabled = false;
+      excludeElements.forEach(el => el.removeAttribute('data-html2canvas-ignore'));
+    }
+  }
 
-        html2canvas(element, {
-          scale: 2,
-          logging: false,
-          backgroundColor: '#ffffff'
-        }).then(canvas => {
-          const imgData = canvas.toDataURL('image/png');
-          const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: 'a4'
-          });
+  function exportToScreenshotPDF() {
+    const btn = event?.target?.closest('button');
+    if (btn) {
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating screenshot PDF...';
+    }
 
-          const imgWidth = 210;
-          const pageHeight = 295;
-          const imgHeight = (canvas.height * imgWidth) / canvas.width;
-          let heightLeft = imgHeight;
-          let position = 0;
+    try {
+      const element = document.querySelector('.results-card');
+      if (!element) {
+        throw new Error('Results element not found');
+      }
 
+      html2canvas(element, {
+        scale: 2,
+        logging: false,
+        backgroundColor: '#ffffff'
+      }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        });
+
+        const imgWidth = 210;
+        const pageHeight = 295;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft >= 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
           pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
           heightLeft -= pageHeight;
+        }
 
-          while (heightLeft >= 0) {
-            position = heightLeft - imgHeight;
-            pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
-          }
+        pdf.save(`agri_vision_crop_analysis_${new Date().toISOString().split('T')[0]}.pdf`);
 
-          pdf.save(`agri_vision_crop_analysis_${new Date().toISOString().split('T')[0]}.pdf`);
-
-          if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download PDF Report';
-          }
-          showNotification('Screenshot PDF created successfully!', 'success');
-        }).catch(error => {
-          console.error('Screenshot error:', error);
-          if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download PDF Report';
-          }
-          showNotification('Failed to create screenshot PDF', 'error');
-        });
-      } catch (error) {
-        console.error('Error in exportToScreenshotPDF:', error);
         if (btn) {
           btn.disabled = false;
           btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download PDF Report';
         }
-        showNotification('Error creating PDF', 'error');
-      }
-    }
-
-    function exportExplainabilityReport() {
-      const btn = event.target.closest('button');
-      const originalHTML = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
-
-      try {
-        const element = document.getElementById('explainability-dashboard');
-        if (!element) {
-          throw new Error('Explainability dashboard not found');
+        showNotification('Screenshot PDF created successfully!', 'success');
+      }).catch(error => {
+        console.error('Screenshot error:', error);
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download PDF Report';
         }
+        showNotification('Failed to create screenshot PDF', 'error');
+      });
+    } catch (error) {
+      console.error('Error in exportToScreenshotPDF:', error);
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-file-pdf"></i> Download PDF Report';
+      }
+      showNotification('Error creating PDF', 'error');
+    }
+  }
 
-        html2canvas(element, {
-          scale: 2,
-          logging: false,
-          backgroundColor: '#ffffff'
-        }).then(canvas => {
-          const imgData = canvas.toDataURL('image/png');
-          const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: 'a4'
-          });
+  function exportExplainabilityReport() {
+    const btn = event.target.closest('button');
+    const originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
 
-          const imgWidth = 210;
-          const pageHeight = 295;
-          const imgHeight = (canvas.height * imgWidth) / canvas.width;
-          let heightLeft = imgHeight;
-          let position = 0;
+    try {
+      const element = document.getElementById('explainability-dashboard');
+      if (!element) {
+        throw new Error('Explainability dashboard not found');
+      }
 
+      html2canvas(element, {
+        scale: 2,
+        logging: false,
+        backgroundColor: '#ffffff'
+      }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        });
+
+        const imgWidth = 210;
+        const pageHeight = 295;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft >= 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
           pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
           heightLeft -= pageHeight;
+        }
 
-          while (heightLeft >= 0) {
-            position = heightLeft - imgHeight;
-            pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
-          }
+        pdf.save(`agri_vision_explainability_report_${new Date().toISOString().split('T')[0]}.pdf`);
 
-          pdf.save(`agri_vision_explainability_report_${new Date().toISOString().split('T')[0]}.pdf`);
-
-          btn.disabled = false;
-          btn.innerHTML = originalHTML;
-          showNotification('Explainability report downloaded successfully!', 'success');
-        }).catch(error => {
-          console.error('PDF generation error:', error);
-          btn.disabled = false;
-          btn.innerHTML = originalHTML;
-          showNotification('Error generating explainability PDF', 'error');
-        });
-      } catch (error) {
-        console.error('Error in exportExplainabilityReport:', error);
         btn.disabled = false;
         btn.innerHTML = originalHTML;
-        showNotification('Error creating explainability report', 'error');
-      }
+        showNotification('Explainability report downloaded successfully!', 'success');
+      }).catch(error => {
+        console.error('PDF generation error:', error);
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+        showNotification('Error generating explainability PDF', 'error');
+      });
+    } catch (error) {
+      console.error('Error in exportExplainabilityReport:', error);
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
+      showNotification('Error creating explainability report', 'error');
     }
+  }
 
-    function showNotification(message, type = 'info') {
-      const notification = document.createElement('div');
-      notification.style.cssText = `
+  function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
@@ -1519,20 +1639,20 @@ async function exportToPDF() {
         font-size: 14px;
         font-weight: 500;
       `;
-      notification.textContent = message;
-      document.body.appendChild(notification);
+    notification.textContent = message;
+    document.body.appendChild(notification);
 
-      setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-      }, 3000);
-    }
+    setTimeout(() => {
+      notification.style.animation = 'slideOut 0.3s ease';
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
+  }
 
-    // Add animation styles if not present
-    if (!document.getElementById('notification-styles')) {
-      const style = document.createElement('style');
-      style.id = 'notification-styles';
-      style.textContent = `
+  // Add animation styles if not present
+  if (!document.getElementById('notification-styles')) {
+    const style = document.createElement('style');
+    style.id = 'notification-styles';
+    style.textContent = `
         @keyframes slideIn {
           from { transform: translateX(400px); opacity: 0; }
           to { transform: translateX(0); opacity: 1; }
@@ -1542,58 +1662,58 @@ async function exportToPDF() {
           to { transform: translateX(400px); opacity: 0; }
         }
       `;
-      document.head.appendChild(style);
-    }
-    </script>
+    document.head.appendChild(style);
+  }
+</script>
 
 <script>
-function readInsights() {
-  var insights = [];
-  {% if results.farmer_insights %}
-  {% for insight in results.farmer_insights %}
-  insights.push("{{ insight | replace('"', '\\"') }}");
-  {% endfor %}
-  {% endif %}
-  {% if yield_estimate %}
-  insights.push("Based on current conditions, your estimated cotton yield is between {{ yield_estimate.yield_min_acre }} and {{ yield_estimate.yield_max_acre }} quintals per acre.");
-  {% endif %}
+  function readInsights() {
+    var insights = [];
+    {% if results.farmer_insights %}
+    {% for insight in results.farmer_insights %}
+    insights.push("{{ insight | replace('"', '\\"') }}");
+    {% endfor %}
+    {% endif %}
+    {% if yield_estimate %}
+    insights.push("Based on current conditions, your estimated cotton yield is between {{ yield_estimate.yield_min_acre }} and {{ yield_estimate.yield_max_acre }} quintals per acre.");
+    {% endif %}
 
-  if (!window.speechSynthesis) {
-    alert("Speech synthesis is not supported in this browser.");
-    return;
-  }
-  if (window.speechSynthesis.speaking) {
+    if (!window.speechSynthesis) {
+      alert("Speech synthesis is not supported in this browser.");
+      return;
+    }
+    if (window.speechSynthesis.speaking) {
 
-    if (window.speechSynthesis.paused) {
+      if (window.speechSynthesis.paused) {
         window.speechSynthesis.resume();
-    } else {
+      } else {
         window.speechSynthesis.pause();
+      }
+
+      return;
     }
 
-    return;
-}
+    var utterance = new SpeechSynthesisUtterance(
+      "Here are your crop analysis insights. " + insights.join(" ")
+    );
 
-var utterance = new SpeechSynthesisUtterance(
-    "Here are your crop analysis insights. " + insights.join(" ")
-);
+    window.speechSynthesis.speak(utterance);
+  }
 
-window.speechSynthesis.speak(utterance);
-}
+  function exportExplainabilityReport() {
+    window.print();
+  }
 
-function exportExplainabilityReport() {
-  window.print();
-}
-
-document.addEventListener("DOMContentLoaded", function () {
+  document.addEventListener("DOMContentLoaded", function () {
     const cropHistory = JSON.parse(localStorage.getItem("cropHistory")) || [];
     const scanData = {
-        disease: `{{ disease.detected_issue|default("Unknown") }}`,
-        confidence: `{{ disease.model_confidence|default(0)|float|round(2) }}%`,
-        date: `{{ timestamp }}`,
-        image: "data:image/jpeg;base64,{{ image_b64 }}"
+      disease: `{{ disease.detected_issue|default("Unknown") }}`,
+      confidence: `{{ disease.model_confidence|default(0)|float|round(2) }}%`,
+      date: `{{ timestamp }}`,
+      image: "data:image/jpeg;base64,{{ image_b64 }}"
     };
     cropHistory.unshift(scanData);
     localStorage.setItem("cropHistory", JSON.stringify(cropHistory));
-});
+  });
 </script>
 {% endblock %}

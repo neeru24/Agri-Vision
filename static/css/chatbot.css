@@ -1,0 +1,260 @@
+ /* ═══════════════════════════════════════
+           CHATBOT WIDGET — Full Premium CSS
+        ═══════════════════════════════════════ */
+
+        /* 1. Widget base: transition-driven collapse (no display:none flash) */
+        .chatbot-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 320px;
+            height: 450px;
+            max-height: calc(100vh - 40px);
+            background: var(--card-bg, var(--bg-card, #ffffff));
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--card-border, var(--border-color, #e0e0e0));
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        visibility 0.3s;
+        }
+
+        /* 2. Collapsed state — smooth fade + slide out */
+        .chatbot-widget.collapsed {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px) scale(0.95);
+            pointer-events: none;
+        }
+
+        /* 3. Launcher bubble */
+        .chatbot-launcher {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--emerald-green, #2e8b57);
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+            pointer-events: auto;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        visibility 0.3s,
+                        box-shadow 0.2s;
+        }
+        .chatbot-launcher:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        .chatbot-launcher.launcher-hidden {
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.5);
+            pointer-events: none;
+        }
+
+        /* 4. Focus-visible for keyboard/accessibility */
+        .chatbot-launcher:focus-visible,
+        .chatbot-close-btn:focus-visible {
+            outline: 2px solid var(--emerald-green, #2e8b57);
+            outline-offset: 2px;
+        }
+
+        /* 5. Header */
+        .chatbot-header {
+            background: var(--emerald-green, #2e8b57);
+            color: #ffffff;
+            padding: 12px 15px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        /* 6. Close button */
+        .chatbot-close-btn {
+            background: none;
+            border: none;
+            color: #ffffff;
+            opacity: 0.85;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .chatbot-close-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        /* 7. Body + messages */
+        .chatbot-body {
+            flex-grow: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: var(--bg-main, var(--bg-body, #f9f9f9));
+        }
+        .chat-message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+        .ai-message {
+            background: var(--bg-chat-ai, #e8f5e9);
+            color: var(--text-color, #333333);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .user-message {
+            background: var(--emerald-green, #2e8b57);
+            color: #ffffff;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        /* 8. Error message card */
+        .chat-message.error-message {
+            background: var(--error-bg, rgba(220, 53, 69, 0.1));
+            color: var(--error-text, #721c24);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+            align-self: center;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            max-width: 90%;
+        }
+
+        /* 9. Input row */
+        .chat-input-container {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid var(--card-border, var(--border-color, #e0e0e0));
+            background: var(--card-bg, var(--bg-card, #ffffff));
+            flex-shrink: 0;
+        }
+        .chat-input-container input {
+            flex-grow: 1;
+            border: 1px solid var(--card-border, var(--border-color, #e0e0e0));
+            border-radius: 20px;
+            padding: 8px 15px;
+            outline: none;
+            background: transparent;
+            color: var(--text-color, #333333);
+        }
+        .chat-send-btn {
+            background: none;
+            border: none;
+            color: var(--emerald-green, #2e8b57);
+            cursor: pointer;
+            padding: 0 10px;
+            font-size: 1.2rem;
+            transition: transform 0.2s;
+        }
+        .chat-send-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* 10. Bouncing typing indicator */
+        .loading-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 12px !important;
+            width: fit-content;
+        }
+        .loading-indicator .dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--text-color, #555555);
+            border-radius: 50%;
+            opacity: 0.4;
+            animation: chatbot-pulse 1.2s infinite ease-in-out;
+        }
+        .loading-indicator .dot:nth-child(2) { animation-delay: 0.2s; }
+        .loading-indicator .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes chatbot-pulse {
+            0%, 100% { transform: translateY(0); opacity: 0.4; }
+            50%       { transform: translateY(-4px); opacity: 1; }
+        }
+
+        /* 11. Dark theme overrides */
+        [data-theme="dark"] {
+            --bg-chat-ai: rgba(92, 209, 139, 0.15);
+        }
+        [data-theme="dark"] .ai-message {
+            color: #e0e0e0;
+        }
+        [data-theme="dark"] .user-message {
+            color: #121212;
+        }
+
+        /* 12. Mobile responsive */
+        @media (max-width: 480px) {
+            .chatbot-widget {
+                width: calc(100% - 30px);
+                right: 15px;
+                bottom: 15px;
+                height: 400px;
+                max-height: calc(100vh - 30px);
+            }
+            .chatbot-launcher {
+                width: 48px;
+                height: 48px;
+                font-size: 1.3rem;
+                bottom: 15px;
+                right: 15px;
+            }
+            .chat-message {
+                font-size: 0.85rem;
+                padding: 8px 12px;
+            }
+        }
+
+        /* 13. Respect prefers-reduced-motion */
+        @media (prefers-reduced-motion: reduce) {
+            .chatbot-widget,
+            .chatbot-launcher,
+            .chatbot-close-btn,
+            .chat-send-btn {
+                transition: none;
+            }
+            .loading-indicator .dot {
+                animation: none;
+                opacity: 0.7;
+            }
+        }
