@@ -24,6 +24,10 @@ def app_with_db():
     app.app.config["UPLOAD_FOLDER"] = "./static/uploads"
     app.app.config["SECRET_KEY"] = "test-secret"
     app.app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
+    # UPLOAD_MAX_BYTES must be kept in sync: get_upload_max_bytes() in app.py
+    # reads UPLOAD_MAX_BYTES first and it is otherwise frozen at import time
+    # via app.config.setdefault(), so it would not pick up this override.
+    app.app.config["UPLOAD_MAX_BYTES"] = 10 * 1024 * 1024
     app.app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
     
     with app.app.app_context():

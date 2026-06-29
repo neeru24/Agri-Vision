@@ -30,7 +30,11 @@ def app():
         "TESTING": True,
         "LOGIN_DISABLED": False,
         "MAX_CONTENT_LENGTH": 10 * 1024 * 1024,
-        # Max content length is kept at 10MB to test oversized file uploads
+        # Max content length is kept at 10MB to test oversized file uploads.
+        # UPLOAD_MAX_BYTES must be kept in sync: get_upload_max_bytes() in app.py
+        # reads UPLOAD_MAX_BYTES first and it is otherwise frozen at import time
+        # via app.config.setdefault(), so it would not pick up this override.
+        "UPLOAD_MAX_BYTES": 10 * 1024 * 1024,
     })
     return flask_app
 
