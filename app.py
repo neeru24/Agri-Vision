@@ -20,7 +20,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_talisman import Talisman
 from io import BytesIO
-from services.weather_service import get_weather
+from services.weather_service import get_weather, geocode_city, generate_weather_recommendations
 from services.model_cache import (
     init_cache_backend,
     get_cached_prediction,
@@ -56,7 +56,6 @@ from ultralytics import YOLO
 import json
 from jinja2 import Environment, FileSystemLoader
 from model_registry import registry
-from services.weather_service import generate_weather_recommendations
 from services.yield_history_service import build_yield_history_report
 from services.yield_service import estimate_yield
 from services.auth_security_service import (
@@ -1643,6 +1642,7 @@ def download_analysis_report():
         growth_stage = data.get("growth_stage", "Unknown")
         growth_confidence = data.get("growth_confidence", 0)
         image_b64 = data.get("image_b64", "")
+        gradcam_image_b64 = data.get("gradcam_image_b64", "")
         recommendations = data.get("recommendations", [])
         timestamp = data.get("timestamp", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         weather_data = data.get("weather_data", {})
