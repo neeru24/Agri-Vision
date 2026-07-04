@@ -209,6 +209,9 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
+# Stray Node.js lockfile from accidental npm install
+package-lock.json
+
 # OS-specific files
 .DS_Store
 .DS_Store?
