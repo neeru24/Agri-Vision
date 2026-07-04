@@ -447,8 +447,8 @@ class ModelManager:
                     logger.error(f"ResNet50 model failed to load from {RESNET_MODEL_PATH}: {exc}")
                     self.resnet_model = None
                 except Exception as exc:
-                    self.errors["resnet"] = str(exc)
-                    logger.exception(f"Unexpected error loading ResNet50 model: {exc}")
+                    self.errors["resnet"] = "Model failed to load. See server logs for details."
+                    logger.warning(f"ResNet50 model not found or failed to load: {exc}", exc_info=True)
                     self.resnet_model = None
 
             if self.yolo_model is None:
@@ -457,8 +457,8 @@ class ModelManager:
                     self.errors["yolo"] = None
                     logger.info("YOLOv8 model loaded successfully")
                 except Exception as exc:
-                    self.errors["yolo"] = str(exc)
-                    logger.warning(f"YOLOv8 model not found or failed to load: {exc}")
+                    self.errors["yolo"] = "Model failed to load. See server logs for details."
+                    logger.warning(f"YOLOv8 model not found or failed to load: {exc}", exc_info=True)
                     self.yolo_model = None
 
             self.loaded = True
@@ -1381,8 +1381,8 @@ def list_models():
             "rollback_threshold": registry.rollback_threshold
         })
     except Exception as e:
-        logger.error(f"Error listing models: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Error listing models: {e}", exc_info=True)
+        return jsonify({"error": "An internal server error occurred"}), 500
 
 @app.route('/admin/models/active', methods=['GET'])
 def get_active_models():
@@ -1398,8 +1398,8 @@ def get_active_models():
             }
         })
     except Exception as e:
-        logger.error(f"Error getting active models: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Error getting active models: {e}", exc_info=True)
+        return jsonify({"error": "An internal server error occurred"}), 500
 
 @app.route('/admin/models/register', methods=['POST'])
 def register_model():
@@ -1429,9 +1429,8 @@ def register_model():
     except FileNotFoundError as e:
         return jsonify({"error": str(e)}), 404
     except Exception as e:
-        logger.error(f"Error registering model: {e}")
-        return jsonify({"error": str(e)}), 500
-
+        logger.error(f"Error registering model: {e}", exc_info=True)
+        return jsonify({"error": "An internal server error occurred"}), 500
 @app.route('/admin/models/activate', methods=['POST'])
 def activate_model():
     """Set a model version as active"""
@@ -1450,9 +1449,9 @@ def activate_model():
     except ValueError as e:
         return jsonify({"error": str(e)}), 404
     except Exception as e:
-        logger.error(f"Error activating model: {e}")
-        return jsonify({"error": str(e)}), 500
-
+        logger.error(f"Error activating model: {e}", exc_info=True)
+        return jsonify({"error": "An internal server error occurred"}), 500
+    
 @app.route('/admin/models/delete', methods=['DELETE'])
 def delete_model():
     """Delete a model version"""
@@ -1471,8 +1470,8 @@ def delete_model():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     except Exception as e:
-        logger.error(f"Error deleting model: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Error deleting model: {e}", exc_info=True)
+        return jsonify({"error": "An internal server error occurred"}), 500
 
 @app.route('/admin/models/ab-testing', methods=['POST'])
 def toggle_ab_testing():
@@ -1487,8 +1486,8 @@ def toggle_ab_testing():
             "ab_test_enabled": registry.ab_test_enabled
         })
     except Exception as e:
-        logger.error(f"Error toggling A/B testing: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Error toggling A/B testing: {e}", exc_info=True)
+        return jsonify({"error": "An internal server error occurred"}), 500
 
 @app.route('/admin/models/ab-ratio', methods=['POST'])
 def set_ab_ratio():
@@ -1508,8 +1507,8 @@ def set_ab_ratio():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
     except Exception as e:
-        logger.error(f"Error setting A/B ratio: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Error setting A/B ratio: {e}", exc_info=True)
+        return jsonify({"error": "An internal server error occurred"}), 500
 
 @app.route('/admin/models/metrics', methods=['GET'])
 def get_model_metrics():
@@ -1521,8 +1520,8 @@ def get_model_metrics():
             "metrics": models
         })
     except Exception as e:
-        logger.error(f"Error getting model metrics: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Error getting model metrics: {e}", exc_info=True)
+        return jsonify({"error": "An internal server error occurred"}), 500
 
 @app.route('/admin/models/rollback-threshold', methods=['POST'])
 def set_rollback_threshold():
@@ -1544,8 +1543,8 @@ def set_rollback_threshold():
             "rollback_threshold": registry.rollback_threshold
         })
     except Exception as e:
-        logger.error(f"Error setting rollback threshold: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Error setting rollback threshold: {e}", exc_info=True)
+        return jsonify({"error": "An internal server error occurred"}), 500
 
 
 @app.route('/admin/models/export/pdf', methods=['GET'])
@@ -1621,8 +1620,8 @@ def export_pdf():
     except ImportError:
         return jsonify({"error": "reportlab not installed. Install with: pip install reportlab"}), 500
     except Exception as e:
-        logger.error(f"Error generating PDF: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Error generating PDF: {e}", exc_info=True)
+        return jsonify({"error": "An internal server error occurred"}), 500
 
 
 @app.route("/api/analyze/download-report", methods=["POST"])
@@ -2078,9 +2077,8 @@ def analyze():
             flash(str(exc), "error")
             return redirect(request.url)
         except Exception as exc:
-            filename = request.files.get("file", {}).filename if request.files.get("file") else "unknown"
-            logger.error("Analysis error (user=%s, file=%s): %s", current_user.id, filename, exc)
-            flash(f"Error during analysis: {str(exc)}", "error")
+            logger.error("Analysis error: %s", exc, exc_info=True)
+            flash(f"Error during analysis. Please try again.", "error")
             return redirect(request.url)
         finally:
             cleanup_temp_upload(temp_path)
@@ -2125,8 +2123,8 @@ def api_explain():
             "confidence": disease_result.get("confidence", 0.0)
         })
     except Exception as exc:
-        logger.error("Error in API explain endpoint: %s", exc)
-        return jsonify({"status": "error", "error": str(exc)}), 500
+        logger.error("Error in API explain endpoint: %s", exc, exc_info=True)
+        return jsonify({"status": "error", "error": "An internal server error occurred"}), 500
 
 
 @app.route("/api/explain/target", methods=["POST"])
@@ -2424,7 +2422,6 @@ def demo():
         return redirect(url_for("index"))
 
 
-
 @app.route("/api/chat_test", methods=["GET"])
 def api_chat_test():
     return jsonify({"status": "ok"})
@@ -2437,14 +2434,48 @@ def api_chat():
     if not data or "message" not in data:
         return jsonify({"reply": "I'm sorry, I didn't receive a message."}), 400
 
-    message = str(data["message"]).lower()
+    message = str(data["message"]).strip()
+
+    # --- Try Gemini API first ---
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if gemini_key:
+        try:
+            import google.generativeai as genai
+            genai.configure(api_key=gemini_key)
+            model = genai.GenerativeModel("gemini-1.5-flash")
+
+            system_prompt = """You are Agri-Vision AI, an expert agricultural assistant specializing in cotton farming. 
+
+Your role:
+- Answer questions about cotton crops, farming practices, diseases, pests, irrigation, fertilizers, soil, seasons, and yield
+- Give concise, practical, farmer-friendly answers (2-4 sentences max)
+- For disease diagnosis, suggest uploading an image to the Agri-Vision Analyze tab
+- For questions unrelated to agriculture or farming, politely say: "I specialize in agricultural topics. Please ask me about farming, crops, or plant health!"
+- Never make up specific product names or prices
+- Always be helpful, warm, and encouraging to farmers"""
+
+            response = model.generate_content(f"{system_prompt}\n\nFarmer's question: {message}")
+            reply = response.text.strip()
+            return jsonify({"reply": reply})
+
+        except Exception as e:
+            logger.warning(f"Gemini API failed, falling back to regex: {e}")
+
+    # --- Fallback: regex-based responses ---
+    message_lower = message.lower()
     responses = {
         r"\b(hello|hi|hey|howdy|greetings)\b": [
             "Hello there! How can I assist you with your cotton crop today?",
             "Hi! Need any help analyzing your farm data?"
         ],
+        r"\b(season|seasons|when to (grow|plant|sow)|best time|months?|kharif|rabi)\b": [
+            "Cotton is a Kharif crop best sown between April and June in India, when temperatures are 25–35°C. It matures in 150–180 days and is harvested between October and January."
+        ],
+        r"\b(material|materials|require|requirement|requirements|need|needs|input|inputs|seed|seeds|equipment)\b": [
+            "To grow cotton you need: certified Bt cotton seeds, NPK fertilizers (especially potassium), drip irrigation setup, pesticides for bollworm control, and well-draining loamy soil with pH 6–8."
+        ],
         r"\b(disease|diseases|sick|spots?|rot|blight)\b": [
-            "If you're noticing leaf spots or rotting, it could be Bacterial Blight or Target Spot. I highly recommend taking a picture and uploading it to our Analyze tab for an AI diagnosis."
+            "If you're noticing leaf spots or rotting, it could be Bacterial Blight or Target Spot. Upload a picture to our Analyze tab for an AI diagnosis!"
         ],
         r"\b(yield|yields|harvest|harvests|produce)\b": [
             "Yield depends heavily on the crop's health score and current growth stage. Check out the Dashboard for predictions across your fields!"
@@ -2453,44 +2484,36 @@ def api_chat():
             "Cotton responds well to a balanced NPK fertilizer. During the blooming and early boll stages, potassium is critical to maximize yield."
         ],
         r"\b(water|watering|irrigation|dry|drought)\b": [
-            "Maintain regular watering during the blossom phase. However, once bolls mature and start splitting, you should reduce irrigation to prevent rot."
+            "Maintain regular watering during the blossom phase. Once bolls mature and start splitting, reduce irrigation to prevent rot."
         ],
         r"\b(pest|pests|worm|worms|aphid|aphids|bug|bugs|insect|insects|bollworm)\b": [
-            "Pests like Pink Bollworm and Aphids are common enemies of cotton. I recommend deploying pheromone traps and scouting the fields twice a week."
+            "Pests like Pink Bollworm and Aphids are common enemies of cotton. Deploy pheromone traps and scout fields twice a week."
         ],
         r"\b(weather|temperature|rain|rainfall|humidity|climate)\b": [
-            "Weather plays a huge role in cotton health. Hot, dry spells stress bolls while excess rain can encourage fungal diseases. Use our weather tab to monitor conditions."
+            "Hot, dry spells stress bolls while excess rain encourages fungal diseases. Use our weather tab to monitor conditions."
         ],
         r"\b(soil|soils|ph|minerals|clay|loam|sandy)\b": [
-            "Cotton thrives in well-draining loamy soil with a pH of 5.8–8.0. Conduct a soil test before the season to identify any nutrient deficiencies."
+            "Cotton thrives in well-draining loamy soil with a pH of 5.8–8.0. Conduct a soil test before the season to identify nutrient deficiencies."
         ],
-        r"\b(grow|growth|growing|stage|stages|seedling|boll|bolls|flower|flowering)\b": [
-            "Cotton growth has 5 key stages: germination, seedling, vegetative, flowering/boll formation, and maturity. Each stage has unique care needs — the flowering stage is most critical!"
-        ],
-        r"\b(spray|spraying|pesticide|pesticides|fungicide|herbicide|chemical)\b": [
-            "When spraying, always follow label rates and avoid spraying during peak heat or wind. Consider integrated pest management (IPM) to reduce chemical dependency."
+        r"\b(stage|stages|seedling|boll|bolls|flower|flowering|germination|vegetative)\b": [
+            "Cotton growth has 5 key stages: germination, seedling, vegetative, flowering/boll formation, and maturity. The flowering stage is most critical!"
         ],
         r"\b(thank(?:s|s you)?|awesome|great|perfect)\b": [
-            "You're welcome! Feel free to ask any time. Happy farming! 🌱",
-            "Glad I could help! Let me know if you have more questions about your cotton crop."
+            "You're welcome! Happy farming! 🌱"
         ],
         r"\b(help|assist|support|guide|advice|tips?)\b": [
-            "I'm here to help! You can ask me about crop diseases, yield optimization, pest control, irrigation, fertilization, weather impacts, or soil health.",
-            "Sure! Try asking about cotton diseases, pest control, yield estimates, or upload an image in the Analyze tab for an instant AI diagnosis."
-        ],
-        r"\b(cotton|crop|crops|farm|farming|field|fields)\b": [
-            "Agri-Vision specializes in cotton crop analysis. Upload a field image in the Analyze tab for disease detection, yield prediction, and health scoring!"
+            "I'm here to help! Ask me about crop diseases, yield optimization, pest control, irrigation, fertilization, or soil health."
         ],
     }
 
-    reply = "I'm your Agri-Vision AI assistant. I specialize in cotton farming, crop diseases, and yield optimization. How can I help you?"
+    reply = "I'm your Agri-Vision AI assistant specializing in cotton farming. Ask me about diseases, pests, irrigation, fertilizers, or crop seasons!"
 
     for pattern, reply_options in responses.items():
-        if re.search(pattern, message):
+        if re.search(pattern, message_lower):
             reply = random.choice(reply_options)
             break
-    return jsonify({"reply": reply})
 
+    return jsonify({"reply": reply})
 
 @app.route("/api/weather")
 def api_weather():
@@ -2566,9 +2589,8 @@ def api_analyze():
         logger.warning("API upload rejected (file=%s): %s", filename, exc)
         return jsonify({"error": str(exc)}), exc.status_code
     except Exception as e:
-        filename = request.files.get("file", {}).filename if request.files.get("file") else "unknown"
-        logger.error("API analysis error (file=%s): %s", filename, e)
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"API analysis error: {e}", exc_info=True)
+        return jsonify({"error": "An internal server error occurred"}), 500
     finally:
         cleanup_temp_upload(temp_path)
 
@@ -2606,8 +2628,8 @@ def api_analyze_stream():
             yield f"data: {json.dumps({'step': 'complete', 'progress': 100, 'message': 'Analysis complete', 'data': results})}\n\n"
 
         except Exception as e:
-            logger.error(f"Streaming analysis error: {e}")
-            yield f"data: {json.dumps({'step': 'error', 'progress': 0, 'message': str(e)})}\n\n"
+            logger.error(f"Streaming analysis error: {e}", exc_info=True)
+            yield f"data: {json.dumps({'step': 'error', 'progress': 0, 'message': 'An internal server error occurred'})}\n\n"
 
     return Response(
         stream_with_context(generate()),
@@ -2700,14 +2722,14 @@ def api_batch_upload():
                         )
                         db.session.add(result)
                 except Exception as e:
-                    logger.error(f"Error processing image {filename}: {e}")
+                    logger.error(f"Error processing image {filename}: {e}", exc_info=True)
                     from models import AnalysisResult
                     result = AnalysisResult(
                         batch_job_id=job.id,
                         image_name=filename,
                         image_index=idx,
                         status='error',
-                        error_message=str(e)
+                        error_message="Failed to process this image. See server logs for details."
                     )
                     db.session.add(result)
             
@@ -2724,9 +2746,8 @@ def api_batch_upload():
         })
         
     except Exception as e:
-        logger.error(f"Batch upload error: {e}")
-        return jsonify({'error': str(e)}), 500
-
+        logger.error(f"Batch upload error: {e}", exc_info=True)
+        return jsonify({'error': 'An internal server error occurred'}), 500
 
 @app.route("/api/batch_status/<job_id>", methods=["GET"])
 def api_batch_status(job_id):
@@ -3471,8 +3492,8 @@ def generate_report(analysis_id):
     try:
         from services.report_service import ReportGenerator
     except ImportError as e:
-        logger.error(f"Failed to import ReportGenerator: {e}")
-        return jsonify({'error': f'Report service not available: {str(e)}'}), 500
+        logger.error(f"Failed to import ReportGenerator: {e}", exc_info=True)
+        return jsonify({'error': f'Report service not available'}), 500
     
     analysis = AnalysisHistory.query.get(analysis_id)
     if not analysis:
@@ -3506,10 +3527,8 @@ def generate_report(analysis_id):
             download_name=f'analysis_report_{analysis_id}.pdf'
         )
     except Exception as e:
-        logger.error(f"Error generating report: {e}")
-        import traceback
-        logger.error(traceback.format_exc())
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Error generating report: {e}", exc_info=True)
+        return jsonify({'error': 'An internal server error occurred'}), 500
 
 
 @app.route("/api/generate-summary-report")
@@ -3523,8 +3542,8 @@ def generate_summary_report():
     try:
         from services.report_service import ReportGenerator
     except ImportError as e:
-        logger.error(f"Failed to import ReportGenerator: {e}")
-        return jsonify({'error': f'Report service not available: {str(e)}'}), 500
+        logger.error(f"Failed to import ReportGenerator: {e}", exc_info=True)
+        return jsonify({'error': 'Report service not available'}), 500
     
     # Get date range
     days = request.args.get('days', 30, type=int)
@@ -3559,10 +3578,8 @@ def generate_summary_report():
             download_name=f'summary_report_{datetime.now().strftime("%Y%m%d")}.pdf'
         )
     except Exception as e:
-        logger.error(f"Error generating summary report: {e}")
-        import traceback
-        logger.error(traceback.format_exc())
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Error generating summary report: {e}", exc_info=True)
+        return jsonify({'error': 'An internal server error occurred'}), 500
 
 
 # --- Disease Database & Symptom Checker ---
@@ -3723,8 +3740,8 @@ def api_weather_forecast():
             'disease_predictions': predictions
         })
     except Exception as e:
-        logger.error(f"Error fetching weather forecast: {e}")
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Error fetching weather forecast: {e}", exc_info=True)
+        return jsonify({'error': 'An internal server error occurred'}), 500
 
 
 @app.route("/api/disease-prediction/<disease_name>")
@@ -3768,8 +3785,8 @@ def api_disease_prediction(disease_name):
             'recommendations': recommendations
         })
     except Exception as e:
-        logger.error(f"Error getting disease prediction: {e}")
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Error getting disease prediction: {e}", exc_info=True)
+        return jsonify({'error': 'An internal server error occurred'}), 500
 
 
 @app.route("/api/historical-patterns")
@@ -3807,8 +3824,8 @@ def api_historical_patterns():
             'total_occurrences': len(occurrences_data)
         })
     except Exception as e:
-        logger.error(f"Error analyzing historical patterns: {e}")
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Error analyzing historical patterns: {e}", exc_info=True)
+        return jsonify({'error': 'An internal server error occurred'}), 500
 
 
 @app.route("/api/report-disease-occurrence", methods=['POST'])
@@ -3865,9 +3882,9 @@ def api_report_disease_occurrence():
             'occurrence_id': occurrence.id
         })
     except Exception as e:
-        logger.error(f"Error reporting disease occurrence: {e}")
+        logger.error(f"Error reporting disease occurrence: {e}", exc_info=True)
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': 'An internal server error occurred'}), 500
 
 
 
