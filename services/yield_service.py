@@ -220,7 +220,7 @@ def _get_harvest_advice(growth_stage: Optional[str], health_score: Optional[floa
     if growth_stage == "Split Cotton Boll":
         return "🟢 Harvest NOW — bolls are open. Delay risks fibre degradation and boll rot."
     elif growth_stage == "Matured Cotton Boll":
-        if health_score and health_score < 50:
+        if health_score is not None and health_score < 50:
             return "🟡 Consider early harvest — bolls are mature but crop health is poor. Delay may worsen losses."
         return "🟡 Harvest within 1–2 weeks — bolls are mature. Monitor daily for splitting."
     elif growth_stage == "Green Cotton Boll":
