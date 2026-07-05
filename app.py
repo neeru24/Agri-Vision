@@ -2508,6 +2508,9 @@ def api_weather():
     lon = request.args.get("lon", type=float)
     city = request.args.get("city", type=str)
 
+    if city and len(city) > 100:
+        return jsonify({"error": "City name too long (max 100 characters)"}), 400
+
     if city and not (lat is not None and lon is not None):
         geo = geocode_city(city)
         if not geo:

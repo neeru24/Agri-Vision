@@ -17,13 +17,13 @@ class JwtConfig:
 
 
 def get_jwt_secret() -> str:
-    # Required for production. For local dev we fall back to existing SECRET_KEY.
-    # Keep it consistent with app.py.
     import os
 
-    secret = os.getenv("JWT_SECRET") or os.getenv("SECRET_KEY")
+    secret = os.getenv("JWT_SECRET")
     if not secret:
-        raise RuntimeError("JWT_SECRET (or SECRET_KEY) must be configured")
+        secret = os.getenv("SECRET_KEY")
+    if not secret:
+        raise RuntimeError("JWT_SECRET must be configured in production; falls back to SECRET_KEY")
     return secret
 
 
