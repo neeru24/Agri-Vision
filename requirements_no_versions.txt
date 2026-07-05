@@ -3,7 +3,6 @@ numpy
 opencv-python-headless
 Pillow
 flask-cors
-tensorflow-cpu
 matplotlib
 scikit-learn
 python-dotenv
@@ -13,5 +12,3 @@ gunicorn
 pytest
 pytest-cov
 flasgger
-celery
-redis
