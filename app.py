@@ -1643,6 +1643,7 @@ def download_analysis_report():
         growth_stage = data.get("growth_stage", "Unknown")
         growth_confidence = data.get("growth_confidence", 0)
         image_b64 = data.get("image_b64", "")
+        gradcam_image_b64 = data.get("gradcam_image_b64", "")
         recommendations = data.get("recommendations", [])
         timestamp = data.get("timestamp", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         weather_data = data.get("weather_data", {})
