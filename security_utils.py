@@ -29,19 +29,13 @@ def is_production_env(env: Mapping[str, str]) -> bool:
 
 
 def resolve_secret_key(env: Mapping[str, str]) -> str:
-    """Resolve SECRET_KEY and fail fast when missing in production."""
-    secret_key = env.get("SECRET_KEY")
+    """Resolve SECRET_KEY and fail fast when missing."""
 
-    # Tests expect SystemExit on import-time for production.
+    # Tests expect SystemExit on import-time.
     # This function raises RuntimeError; app.py catches it and aborts via SystemExit.
+    secret_key = env.get("SECRET_KEY")
     if secret_key is None or secret_key == "":
-        if is_production_env(env):
-            # app.py converts this RuntimeError to SystemExit.
-            raise RuntimeError("SECRET_KEY must be configured in production.")
-
-        # In non-production, provide a deterministic dev key.
-        return "dev_secret_123"
-
+        raise RuntimeError("SECRET_KEY must be configured in production.")
 
     return secret_key
 
