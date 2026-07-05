@@ -2631,6 +2631,7 @@ def api_analyze_stream():
 # --- Batch Processing Endpoints ---
 
 @app.route("/api/batch_upload", methods=["POST"])
+@login_required
 @limiter.limit("3 per minute")
 def api_batch_upload():
     """Upload multiple images for batch analysis"""
@@ -2737,6 +2738,7 @@ def api_batch_upload():
         return jsonify({'error': 'An internal server error occurred'}), 500
 
 @app.route("/api/batch_status/<job_id>", methods=["GET"])
+@login_required
 def api_batch_status(job_id):
     """Get status of a batch job"""
     from models import BatchJob, db
@@ -2759,6 +2761,7 @@ def api_batch_status(job_id):
 
 
 @app.route("/api/batch_results/<job_id>", methods=["GET"])
+@login_required
 def api_batch_results(job_id):
     """Get all results for a batch job"""
     from models import BatchJob, db
@@ -2870,6 +2873,7 @@ def api_batch_status_stream(job_id):
 
 
 @app.route("/api/batch_results/<job_id>/export/csv", methods=["GET"])
+@login_required
 def export_batch_csv(job_id):
     """Export batch results as CSV"""
     from models import BatchJob
@@ -2917,6 +2921,7 @@ def export_batch_csv(job_id):
 
 
 @app.route("/api/batch_results/<job_id>/export/pdf", methods=["GET"])
+@login_required
 def export_batch_pdf(job_id):
     """Export batch results as PDF"""
     from models import BatchJob
@@ -3283,7 +3288,7 @@ def api_disease_map():
     
     # Calculate statistics
     total_analyses = len(filtered_analyses)
-    healthy_count = sum(1 for a in filtered_analyses if a.disease_result and a.disease_result.get('predicted_class') == 'healthy')
+    healthy_count = sum(1 for a in filtered_analyses if a.disease_result and a.disease_result.get('predicted_class', '').lower() == 'healthy')
     diseased_count = total_analyses - healthy_count
     avg_health_score = sum(a.health_score for a in filtered_analyses if a.health_score) / len([a for a in filtered_analyses if a.health_score]) if filtered_analyses else 0
     regions = set(a.region for a in filtered_analyses if a.region)
@@ -3325,7 +3330,7 @@ def api_dashboard_stats():
     
     # Calculate basic statistics
     total_analyses = len(analyses)
-    healthy_count = sum(1 for a in analyses if a.disease_result and a.disease_result.get('predicted_class') == 'healthy')
+    healthy_count = sum(1 for a in analyses if a.disease_result and a.disease_result.get('predicted_class', '').lower() == 'healthy')
     diseased_count = total_analyses - healthy_count
     avg_health_score = sum(a.health_score for a in analyses if a.health_score) / len([a for a in analyses if a.health_score]) if analyses else 0
     
@@ -3409,8 +3414,9 @@ def api_dashboard_stats():
     recent_activity = []
     for a in recent_analyses:
         disease = a.disease_result.get('predicted_class', 'unknown') if a.disease_result else 'unknown'
-        activity_type = 'disease' if disease != 'healthy' else 'healthy'
-        icon = 'exclamation-triangle' if disease != 'healthy' else 'check-circle'
+        is_healthy = disease.lower() == 'healthy'
+        activity_type = 'disease' if not is_healthy else 'healthy'
+        icon = 'exclamation-triangle' if not is_healthy else 'check-circle'
         
         recent_activity.append({
             'type': activity_type,
