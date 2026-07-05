@@ -111,7 +111,7 @@ def add_sample_data():
             
             analysis = AnalysisHistory(
                 user_id=user.id,
-                image_path=f'/static/uploads/sample_{i}.jpg',
+                image_path=f'uploads/sample_{i}.jpg',
                 disease_result=disease,
                 growth_result=growth,
                 confidence=disease['confidence'],
