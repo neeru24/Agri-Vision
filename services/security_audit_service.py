@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from auth.audit_log import log_security_event
@@ -21,7 +21,7 @@ def log_auth_security_event(
         return
 
     details: dict[str, object] = {
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "action": action,
         "severity": severity,
         "email": email,

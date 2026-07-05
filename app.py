@@ -2721,7 +2721,7 @@ def api_batch_upload():
                     db.session.add(result)
             
             job.status = 'completed'
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(timezone.utc)
             db.session.commit()
         
         return jsonify({
@@ -2752,7 +2752,7 @@ def api_batch_status(job_id):
     # Check if all tasks are done
     if job.completed_images + job.failed_images >= job.total_images:
         job.status = 'completed'
-        job.completed_at = datetime.utcnow()
+        job.completed_at = datetime.now(timezone.utc)
         db.session.commit()
     
     return jsonify(job.to_dict())
@@ -2815,7 +2815,7 @@ def api_batch_status_stream(job_id):
                     if completed + failed >= current_job.total_images and current_job.total_images > 0:
                         current_job.status = "completed"
                         if not current_job.completed_at:
-                            current_job.completed_at = datetime.utcnow()
+                            current_job.completed_at = datetime.now(timezone.utc)
                         db.session.commit()
                     
                     job_dict = current_job.to_dict()
@@ -3141,7 +3141,7 @@ def auth_google_callback():
         )
         db.session.add(user)
 
-    user.last_login = datetime.utcnow()
+    user.last_login = datetime.now(timezone.utc)
     db.session.commit()
 
     login_user(user)
@@ -3253,13 +3253,13 @@ def api_disease_map():
     
     # Apply time filter
     if time_filter == 'today':
-        query = query.filter(AnalysisHistory.created_at >= datetime.utcnow().replace(hour=0, minute=0, second=0))
+        query = query.filter(AnalysisHistory.created_at >= datetime.now(timezone.utc).replace(hour=0, minute=0, second=0))
     elif time_filter == 'week':
-        query = query.filter(AnalysisHistory.created_at >= datetime.utcnow() - timedelta(days=7))
+        query = query.filter(AnalysisHistory.created_at >= datetime.now(timezone.utc) - timedelta(days=7))
     elif time_filter == 'month':
-        query = query.filter(AnalysisHistory.created_at >= datetime.utcnow() - timedelta(days=30))
+        query = query.filter(AnalysisHistory.created_at >= datetime.now(timezone.utc) - timedelta(days=30))
     elif time_filter == 'year':
-        query = query.filter(AnalysisHistory.created_at >= datetime.utcnow() - timedelta(days=365))
+        query = query.filter(AnalysisHistory.created_at >= datetime.now(timezone.utc) - timedelta(days=365))
     
     # Get analyses
     analyses = query.all()
@@ -3345,7 +3345,7 @@ def api_dashboard_stats():
     trend_labels = []
     trend_data = defaultdict(list)
     for i in range(7):
-        date = datetime.utcnow() - timedelta(days=6-i)
+        date = datetime.now(timezone.utc) - timedelta(days=6-i)
         date_str = date.strftime('%Y-%m-%d')
         trend_labels.append(date.strftime('%b %d'))
         
@@ -3362,7 +3362,7 @@ def api_dashboard_stats():
         # Aggregate by day
         daily_counts = []
         for i in range(7):
-            date = datetime.utcnow() - timedelta(days=6-i)
+            date = datetime.now(timezone.utc) - timedelta(days=6-i)
             day_analyses = [a for a in analyses if a.created_at.date() == date.date()]
             count = sum(1 for a in day_analyses if a.disease_result and a.disease_result.get('predicted_class') == disease)
             daily_counts.append(count)
@@ -3534,7 +3534,7 @@ def generate_summary_report():
     
     # Get date range
     days = request.args.get('days', 30, type=int)
-    start_date = datetime.utcnow() - timedelta(days=days)
+    start_date = datetime.now(timezone.utc) - timedelta(days=days)
     
     # Get analyses
     if current_user.is_researcher():
@@ -3842,7 +3842,7 @@ def api_report_disease_occurrence():
             return jsonify({'error': 'Disease not found'}), 404
         
         # Parse date
-        from datetime import datetime
+from datetime import datetime, timezone
         try:
             occurrence_date = datetime.strptime(occurrence_date, '%Y-%m-%d').date()
         except ValueError:

@@ -26,7 +26,7 @@ import hashlib
 import json
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
@@ -81,7 +81,7 @@ class _InMemoryCache:
         if key not in self._store:
             logger.debug("InMemCache MISS  %s", key[:12])
             return None
-        age = datetime.utcnow() - self._timestamps[key]
+        age = datetime.now(timezone.utc) - self._timestamps[key]
         if age > self._ttl:
             self._evict(key)
             logger.debug("InMemCache STALE %s (age %.0fs)", key[:12], age.total_seconds())
@@ -93,7 +93,7 @@ class _InMemoryCache:
         if len(self._store) >= self._max:
             self._evict_oldest()
         self._store[key] = value
-        self._timestamps[key] = datetime.utcnow()
+        self._timestamps[key] = datetime.now(timezone.utc)
         logger.debug("InMemCache SET   %s  (size %d/%d)", key[:12], len(self._store), self._max)
 
     def clear(self) -> None:
