@@ -190,3 +190,5 @@ textarea[aria-invalid="true"].form-textarea,
   }
 }
 
+
+/* fix: UI Bug: Home Section Text Unreadable Due to Background Overl (#816) */
