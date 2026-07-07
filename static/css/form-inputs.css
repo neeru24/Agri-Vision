@@ -190,3 +190,5 @@ textarea[aria-invalid="true"].form-textarea,
   }
 }
 
+
+/* fix: issue in navbar ui (#832) */
