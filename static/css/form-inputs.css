@@ -190,3 +190,5 @@ textarea[aria-invalid="true"].form-textarea,
   }
 }
 
+
+/* fix: UI Bug: "Login" Button Has Low Visibility/Contrast in Navbar (#817) */
