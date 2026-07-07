@@ -190,3 +190,5 @@ textarea[aria-invalid="true"].form-textarea,
   }
 }
 
+
+/* fix: Bug: Story Cards Overlapping on Stories Page (#836) */
