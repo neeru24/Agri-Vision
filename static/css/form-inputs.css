@@ -190,3 +190,5 @@ textarea[aria-invalid="true"].form-textarea,
   }
 }
 
+
+/* fix: bug: CSS styles and HTML attributes rendering as visible tex (#814) */
