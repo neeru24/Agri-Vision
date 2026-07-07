@@ -3989,3 +3989,5 @@ def api_admin_permissions():
         return jsonify({"status": "success", "id": perm.id})
     perms = Permission.query.all()
     return jsonify([{"id": p.id, "name": p.name, "slug": p.slug} for p in perms])
+
+# TODO: security - [Feature/UI]: Implement File Drag-and-Drop with Image Previe (#789)
