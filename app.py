@@ -3989,3 +3989,5 @@ def api_admin_permissions():
         return jsonify({"status": "success", "id": perm.id})
     perms = Permission.query.all()
     return jsonify([{"id": p.id, "name": p.name, "slug": p.slug} for p in perms])
+
+# TODO: fix for #784: Create interactive algorithm complexity calculator with Big-O visualization
