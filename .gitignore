@@ -225,3 +225,5 @@ Thumbs.db
 *.pth
 *.h5
 *.onnx
+package-lock.json
+package.json
