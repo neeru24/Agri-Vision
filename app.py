@@ -1315,7 +1315,7 @@ def health_check():
 @app.route("/")
 def index():
     lang = request.args.get("lang", "en")
-    return render_template("index.html", text=LANG.get(lang, LANG["en"]), lang=lang)
+    return jsonify({"error":"Not found"}), 404("index.html", text=LANG.get(lang, LANG["en"]), lang=lang)
 
 
 @app.route("/set-language/<lang>")
@@ -1332,24 +1332,24 @@ def datetimeformat_filter(value):
 
 @app.route("/tutorials")
 def tutorials():
-    return render_template("tutorials.html")
+    return jsonify({"error":"Not found"}), 404("tutorials.html")
 
 
 @app.route("/support")
 def support():
-    return render_template("support.html")
+    return jsonify({"error":"Not found"}), 404("support.html")
 
 
 @app.route("/stories")
 def stories():
-    return render_template("stories.html")
+    return jsonify({"error":"Not found"}), 404("stories.html")
 
 
 @app.route("/model-admin")
 @login_required
 @require_any_role(['researcher', 'admin'])
 def admin_dashboard():
-    return render_template("admin.html")
+    return jsonify({"error":"Not found"}), 404("admin.html")
 
 
 # --- Model Management Admin Endpoints ---
@@ -1975,7 +1975,7 @@ def compare():
             row["values"].append(val)
         rows.append(row)
 
-    return render_template('compare.html',
+    return jsonify({"error":"Not found"}), 404('compare.html',
         analyses=analyses,
         rows=rows,
         enumerate=enumerate,
@@ -2041,7 +2041,7 @@ def analyze():
                 db.session.add(history_entry)
                 db.session.commit()
 
-            return render_template(
+            return jsonify({"error":"Not found"}), 404(
                 "results.html",
                 results=results,
                 filename=safe_filename,
@@ -2070,7 +2070,7 @@ def analyze():
         finally:
             cleanup_temp_upload(temp_path)
 
-    return render_template("upload.html")
+    return jsonify({"error":"Not found"}), 404("upload.html")
 
 
 @app.route("/api/explain", methods=["POST"])
@@ -2215,7 +2215,7 @@ def comparison():
             
             if last_week_hash == current_week_hash:
                 error_message = "Duplicate field images detected. Please upload two different images for meaningful comparison analysis."
-                return render_template("comparison.html", error_message=error_message)
+                return jsonify({"error":"Not found"}), 404("comparison.html", error_message=error_message)
         except Exception as exc:
             logger.error("Hashing error: %s", exc)
 
@@ -2233,7 +2233,7 @@ def comparison():
                 error_message = "Unable to verify cotton crop in both images. Please upload clearer field photos with visible plants and try again."
 
             if error_message:
-                return render_template(
+                return jsonify({"error":"Not found"}), 404(
                     "comparison.html",
                     error_message=error_message,
                     old_filename=old_filename,
@@ -2243,7 +2243,7 @@ def comparison():
                 )
 
             comparison_result = build_comparison_result(old_results, new_results)
-            return render_template(
+            return jsonify({"error":"Not found"}), 404(
                 "comparison.html",
                 old_results=old_results,
                 new_results=new_results,
@@ -2257,7 +2257,7 @@ def comparison():
         except Exception as exc:
             logger.error("Comparison analysis error: %s", exc)
             error_message = "Unable to compare field images right now. Please try again with clearer crop photos."
-            return render_template(
+            return jsonify({"error":"Not found"}), 404(
                 "comparison.html",
                 error_message=error_message,
                 old_filename=old_filename,
@@ -2265,7 +2265,7 @@ def comparison():
                 old_image_b64=encode_image_for_display(old_image) if old_image is not None else None,
                 new_image_b64=encode_image_for_display(new_image) if new_image is not None else None,
             )
-    return render_template("comparison.html")
+    return jsonify({"error":"Not found"}), 404("comparison.html")
 
 
 @app.route("/demo")
@@ -2386,7 +2386,7 @@ def demo():
             "farmer_insights": insights,
             "treatment_recommendations": demo_treatment_recs
         }
-        return render_template(
+        return jsonify({"error":"Not found"}), 404(
             "results.html",
             results=example_json,
             filename="demo_cotton.jpg",
@@ -3006,14 +3006,14 @@ def batch_upload_page():
     """Batch upload page"""
     if request.method == 'POST':
         return redirect(url_for('batch_results_page', job_id=request.form.get('job_id')))
-    return render_template('batch_upload.html')
+    return jsonify({"error":"Not found"}), 404('batch_upload.html')
 
 
 @app.route("/batch/results/<job_id>")
 @login_required
 def batch_results_page(job_id):
     """Batch results page"""
-    return render_template('batch_results.html', job_id=job_id)
+    return jsonify({"error":"Not found"}), 404('batch_results.html', job_id=job_id)
 
 
 # --- Authentication Routes ---
@@ -3047,7 +3047,7 @@ def login():
                 db.session.commit()
             if lockout_state.locked:
                 flash('Account temporarily locked. Please try again later.', 'danger')
-                return render_template(
+                return jsonify({"error":"Not found"}), 404(
                     'login.html',
                     google_oauth_enabled=GOOGLE_OAUTH_ENABLED,
                 ), 423
@@ -3055,7 +3055,7 @@ def login():
         if user and user.check_password(password):
             if not user.is_active:
                 flash('Your account has been deactivated. Please contact support.', 'danger')
-                return render_template('login.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
+                return jsonify({"error":"Not found"}), 404('login.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
             
             login_user(user, remember=remember)
             lockout_service.record_successful_login(
@@ -3078,7 +3078,7 @@ def login():
                 db.session.commit()
             flash('Invalid email or password', 'danger')
     
-    return render_template('login.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
+    return jsonify({"error":"Not found"}), 404('login.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
 
 
 @app.route("/auth/google")
@@ -3166,20 +3166,20 @@ def register():
         # Validation
         if not full_name or not email or not password:
             flash('All fields are required', 'danger')
-            return render_template('register.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
+            return jsonify({"error":"Not found"}), 404('register.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
         
         if password != confirm_password:
             flash('Passwords do not match', 'danger')
-            return render_template('register.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
+            return jsonify({"error":"Not found"}), 404('register.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
         
         if len(password) < 8:
             flash('Password must be at least 8 characters', 'danger')
-            return render_template('register.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
+            return jsonify({"error":"Not found"}), 404('register.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
         
         from models import User
         if User.query.filter_by(email=email).first():
             flash('Email already registered', 'danger')
-            return render_template('register.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
+            return jsonify({"error":"Not found"}), 404('register.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
         
         # Create user
         user = User(
@@ -3195,7 +3195,7 @@ def register():
         flash('Account created successfully! Please login.', 'success')
         return redirect(url_for('login'))
     
-    return render_template('register.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
+    return jsonify({"error":"Not found"}), 404('register.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
 
 
 @app.route("/logout")
@@ -3211,7 +3211,7 @@ def logout():
 @login_required
 def profile():
     """User profile page"""
-    return render_template('profile.html')
+    return jsonify({"error":"Not found"}), 404('profile.html')
 
 
 @app.route("/forgot_password", methods=["GET", "POST"])
@@ -3221,7 +3221,7 @@ def forgot_password():
         email = request.form.get('email')
         flash('Password reset link sent to your email (demo feature)', 'info')
         return redirect(url_for('login'))
-    return render_template('login.html')  # Reuse login template for now
+    return jsonify({"error":"Not found"}), 404('login.html')  # Reuse login template for now
 
 
 # --- Geographic Disease Mapping ---
@@ -3230,7 +3230,7 @@ def forgot_password():
 @login_required
 def disease_map():
     """Disease map page"""
-    return render_template('disease_map.html')
+    return jsonify({"error":"Not found"}), 404('disease_map.html')
 
 
 @app.route("/api/disease-map")
@@ -3306,7 +3306,7 @@ def api_disease_map():
 @login_required
 def dashboard():
     """Advanced dashboard page"""
-    return render_template('dashboard.html')
+    return jsonify({"error":"Not found"}), 404('dashboard.html')
 
 
 @app.route("/api/dashboard-stats")
@@ -3441,7 +3441,7 @@ def api_dashboard_stats():
 @login_required
 def reports():
     """Reports page"""
-    return render_template('reports.html')
+    return jsonify({"error":"Not found"}), 404('reports.html')
 
 
 @app.route("/api/analyses")
@@ -3575,14 +3575,14 @@ def generate_summary_report():
 @login_required
 def disease_database():
     """Disease database page"""
-    return render_template('disease_database.html')
+    return jsonify({"error":"Not found"}), 404('disease_database.html')
 
 
 @app.route("/symptom-checker")
 @login_required
 def symptom_checker():
     """Symptom checker page"""
-    return render_template('symptom_checker.html')
+    return jsonify({"error":"Not found"}), 404('symptom_checker.html')
 
 
 @app.route("/api/diseases")
@@ -3691,7 +3691,7 @@ def api_symptom_check():
 @login_required
 def disease_forecast():
     """Disease forecast page"""
-    return render_template('disease_forecast.html')
+    return jsonify({"error":"Not found"}), 404('disease_forecast.html')
 
 
 @app.route("/api/weather-forecast")
@@ -3884,7 +3884,7 @@ def analyze_result():
 
     results = json.loads(payload)
 
-    return render_template('results.html', results=results)
+    return jsonify({"error":"Not found"}), 404('results.html', results=results)
 
 
 if __name__ == '__main__':
