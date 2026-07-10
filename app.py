@@ -1989,6 +1989,7 @@ def health():
 
 
 @app.route("/analyze", methods=["GET", "POST"])
+@login_required
 @limiter.limit(lambda: app.config.get("UPLOAD_RATE_LIMIT", "10 per minute"))
 @login_required
 def analyze():
@@ -2540,6 +2541,7 @@ def api_yield_history():
 @app.route("/api/analyze", methods=["POST"])
 @app.route("/api/predict", methods=["POST"])
 @app.route("/predict", methods=["POST"])
+@login_required
 @limiter.limit(lambda: app.config.get("API_UPLOAD_RATE_LIMIT", "10 per minute"))
 def api_analyze():
     temp_path = None
@@ -2631,7 +2633,10 @@ def api_analyze_stream():
 # --- Batch Processing Endpoints ---
 
 @app.route("/api/batch_upload", methods=["POST"])
+@login_required
 @limiter.limit("3 per minute")
+@login_required
+
 def api_batch_upload():
     """Upload multiple images for batch analysis"""
     try:
@@ -2736,6 +2741,8 @@ def api_batch_upload():
         logger.error(f"Batch upload error: {e}", exc_info=True)
         return jsonify({'error': 'An internal server error occurred'}), 500
 
+@login_required
+
 @app.route("/api/batch_status/<job_id>", methods=["GET"])
 def api_batch_status(job_id):
     """Get status of a batch job"""
@@ -2756,6 +2763,8 @@ def api_batch_status(job_id):
         db.session.commit()
     
     return jsonify(job.to_dict())
+@login_required
+
 
 
 @app.route("/api/batch_results/<job_id>", methods=["GET"])
@@ -2776,6 +2785,8 @@ def api_batch_results(job_id):
         'total_images': job.total_images,
         'completed_images': job.completed_images,
         'failed_images': job.failed_images,
+@login_required
+
         'results': results
     })
 
@@ -2863,6 +2874,8 @@ def api_batch_status_stream(job_id):
             
     return Response(stream_with_context(event_generator()), mimetype="text/event-stream", headers={
         "Cache-Control": "no-cache",
+@login_required
+
         "Connection": "keep-alive",
         "X-Accel-Buffering": "no"
     })
@@ -2908,6 +2921,8 @@ def export_batch_csv(job_id):
         
     output = si.getvalue()
     si.close()
+@login_required
+
     
     return Response(
         output,
@@ -3019,6 +3034,7 @@ def batch_results_page(job_id):
 # --- Authentication Routes ---
 
 @app.route("/login", methods=["GET", "POST"])
+@login_required
 @limiter.limit("5 per minute")
 def login():
     """Login page"""
