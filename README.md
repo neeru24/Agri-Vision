@@ -71,6 +71,7 @@ Agri-Vision uses deep learning and computer vision techniques to:
 - [Model Performance & Benchmarking](docs/model-benchmarking.md)
 - [Project Structure](#-project-structure)
 - [Setup & Execution](#-setup--execution)
+- [Docker Deployment](#-docker-deployment)
 - [API Reference](#️-api-reference)
 - [Future Enhancements](#-future-enhancements)
 - [Contributing](#-contributing)
@@ -393,11 +394,9 @@ Agri-Vision/
 │   ├── model-benchmarking.md
 │   └── api-documentation.md
 │
-├── deployment/
-│   ├── Dockerfile
-│   ├── docker-compose.yml
-│   ├── nginx.conf
-│   └── runtime.txt
+├── Dockerfile
+├── docker-compose.yml
+├── nginx.conf
 │
 ├── tools/
 │   ├── check_quotes.py
@@ -565,6 +564,54 @@ python app.py
 ### ✅ Setup Complete
 
 The project should now be running successfully on your local machine at `http://localhost:5000`.
+
+---
+
+## 🐳 Docker Deployment
+
+The root Docker files provide a reproducible container setup for local testing and an optional Nginx reverse-proxy profile for production-like deployments. Run these commands from the repository root.
+
+### Prerequisites
+
+- Docker Desktop or Docker Engine with the Docker Compose v2 plugin
+- A `.env` file containing a strong `SECRET_KEY`
+
+Create the environment file before starting the container:
+
+```bash
+cp .env.example .env
+python -c "import secrets; print(secrets.token_urlsafe(64))"
+```
+
+Copy the generated value into `SECRET_KEY` in `.env`. The Compose file passes this value to the Flask container; do not commit the populated `.env` file.
+
+### Run the Flask service
+
+Build the image and start the application service:
+
+```bash
+docker compose up --build
+```
+
+The Flask application is available at `http://localhost:5000`. Stop it with `Ctrl+C`, or run `docker compose down` from another terminal.
+
+### Run with the Nginx reverse proxy
+
+The `production` Compose profile starts the optional Nginx service alongside Flask:
+
+```bash
+docker compose --profile production up --build
+```
+
+Open `http://localhost` to reach Nginx. Nginx serves files under `/static/` directly and reverse-proxies application requests to the `agri-vision` service on port 5000. The current configuration listens on HTTP port 80; HTTPS termination is not configured by `nginx.conf`.
+
+The application container also mounts `static/uploads`, `models`, and `results` so generated files and model artifacts remain available across container restarts. Remove the containers and network with:
+
+```bash
+docker compose --profile production down
+```
+
+The deployment files documented here are the root-level `Dockerfile`, `docker-compose.yml`, and `nginx.conf` listed in the project structure above.
 
 ---
 
