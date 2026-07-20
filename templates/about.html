@@ -1,0 +1,165 @@
+{% extends "index.html" %}
+
+{% block content %}
+
+<!-- =========================================================
+     Agri-Vision About Page
+     Project overview, mission, and tech stack
+========================================================= -->
+
+<style>
+    .about-section {
+        margin-top: 140px;
+        margin-bottom: 100px;
+        padding: 0 6%;
+        position: relative;
+        z-index: 2;
+    }
+
+    .about-header {
+        text-align: center;
+        margin-bottom: 60px;
+    }
+
+    .about-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 24px;
+        margin-bottom: 25px;
+        border-radius: 999px;
+        background: rgba(74, 222, 128, 0.08);
+        border: 1px solid rgba(74, 222, 128, 0.25);
+        color: #4ade80;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .about-header h1 {
+        font-size: 2.8rem;
+        margin-bottom: 16px;
+        color: var(--text-primary, #1b4332);
+    }
+
+    .about-header p {
+        max-width: 720px;
+        margin: 0 auto;
+        color: var(--text-secondary, #475569);
+        font-size: 1.05rem;
+        line-height: 1.7;
+    }
+
+    .about-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 24px;
+        margin-top: 40px;
+    }
+
+    .about-card {
+        background: var(--cotton-white, #ffffff);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        border-radius: 18px;
+        padding: 28px 24px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .about-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
+    }
+
+    .about-card h3 {
+        color: #1b4332;
+        margin-bottom: 12px;
+        font-size: 1.2rem;
+    }
+
+    .about-card p {
+        color: #475569;
+        line-height: 1.6;
+        font-size: 0.95rem;
+    }
+
+    .about-card .about-icon {
+        font-size: 1.8rem;
+        color: #4cff99;
+        margin-bottom: 14px;
+    }
+
+    .about-tech {
+        margin-top: 60px;
+        text-align: center;
+    }
+
+    .about-tech h2 {
+        font-size: 1.8rem;
+        margin-bottom: 24px;
+        color: var(--text-primary, #1b4332);
+    }
+
+    .about-tech .tech-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .about-tech .tech-pills span {
+        padding: 8px 18px;
+        border-radius: 999px;
+        background: rgba(74, 222, 128, 0.1);
+        border: 1px solid rgba(74, 222, 128, 0.25);
+        color: #1b4332;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+</style>
+
+<section class="about-section">
+    <div class="about-header">
+        <span class="about-badge"><i class="fas fa-seedling"></i> About Agri-Vision</span>
+        <h1>AI-Powered Crop Disease Detection</h1>
+        <p>
+            Agri-Vision helps farmers and agronomists detect cotton crop diseases early using
+            deep learning. Upload a leaf image and our ResNet50 + YOLOv8 ensemble returns a
+            diagnosis, confidence score, and treatment guidance in seconds.
+        </p>
+    </div>
+
+    <div class="about-grid">
+        <div class="about-card">
+            <div class="about-icon"><i class="fas fa-brain"></i></div>
+            <h3>Smart Diagnosis</h3>
+            <p>Combines ResNet50 classification with Grad-CAM explainability to highlight the
+               regions driving each prediction.</p>
+        </div>
+        <div class="about-card">
+            <div class="about-icon"><i class="fas fa-cloud-sun-rain"></i></div>
+            <h3>Weather Aware</h3>
+            <p>Integrates live weather data to provide irrigation and fertilizer
+               recommendations tailored to field conditions.</p>
+        </div>
+        <div class="about-card">
+            <div class="about-icon"><i class="fas fa-chart-line"></i></div>
+            <h3>Actionable Insights</h3>
+            <p>Turns raw model output into severity grades, trend analytics, and
+               plain-language treatment plans.</p>
+        </div>
+    </div>
+
+    <div class="about-tech">
+        <h2>Built With</h2>
+        <div class="tech-pills">
+            <span>Python</span>
+            <span>Flask</span>
+            <span>PyTorch</span>
+            <span>ResNet50</span>
+            <span>YOLOv8</span>
+            <span>OpenCV</span>
+            <span>HTML / CSS / JS</span>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

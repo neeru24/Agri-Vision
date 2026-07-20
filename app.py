@@ -1378,6 +1378,11 @@ def stories():
     return render_template("stories.html")
 
 
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+
 @app.route("/model-admin")
 @login_required
 @require_any_role(['researcher', 'admin'])
