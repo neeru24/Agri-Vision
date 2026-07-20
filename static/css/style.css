@@ -400,6 +400,33 @@ body {
     transform: translateY(-1px);
 }
 
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 3px solid var(--emerald-green);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 5px rgba(46, 139, 87, 0.18);
+}
+
+.nav-menu a:focus-visible,
+.nav-toggle:focus-visible,
+.theme-toggle-btn:focus-visible,
+.language-switcher:focus-visible {
+    opacity: 1;
+    color: var(--emerald-green);
+}
+
+#main-content:focus {
+    outline: none;
+}
+
+.skip-link:focus-visible {
+    top: 0 !important;
+}
+
 .nav-menu .btn-primary {
     padding: 0.5rem 1.2rem;
     font-size: 0.85rem;
