@@ -2632,6 +2632,7 @@ def api_analyze_stream():
 
 @app.route("/api/batch_upload", methods=["POST"])
 @limiter.limit("3 per minute")
+@login_required
 def api_batch_upload():
     """Upload multiple images for batch analysis"""
     try:
@@ -2737,6 +2738,7 @@ def api_batch_upload():
         return jsonify({'error': 'An internal server error occurred'}), 500
 
 @app.route("/api/batch_status/<job_id>", methods=["GET"])
+@login_required
 def api_batch_status(job_id):
     """Get status of a batch job"""
     from models import BatchJob, db
@@ -2759,6 +2761,7 @@ def api_batch_status(job_id):
 
 
 @app.route("/api/batch_results/<job_id>", methods=["GET"])
+@login_required
 def api_batch_results(job_id):
     """Get all results for a batch job"""
     from models import BatchJob, db
@@ -2870,6 +2873,7 @@ def api_batch_status_stream(job_id):
 
 
 @app.route("/api/batch_results/<job_id>/export/csv", methods=["GET"])
+@login_required
 def export_batch_csv(job_id):
     """Export batch results as CSV"""
     from models import BatchJob
@@ -2917,6 +2921,7 @@ def export_batch_csv(job_id):
 
 
 @app.route("/api/batch_results/<job_id>/export/pdf", methods=["GET"])
+@login_required
 def export_batch_pdf(job_id):
     """Export batch results as PDF"""
     from models import BatchJob
