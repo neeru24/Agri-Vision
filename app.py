@@ -910,6 +910,37 @@ def is_allowed_image(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
 
 
+def prune_static_uploads(max_files: int = 500) -> int:
+    """Prevent unbounded disk growth in ``static/uploads``.
+
+    Every analyzed image is persisted there, but nothing ever removes old
+    files, which leads to disk exhaustion in production. This keeps at most
+    ``max_files`` entries, deleting the oldest first, and returns the number
+    of files removed.
+    """
+    upload_dir = os.path.join("static", "uploads")
+    try:
+        entries = [
+            os.path.join(upload_dir, name)
+            for name in os.listdir(upload_dir)
+            if os.path.isfile(os.path.join(upload_dir, name))
+        ]
+    except FileNotFoundError:
+        return 0
+    if len(entries) <= max_files:
+        return 0
+    entries.sort(key=lambda p: os.path.getmtime(p))
+    excess = len(entries) - max_files
+    removed = 0
+    for path in entries[:excess]:
+        try:
+            os.remove(path)
+            removed += 1
+        except OSError:
+            continue
+    return removed
+
+
 def calculate_file_hash(file_storage) -> str:
     """Generate SHA-256 hash for an uploaded file using chunk reading."""
     sha256_hash = hashlib.sha256()
@@ -2029,6 +2060,7 @@ def analyze():
             unique_filename = f"{int(time.time())}_{safe_filename}"
             file_path = os.path.join("static", "uploads", unique_filename)
             cv2.imwrite(file_path, image)
+            prune_static_uploads()
             
             from models import AnalysisHistory, db
             if current_user.is_authenticated:
