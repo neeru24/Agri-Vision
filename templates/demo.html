@@ -39,6 +39,10 @@
                     <i data-lucide="camera"></i>
                     Try It Now
                 </a>
+                <button type="button" id="view-report-btn" class="btn btn-secondary demo-btn" style="margin-left:12px;">
+                    <i data-lucide="file-text"></i>
+                    View Analysis Report
+                </button>
             </div>
 
             <div class="demo-preview-right">
@@ -64,6 +68,108 @@
         </div>
     </section>
 
+    <div id="report-modal" class="report-modal-overlay" hidden>
+        <div class="report-modal" role="dialog" aria-modal="true" aria-labelledby="report-modal-title">
+            <div class="report-modal-header">
+                <h3 id="report-modal-title">Analysis Report</h3>
+                <button type="button" id="report-modal-close" class="report-modal-close" aria-label="Close report">&times;</button>
+            </div>
+            <pre id="report-json" class="report-json"></pre>
+        </div>
+    </div>
+
 </div>
+
+<style>
+    .report-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        padding: 20px;
+    }
+    .report-modal-overlay[hidden] { display: none; }
+    .report-modal {
+        background: #ffffff;
+        border-radius: 16px;
+        max-width: 640px;
+        width: 100%;
+        max-height: 80vh;
+        overflow: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    .report-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 22px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+    .report-modal-header h3 { margin: 0; color: #1b4332; }
+    .report-modal-close {
+        background: none;
+        border: none;
+        font-size: 1.6rem;
+        line-height: 1;
+        cursor: pointer;
+        color: #64748b;
+    }
+    .report-json {
+        margin: 0;
+        padding: 22px;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: 0.85rem;
+        line-height: 1.6;
+        color: #1b4332;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+</style>
+
+<script>
+    (function () {
+        var sampleReport = {
+            "scan_id": "demo-0001",
+            "captured_at": new Date().toISOString(),
+            "crop": "Cotton",
+            "disease": {
+                "predicted_class": "Target Spot",
+                "confidence": 0.942,
+                "severity": "Moderate",
+                "health_score": 42
+            },
+            "growth": {
+                "stage": "Squaring",
+                "confidence": 0.881
+            },
+            "yield_prediction_kg_per_acre": 742,
+            "explainability": "Grad-CAM overlay highlights necrotic lesions on lower canopy leaves.",
+            "recommendation": "Apply targeted fungicide and improve canopy airflow; re-scan in 7 days."
+        };
+
+        var overlay = document.getElementById("report-modal");
+        var btn = document.getElementById("view-report-btn");
+        var closeBtn = document.getElementById("report-modal-close");
+        var jsonEl = document.getElementById("report-json");
+
+        if (btn && overlay && jsonEl) {
+            btn.addEventListener("click", function () {
+                jsonEl.textContent = JSON.stringify(sampleReport, null, 2);
+                overlay.hidden = false;
+            });
+        }
+        function closeModal() { overlay.hidden = true; }
+        if (closeBtn) closeBtn.addEventListener("click", closeModal);
+        if (overlay) overlay.addEventListener("click", function (e) {
+            if (e.target === overlay) closeModal();
+        });
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && overlay && !overlay.hidden) closeModal();
+        });
+    })();
+</script>
 
 {% endblock %}
