@@ -20,7 +20,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_talisman import Talisman
 from io import BytesIO
-from services.weather_service import get_weather
+from services.weather_service import get_weather, geocode_city
 from services.model_cache import (
     init_cache_backend,
     get_cached_prediction,
@@ -293,7 +293,9 @@ except RuntimeError as exc:
     logger.critical(str(exc))
     raise SystemExit(str(exc))
 app.secret_key = secret_key
-app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
+# Keep the documented 50MB upload limit. The earlier 10MB override silently
+# reduced the effective limit below what the docs promise; do not overwrite it.
+app.config["MAX_CONTENT_LENGTH"] = app.config.get("MAX_CONTENT_LENGTH") or 50 * 1024 * 1024
 app.config["MAX_FORM_MEMORY_SIZE"] = 25 * 1024 * 1024
 app.config.setdefault("UPLOAD_MAX_BYTES", app.config["MAX_CONTENT_LENGTH"])
 app.config.setdefault("UPLOAD_RATE_LIMIT", "10 per minute")
@@ -908,6 +910,37 @@ def is_allowed_image(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
 
 
+def prune_static_uploads(max_files: int = 500) -> int:
+    """Prevent unbounded disk growth in ``static/uploads``.
+
+    Every analyzed image is persisted there, but nothing ever removes old
+    files, which leads to disk exhaustion in production. This keeps at most
+    ``max_files`` entries, deleting the oldest first, and returns the number
+    of files removed.
+    """
+    upload_dir = os.path.join("static", "uploads")
+    try:
+        entries = [
+            os.path.join(upload_dir, name)
+            for name in os.listdir(upload_dir)
+            if os.path.isfile(os.path.join(upload_dir, name))
+        ]
+    except FileNotFoundError:
+        return 0
+    if len(entries) <= max_files:
+        return 0
+    entries.sort(key=lambda p: os.path.getmtime(p))
+    excess = len(entries) - max_files
+    removed = 0
+    for path in entries[:excess]:
+        try:
+            os.remove(path)
+            removed += 1
+        except OSError:
+            continue
+    return removed
+
+
 def calculate_file_hash(file_storage) -> str:
     """Generate SHA-256 hash for an uploaded file using chunk reading."""
     sha256_hash = hashlib.sha256()
@@ -1343,6 +1376,11 @@ def support():
 @app.route("/stories")
 def stories():
     return render_template("stories.html")
+
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
 
 
 @app.route("/model-admin")
@@ -2027,6 +2065,7 @@ def analyze():
             unique_filename = f"{int(time.time())}_{safe_filename}"
             file_path = os.path.join("static", "uploads", unique_filename)
             cv2.imwrite(file_path, image)
+            prune_static_uploads()
             
             from models import AnalysisHistory, db
             if current_user.is_authenticated:
