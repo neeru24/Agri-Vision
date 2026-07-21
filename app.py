@@ -20,7 +20,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_talisman import Talisman
 from io import BytesIO
-from services.weather_service import get_weather
+from services.weather_service import get_weather, geocode_city
 from services.model_cache import (
     init_cache_backend,
     get_cached_prediction,
