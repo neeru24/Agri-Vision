@@ -100,7 +100,7 @@ def add_sample_data():
             growth = growth_stages[i % len(growth_stages)]
             
             # Calculate health score based on disease
-            if disease['predicted_class'] == 'healthy':
+            if disease['predicted_class'] == 'Healthy':
                 health_score = 85 + (i % 10)  # 85-95
             else:
                 health_score = 40 + (i % 30)  # 40-70

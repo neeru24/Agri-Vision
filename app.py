@@ -1718,6 +1718,7 @@ def download_analysis_report():
         elements.append(metadata_table)
         elements.append(Spacer(1, 0.2 * inch))
 
+        gradcam_image_b64 = data.get("gradcam_image_b64", "")
         if image_b64:
             try:
                 # Decoded Original Image
@@ -2683,10 +2684,6 @@ def api_batch_upload():
             import numpy as np
             for idx, (filename, image_data) in enumerate(images_data):
                 try:
-                    file.seek(0)
-                    file_bytes = file.read()
-                    image = cv2.imdecode(np.frombuffer(file_bytes, np.uint8), cv2.IMREAD_COLOR)
-
                     file_bytes = np.frombuffer(image_data, np.uint8)
                     image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
                     if image is not None:
@@ -3283,7 +3280,7 @@ def api_disease_map():
     
     # Calculate statistics
     total_analyses = len(filtered_analyses)
-    healthy_count = sum(1 for a in filtered_analyses if a.disease_result and a.disease_result.get('predicted_class') == 'healthy')
+    healthy_count = sum(1 for a in filtered_analyses if a.disease_result and a.disease_result.get('predicted_class') == 'Healthy')
     diseased_count = total_analyses - healthy_count
     avg_health_score = sum(a.health_score for a in filtered_analyses if a.health_score) / len([a for a in filtered_analyses if a.health_score]) if filtered_analyses else 0
     regions = set(a.region for a in filtered_analyses if a.region)
@@ -3325,7 +3322,7 @@ def api_dashboard_stats():
     
     # Calculate basic statistics
     total_analyses = len(analyses)
-    healthy_count = sum(1 for a in analyses if a.disease_result and a.disease_result.get('predicted_class') == 'healthy')
+    healthy_count = sum(1 for a in analyses if a.disease_result and a.disease_result.get('predicted_class') == 'Healthy')
     diseased_count = total_analyses - healthy_count
     avg_health_score = sum(a.health_score for a in analyses if a.health_score) / len([a for a in analyses if a.health_score]) if analyses else 0
     
@@ -3409,8 +3406,8 @@ def api_dashboard_stats():
     recent_activity = []
     for a in recent_analyses:
         disease = a.disease_result.get('predicted_class', 'unknown') if a.disease_result else 'unknown'
-        activity_type = 'disease' if disease != 'healthy' else 'healthy'
-        icon = 'exclamation-triangle' if disease != 'healthy' else 'check-circle'
+        activity_type = 'disease' if disease != 'Healthy' else 'healthy'
+        icon = 'exclamation-triangle' if disease != 'Healthy' else 'check-circle'
         
         recent_activity.append({
             'type': activity_type,
