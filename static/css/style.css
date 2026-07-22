@@ -741,11 +741,17 @@ nav a[href="/model-admin"]:hover {
     overflow: hidden;
     white-space: nowrap;
     border-right: 3px solid #67e8f9;
+    animation: tw-cursor-blink 1s steps(1) infinite;
 }
 
 .typewriter .line1,
 .typewriter .line2 {
     border-right: 3px solid #4ade80;
+}
+
+@keyframes tw-cursor-blink {
+    0%, 50% { border-color: currentColor; }
+    51%, 100% { border-color: transparent; }
 }
 
 /* Trust Indicators */
@@ -2358,7 +2364,9 @@ main{
 .tip-list { list-style: none; font-size: 0.95rem; opacity: 0.8; color: var(--text-main); padding: 0; }
 .tip-list li { margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px; }
 
-.theme-toggle-btn { background: transparent; border: none; color: var(--deep-forest); font-size: 1.2rem; cursor: pointer; padding: 5px; transition: color 0.3s ease; }
+.theme-toggle-btn { background: transparent; border: none; color: var(--deep-forest); font-size: 1.2rem; cursor: pointer; padding: 5px; border-radius: 50%; transition: color 0.3s ease, transform 0.2s ease, background 0.3s ease; }
+.theme-toggle-btn:hover { color: var(--emerald-green); transform: scale(1.15); background: rgba(74, 222, 128, 0.12); }
+.theme-toggle-btn:focus-visible { outline: 2px solid var(--emerald-green); outline-offset: 2px; }
 
    /* KEYFRAME ANIMATIONS */
 @keyframes fadeInUp {
@@ -3651,6 +3659,32 @@ input[type="range"]::-moz-range-thumb:hover {
     outline: 3px solid var(--ai-blue);
     outline-offset: 4px;
     box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.3);
+}
+
+/* Shimmer sweep aligned to the primary hero CTA hover state (#676) */
+.hero-cta-primary {
+    position: relative;
+    overflow: hidden;
+}
+.hero-cta-primary::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 75%;
+    height: 100%;
+    background: linear-gradient(
+        100deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.45) 50%,
+        transparent 100%
+    );
+    transform: skewX(-20deg);
+    transition: left 0.7s ease;
+    pointer-events: none;
+}
+.hero-cta-primary:hover::after {
+    left: 150%;
 }
 
 @media (prefers-reduced-motion: reduce) {
