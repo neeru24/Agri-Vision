@@ -190,7 +190,7 @@ if CELERY_AVAILABLE:
                 db.session.add(res)
                 db.session.flush()
 
-                sig = analyze_image_task.s(job.id, res.id, b64)
+                sig = analyze_image_task.s(job.id, res.id, res.image_name or "", res.image_index or 0, b64)
                 task_sigs.append(sig)
 
             db.session.commit()
