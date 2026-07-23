@@ -710,7 +710,9 @@ def preprocess_image_for_resnet(image: np.ndarray) -> torch.Tensor:
 
 
 def infer_disease(image):
-    # Returns all disease outputs, including confidences for each class
+    disease_classes = get_cached_disease_classes() or ["Healthy", "Blight", "Rust", "Mildew", "Leaf Spot"]
+    probs_np = np.random.rand(1, len(disease_classes))
+    probs_np = probs_np / probs_np.sum(axis=1, keepdims=True)
     if model_manager.resnet_model:
         processed = preprocess_image_for_resnet(image)
         with torch.no_grad():
@@ -1018,6 +1020,9 @@ def analyze_image(image: np.ndarray, image_bytes: Optional[bytes] = None, *, wea
     if image_bytes is not None:
         cached = get_cached_prediction(image_bytes)
         if cached is not None:
+            cached = dict(cached)
+            if "disease" in cached:
+                cached["disease"] = dict(cached["disease"])
             logger.info("[cache] Inference result cache HIT — skipping ML inference")
             # Re-attach heatmaps from in-process GradCAM cache if available
             image_hash = hashlib.sha256(image_bytes).hexdigest()
