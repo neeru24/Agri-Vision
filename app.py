@@ -1306,8 +1306,11 @@ def health_check():
         and getattr(model_manager, "resnet_model", None) is not None
         and getattr(model_manager, "yolo_model", None) is not None
     )
-    ready = _model_load_event.is_set() or models_ready
+    model_load_finished = bool(getattr(model_manager, "loaded", False))
+    ready = _model_load_event.is_set() or model_load_finished
     status = "healthy" if models_ready else _model_load_status.get("status", "loading")
+    if model_load_finished and not models_ready:
+        status = "degraded"
     if ready and status == "ready":
         status = "healthy"
     if ready and status == "timeout":
