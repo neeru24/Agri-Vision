@@ -2002,8 +2002,14 @@ def health():
     return health_check()
 
 
+def get_upload_rate_limit(config_key, default):
+    if app.config.get("TESTING") and not app.config.get("RATE_LIMIT_TESTING"):
+        return "100000 per minute"
+    return app.config.get(config_key, default)
+
+
 @app.route("/analyze", methods=["GET", "POST"])
-@limiter.limit(lambda: app.config.get("UPLOAD_RATE_LIMIT", "10 per minute"))
+@limiter.limit(lambda: get_upload_rate_limit("UPLOAD_RATE_LIMIT", "10 per minute"))
 @login_required
 def analyze():
     if request.method == "POST":
@@ -2554,7 +2560,7 @@ def api_yield_history():
 @app.route("/api/analyze", methods=["POST"])
 @app.route("/api/predict", methods=["POST"])
 @app.route("/predict", methods=["POST"])
-@limiter.limit(lambda: app.config.get("API_UPLOAD_RATE_LIMIT", "10 per minute"))
+@limiter.limit(lambda: get_upload_rate_limit("API_UPLOAD_RATE_LIMIT", "10 per minute"))
 def api_analyze():
     temp_path = None
     try:
