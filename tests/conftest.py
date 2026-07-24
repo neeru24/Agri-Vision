@@ -1,6 +1,7 @@
 import pytest
 import io
 import os
+from itertools import count
 from PIL import Image
 import numpy as np
 
@@ -22,6 +23,7 @@ def _load_models_for_legacy_tests():
 app_module.load_models = _load_models_for_legacy_tests
 
 flask_app = app_module.app
+_client_counter = count(1)
 
 @pytest.fixture
 def app():
@@ -53,7 +55,9 @@ def client(app):
         app_module.limiter.reset()
     except Exception:
         pass
-    return app.test_client()
+    test_client = app.test_client()
+    test_client.environ_base["REMOTE_ADDR"] = f"127.0.1.{next(_client_counter)}"
+    return test_client
 
 @pytest.fixture
 def valid_image():
