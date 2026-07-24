@@ -2597,6 +2597,8 @@ def api_analyze():
         return jsonify({"error": str(exc)}), exc.status_code
     except Exception as e:
         logger.error(f"API analysis error: {e}", exc_info=True)
+        if app.config.get("TESTING"):
+            return jsonify({"error": str(e)}), 500
         return jsonify({"error": "An internal server error occurred"}), 500
     finally:
         cleanup_temp_upload(temp_path)
