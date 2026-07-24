@@ -48,6 +48,10 @@ def allow_synthetic_test_images(monkeypatch):
 @pytest.fixture
 def client(app):
     """Provides a Flask test client."""
+    try:
+        app_module.limiter.reset()
+    except Exception:
+        pass
     return app.test_client()
 
 @pytest.fixture

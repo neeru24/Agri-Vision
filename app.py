@@ -1296,18 +1296,29 @@ def health_check():
     """
     Readiness endpoint.
 
-    Returns HTTP 503 with {"status": "loading"} while models are being warmed up
-    in the background thread, and HTTP 200 with {"status": "ready"} once they are
-    available.  Kubernetes / Docker HEALTHCHECK probes should wait for 200.
+    Returns HTTP 503 with {"status": "loading"} while models are warming up,
+    HTTP 503 with {"status": "degraded"} when loading finished without both
+    models, and HTTP 200 with {"status": "healthy"} once both models are ready.
+    Kubernetes / Docker HEALTHCHECK probes should wait for 200.
     """
-    ready = _model_load_event.is_set()
-    status = _model_load_status.get("status", "loading")
+    models_ready = bool(
+        getattr(model_manager, "loaded", False)
+        and getattr(model_manager, "resnet_model", None) is not None
+        and getattr(model_manager, "yolo_model", None) is not None
+    )
+    ready = _model_load_event.is_set() or models_ready
+    status = "healthy" if models_ready else _model_load_status.get("status", "loading")
+    if ready and status == "ready":
+        status = "healthy"
+    if ready and status == "timeout":
+        status = "degraded"
     payload = {
         "status": status if ready else "loading",
+        "model_loaded": models_ready,
         "models": model_manager.diagnostics() if ready else {},
         "cache": inference_cache_stats(),
     }
-    if not ready or status not in ("ready", "timeout"):
+    if not ready or status not in ("healthy",):
         return jsonify(payload), 503
     return jsonify(payload), 200
 
