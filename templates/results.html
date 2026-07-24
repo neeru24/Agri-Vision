@@ -759,8 +759,7 @@
       const totalDisplay = document.getElementById('total-yield-display');
       const kgTotalDisplay = document.getElementById('total-kg-ha-display');
 
-      const minPerAcre = {{ yield_estimate.yield_min_acre }
-    };
+      const minPerAcre = {{ yield_estimate.yield_min_acre }};
     const maxPerAcre = {{ yield_estimate.yield_max_acre }};
 
     slider.addEventListener('input', function () {
@@ -1411,7 +1410,7 @@
       image: "data:image/jpeg;base64,{{ image_b64 }}",
       disease: {{ disease.detected_issue|default (disease.predicted_class |default ("Unknown")) | tojson }},
   confidence: "{{ disease.model_confidence|default(0)|float|round(2) }}",
-    timestamp: { { timestamp |default ("") | tojson } }
+    timestamp: {{ timestamp|default("")|tojson }}
     };
   var scanHistory = getScanHistory();
   if (!scanHistory.length || scanHistory[0].timestamp !== currentScan.timestamp) {
