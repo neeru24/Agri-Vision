@@ -923,6 +923,21 @@ def get_upload_max_bytes() -> int:
     return int(max_bytes or 10 * 1024 * 1024)
 
 
+def strip_image_metadata(file_bytes: bytes) -> bytes:
+    """Return image bytes re-encoded without EXIF or ancillary metadata."""
+    with Image.open(BytesIO(file_bytes)) as img:
+        output = BytesIO()
+        image_format = (img.format or "JPEG").upper()
+
+        if image_format == "JPG":
+            image_format = "JPEG"
+        if image_format == "JPEG" and img.mode not in {"RGB", "L"}:
+            img = img.convert("RGB")
+
+        img.save(output, format=image_format)
+        return output.getvalue()
+
+
 def enforce_request_size(max_bytes: int) -> None:
     content_length = request.content_length
     if content_length is not None and content_length > max_bytes:
@@ -937,7 +952,6 @@ def read_validated_upload_image(file_storage) -> Tuple[str, np.ndarray, np.ndarr
         allowed_mime_types=ALLOWED_IMAGE_MIME_TYPES,
         max_bytes=max_bytes,
     )
-    temp_path = save_temp_upload(file_bytes, app.config["UPLOAD_TMP_DIR"], safe_filename)
 
     try:
         img = Image.open(BytesIO(file_bytes))
@@ -955,7 +969,10 @@ def read_validated_upload_image(file_storage) -> Tuple[str, np.ndarray, np.ndarr
             status_code=400,
         )
 
-    image = cv2.imdecode(np.frombuffer(file_bytes, np.uint8), cv2.IMREAD_COLOR)
+    sanitized_bytes = strip_image_metadata(file_bytes)
+    temp_path = save_temp_upload(sanitized_bytes, app.config["UPLOAD_TMP_DIR"], safe_filename)
+
+    image = cv2.imdecode(np.frombuffer(sanitized_bytes, np.uint8), cv2.IMREAD_COLOR)
     if image is None:
         raise UploadValidationError("Unable to process this image. It may be corrupt or in an unsupported format.", status_code=400)
     return safe_filename, image, cv2.cvtColor(image, cv2.COLOR_BGR2RGB), temp_path
