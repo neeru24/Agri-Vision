@@ -326,6 +326,55 @@
         ></div>
 
         <div
+          id="upload-progress"
+          style="
+            display: none;
+            margin-top: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: rgba(46, 139, 87, 0.08);
+            border: 1px solid rgba(46, 139, 87, 0.18);
+            border-radius: 10px;
+          "
+          role="status"
+          aria-live="polite"
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              gap: 1rem;
+              font-size: 0.85rem;
+              font-weight: 600;
+              color: var(--text-primary);
+              margin-bottom: 0.5rem;
+            "
+          >
+            <span id="upload-progress-label">Preparing upload...</span>
+            <span id="upload-progress-value">0%</span>
+          </div>
+          <div
+            style="
+              width: 100%;
+              height: 8px;
+              overflow: hidden;
+              border-radius: 999px;
+              background: rgba(46, 139, 87, 0.16);
+            "
+          >
+            <div
+              id="upload-progress-bar"
+              style="
+                width: 0%;
+                height: 100%;
+                border-radius: inherit;
+                background: linear-gradient(90deg, var(--emerald-green), var(--ai-blue));
+                transition: width 0.25s ease;
+              "
+            ></div>
+          </div>
+        </div>
+
+        <div
           id="upload-error"
           class="hidden"
           style="
@@ -717,6 +766,29 @@
     }
   }
 
+  function updateUploadProgress(percent, label) {
+    const progress = document.getElementById("upload-progress");
+    const progressBar = document.getElementById("upload-progress-bar");
+    const progressValue = document.getElementById("upload-progress-value");
+    const progressLabel = document.getElementById("upload-progress-label");
+    const safePercent = Math.max(0, Math.min(100, percent));
+
+    if (progress) progress.style.display = "block";
+    if (progressBar) progressBar.style.width = safePercent + "%";
+    if (progressValue) progressValue.textContent = safePercent + "%";
+    if (progressLabel) progressLabel.textContent = label;
+  }
+
+  function hideUploadProgress() {
+    const progress = document.getElementById("upload-progress");
+    const progressBar = document.getElementById("upload-progress-bar");
+    const progressValue = document.getElementById("upload-progress-value");
+
+    if (progress) progress.style.display = "none";
+    if (progressBar) progressBar.style.width = "0%";
+    if (progressValue) progressValue.textContent = "0%";
+  }
+
   async function convertPdfToImage(file) {
     if (typeof pdfjsLib === "undefined") {
       throw new Error(
@@ -828,6 +900,7 @@
       : null;
 
     hideError();
+    hideUploadProgress();
 
     if (input.files && input.files[0]) {
       let file = input.files[0];
@@ -856,6 +929,7 @@
           file.name + " (" + (file.size / 1024 / 1024).toFixed(1) + " MB)";
         fileInfo.style.display = "block";
       }
+      updateUploadProgress(20, "File selected");
 
       const uploadError = document.getElementById("upload-error");
       if (uploadError) uploadError.style.display = "none";
@@ -880,6 +954,7 @@
 
       if (isPdf) {
         try {
+          updateUploadProgress(45, "Converting PDF preview");
           file = await convertPdfToImage(file);
           hideError();
         } catch (err) {
@@ -892,6 +967,7 @@
 
       try {
         // Apply 1024x1024 Compression
+        updateUploadProgress(65, "Optimizing image");
         const compressedBlob = await compressImageFile(file, 1024, 1024, 0.8);
         const processedFile = new File([compressedBlob], file.name, {
           type: "image/jpeg",
@@ -906,6 +982,7 @@
         reader.onload = function (e) {
           preview.src = e.target.result;
           previewContainer.style.display = "block";
+          updateUploadProgress(100, "Upload ready");
 
           // Issue #666: enable submit once image is ready
           const sb = document.getElementById("submit-btn");
@@ -955,6 +1032,7 @@
       fileInfo.style.display = "none";
     }
     if (uploadError) uploadError.style.display = "none";
+    hideUploadProgress();
     input.value = "";
     if (cameraInput) cameraInput.value = "";
     preview.src = "";
