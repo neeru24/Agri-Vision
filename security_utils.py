@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import os
 import re
 import tempfile
@@ -39,8 +40,9 @@ def resolve_secret_key(env: Mapping[str, str]) -> str:
             # app.py converts this RuntimeError to SystemExit.
             raise RuntimeError("SECRET_KEY must be configured in production.")
 
-        # In non-production, provide a deterministic dev key.
-        return "dev_secret_123"
+        # In non-production, derive a host-local key so it's not hardcoded.
+        host = env.get("HOSTNAME", env.get("COMPUTERNAME", "localhost"))
+        return hashlib.sha256(f"agri-vision-dev:{host}".encode()).hexdigest()
 
 
     return secret_key
