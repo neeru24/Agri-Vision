@@ -5,6 +5,7 @@ Unified inference for disease classification (ResNet50) and growth stage predict
 import hashlib
 import logging
 from flask import Flask, render_template, request, jsonify, flash, redirect, url_for, send_file
+from werkzeug.urls import url_parse
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import os
@@ -3067,7 +3068,9 @@ def login():
             db.session.commit()
             
             next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('index'))
+            if next_page and url_parse(next_page).netloc == '':
+                return redirect(next_page)
+            return redirect(url_for('index'))
         else:
             if user:
                 lockout_service.record_failed_login(
