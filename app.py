@@ -1648,6 +1648,7 @@ def download_analysis_report():
         timestamp = data.get("timestamp", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         weather_data = data.get("weather_data", {})
         yield_data = data.get("yield_estimate", {})
+        gradcam_image_b64 = data.get("gradcam_image_b64", "")
 
         pdf_buffer = BytesIO()
         doc = SimpleDocTemplate(
@@ -2684,10 +2685,6 @@ def api_batch_upload():
             import numpy as np
             for idx, (filename, image_data) in enumerate(images_data):
                 try:
-                    file.seek(0)
-                    file_bytes = file.read()
-                    image = cv2.imdecode(np.frombuffer(file_bytes, np.uint8), cv2.IMREAD_COLOR)
-
                     file_bytes = np.frombuffer(image_data, np.uint8)
                     image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
                     if image is not None:
