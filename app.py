@@ -5,6 +5,7 @@ Unified inference for disease classification (ResNet50) and growth stage predict
 import hashlib
 import logging
 from flask import Flask, render_template, request, jsonify, flash, redirect, url_for, send_file
+from urllib.parse import urlparse
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import os
@@ -1647,6 +1648,7 @@ def download_analysis_report():
         timestamp = data.get("timestamp", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         weather_data = data.get("weather_data", {})
         yield_data = data.get("yield_estimate", {})
+        gradcam_image_b64 = data.get("gradcam_image_b64", "")
 
         pdf_buffer = BytesIO()
         doc = SimpleDocTemplate(
@@ -2683,10 +2685,6 @@ def api_batch_upload():
             import numpy as np
             for idx, (filename, image_data) in enumerate(images_data):
                 try:
-                    file.seek(0)
-                    file_bytes = file.read()
-                    image = cv2.imdecode(np.frombuffer(file_bytes, np.uint8), cv2.IMREAD_COLOR)
-
                     file_bytes = np.frombuffer(image_data, np.uint8)
                     image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
                     if image is not None:
@@ -3067,7 +3065,9 @@ def login():
             db.session.commit()
             
             next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('index'))
+            if next_page and urlparse(next_page).netloc == '':
+                return redirect(next_page)
+            return redirect(url_for('index'))
         else:
             if user:
                 lockout_service.record_failed_login(
