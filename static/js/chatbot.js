@@ -127,6 +127,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: JSON.stringify({ message: messageText })
             });
 
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
+            }
+
             // Parse JSON — handle malformed/non-JSON responses gracefully
             let data;
             try {
@@ -135,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 data = null;
             }
 
-            if (!response.ok || !data) {
+            if (!data) {
                 throw new Error(`Server error: ${response.status}`);
             }
 

@@ -3,6 +3,11 @@ async function loadLanguage(lang) {
     const response =
         await fetch(`/static/lang/${lang}.json`);
 
+    if (!response.ok) {
+        console.error("Failed to load language file:", response.status);
+        return;
+    }
+
     const translations =
         await response.json();
 
