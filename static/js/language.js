@@ -3,7 +3,8 @@ async function loadLanguage(lang) {
     const response =
         await fetch(`/static/lang/${lang}.json`);
 
-    const translations =
+    if (!response.ok) throw new Error("Request failed");
+const translations =
         await response.json();
 
     document.querySelectorAll("[data-i18n]")
