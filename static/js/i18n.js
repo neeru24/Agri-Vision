@@ -25,7 +25,7 @@ const I18nEngine = (function() {
                 } else if (el.tagName === 'INPUT' && el.type === 'submit') {
                     el.value = translation;
                 } else {
-                    el.innerHTML = translation;
+                    el.textContent = translation;
                 }
             }
         });
