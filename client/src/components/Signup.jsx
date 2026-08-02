@@ -48,7 +48,7 @@ const Signup = () => {
 
   const validateYear = (year) => {
     if (!year) return 'Year is required';
-    if (isNaN(year) || year < 1 || year > 6) return 'Please enter a valid year (1-6)';
+    if (Number.isNaN(year) || year < 1 || year > 6) return 'Please enter a valid year (1-6)';
     return '';
   };
 
