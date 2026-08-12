@@ -30,7 +30,11 @@ def app():
         "TESTING": True,
         "LOGIN_DISABLED": False,
         "MAX_CONTENT_LENGTH": 10 * 1024 * 1024,
-        # Max content length is kept at 10MB to test oversized file uploads
+        # Max content length is kept at 10MB to test oversized file uploads.
+        # UPLOAD_MAX_BYTES must be kept in sync: get_upload_max_bytes() in app.py
+        # reads UPLOAD_MAX_BYTES first and it is otherwise frozen at import time
+        # via app.config.setdefault(), so it would not pick up this override.
+        "UPLOAD_MAX_BYTES": 10 * 1024 * 1024,
     })
     return flask_app
 
@@ -44,6 +48,20 @@ def allow_synthetic_test_images(monkeypatch):
         lambda _image: ({"is_blocking": False, "warnings": []}, False),
         raising=False,
     )
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limiter():
+    """Clear in-memory rate-limit counters between tests.
+
+    The limiter's storage persists for the lifetime of the process, so without
+    a reset, upload-rate-limited routes (e.g. /analyze, /api/analyze) start
+    returning 429 once enough tests in the session have exercised them,
+    regardless of test order.
+    """
+    app_module.limiter.reset()
+    yield
+    app_module.limiter.reset()
 
 @pytest.fixture
 def client(app):
