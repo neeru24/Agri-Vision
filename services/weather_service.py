@@ -4,6 +4,7 @@ Fetches real-time weather data using Open-Meteo API (free, no API key required).
 Optionally supports OpenWeatherMap if OPENWEATHER_API_KEY is set in .env
 """
 
+import os
 import requests
 from requests.exceptions import (
     Timeout,
@@ -34,9 +35,9 @@ session = requests.Session()
 session.mount("https://", adapter)
 session.mount("http://", adapter)
 
-OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
-OPENWEATHER_URL = "https://api.openweathermap.org/data/2.5/weather"
-GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
+OPEN_METEO_URL = os.getenv("OPEN_METEO_URL", "https://api.open-meteo.com/v1/forecast")
+OPENWEATHER_URL = os.getenv("OPENWEATHER_URL", "https://api.openweathermap.org/data/2.5/weather")
+GEOCODING_URL = os.getenv("GEOCODING_URL", "https://geocoding-api.open-meteo.com/v1/search")
 
 
 def geocode_city(city: str) -> Optional[dict]:
@@ -58,7 +59,7 @@ def geocode_city(city: str) -> Optional[dict]:
         data = resp.json()
 
         if not isinstance(data, dict):
-            logger.error("Invalid geocoding API response format")
+            logger.error("Invalid geocoding API response format (URL: %s)", GEOCODING_URL)
             return None
 
         results = data.get("results", [])
@@ -76,19 +77,25 @@ def geocode_city(city: str) -> Optional[dict]:
         logger.warning(f"No geocoding results found for '{city}'")
 
     except Timeout:
-        logger.error(f"Geocoding request timed out for '{city}'")
+        logger.error("Geocoding request timed out for '%s' (URL: %s)", city, GEOCODING_URL)
 
     except ConnectionError:
-        logger.error(f"Connection error during geocoding for '{city}'")
+        logger.error("Connection error during geocoding for '%s' (URL: %s)", city, GEOCODING_URL)
 
     except HTTPError as e:
-        logger.error(f"HTTP error during geocoding for '{city}': {e}")
+        logger.error("HTTP error during geocoding for '%s' (URL: %s, status: %s): %s",
+                     city, GEOCODING_URL, e.response.status_code if e.response is not None else "N/A", e)
+        if e.response is not None:
+            logger.error("Response snippet: %s", e.response.text[:500])
 
     except JSONDecodeError:
-        logger.error(f"Invalid JSON received from geocoding API for '{city}'")
+        logger.error("Invalid JSON received from geocoding API for '%s' (URL: %s)", city, GEOCODING_URL)
 
     except RequestException as e:
-        logger.error(f"Request failure during geocoding for '{city}': {e}")
+        logger.error("Request failure during geocoding for '%s' (URL: %s): %s", city, GEOCODING_URL, e)
+        if e.response is not None:
+            logger.error("Response snippet (status %s): %s",
+                         e.response.status_code, e.response.text[:500])
 
     return None
 
@@ -128,30 +135,34 @@ def get_weather_open_meteo(lat: float, lon: float) -> Optional[dict]:
             "source": "open-meteo",
             "lat": lat,
             "lon": lon,
-            "temperature": current.get("temperature_2m"),        # °C
-            "feels_like": current.get("apparent_temperature"),   # °C
-            "humidity": current.get("relative_humidity_2m"),     # %
-            "precipitation": current.get("precipitation", 0),   # mm
-            "wind_speed": current.get("wind_speed_10m"),         # km/h
+            "temperature": round(current.get("temperature_2m"), 1) if current.get("temperature_2m") is not None else None,
+            "feels_like": round(current.get("apparent_temperature"), 1) if current.get("apparent_temperature") is not None else None,
+            "humidity": round(current.get("relative_humidity_2m"), 1) if current.get("relative_humidity_2m") is not None else None,
+            "precipitation": current.get("precipitation", 0),
+            "wind_speed": current.get("wind_speed_10m"),
             "uv_index": current.get("uv_index"),
             "weather_code": current.get("weather_code"),
             "description": _wmo_description(current.get("weather_code")),
             "icon": _wmo_icon(current.get("weather_code")),
         }
     except Timeout:
-        logger.error("Open-Meteo request timed out")
+        logger.error("Open-Meteo request timed out (URL: %s, lat=%s, lon=%s)", OPEN_METEO_URL, lat, lon)
 
     except ConnectionError:
-        logger.error("Connection error while fetching Open-Meteo weather data")
+        logger.error("Connection error while fetching Open-Meteo weather data (URL: %s, lat=%s, lon=%s)", OPEN_METEO_URL, lat, lon)
 
     except HTTPError as e:
-        logger.error(f"Open-Meteo HTTP error: {e}")
+        logger.error("Open-Meteo HTTP error (URL: %s, status: %s): %s", OPEN_METEO_URL, e.response.status_code if e.response is not None else "N/A", e)
+        if e.response is not None:
+            logger.error("Response snippet: %s", e.response.text[:500])
 
     except JSONDecodeError:
-        logger.error("Invalid JSON received from Open-Meteo API")
+        logger.error("Invalid JSON received from Open-Meteo API (URL: %s)", OPEN_METEO_URL)
 
     except RequestException as e:
-        logger.error(f"Open-Meteo request failed: {e}")
+        logger.error("Open-Meteo request failed (URL: %s, lat=%s, lon=%s): %s", OPEN_METEO_URL, lat, lon, e)
+        if e.response is not None:
+            logger.error("Response snippet (status %s): %s", e.response.status_code, e.response.text[:500])
 
     return None
 
@@ -193,12 +204,16 @@ def get_weather_forecast(lat: float, lon: float, days: int = 14) -> Optional[dic
         forecast = []
         dates = daily.get("time", [])
         for i, date in enumerate(dates):
+            t_max = daily.get("temperature_2m_max", [])[i] if i < len(daily.get("temperature_2m_max", [])) else None
+            t_min = daily.get("temperature_2m_min", [])[i] if i < len(daily.get("temperature_2m_min", [])) else None
+            t_avg = daily.get("temperature_2m_mean", [])[i] if i < len(daily.get("temperature_2m_mean", [])) else None
+            hum = daily.get("relative_humidity_2m_mean", [])[i] if i < len(daily.get("relative_humidity_2m_mean", [])) else None
             forecast.append({
                 "date": date,
-                "temperature_max": daily.get("temperature_2m_max", [])[i] if i < len(daily.get("temperature_2m_max", [])) else None,
-                "temperature_min": daily.get("temperature_2m_min", [])[i] if i < len(daily.get("temperature_2m_min", [])) else None,
-                "temperature_avg": daily.get("temperature_2m_mean", [])[i] if i < len(daily.get("temperature_2m_mean", [])) else None,
-                "humidity": daily.get("relative_humidity_2m_mean", [])[i] if i < len(daily.get("relative_humidity_2m_mean", [])) else None,
+                "temperature_max": round(t_max, 1) if t_max is not None else None,
+                "temperature_min": round(t_min, 1) if t_min is not None else None,
+                "temperature_avg": round(t_avg, 1) if t_avg is not None else None,
+                "humidity": round(hum, 1) if hum is not None else None,
                 "rainfall": daily.get("precipitation_sum", [])[i] if i < len(daily.get("precipitation_sum", [])) else None,
                 "wind_speed": daily.get("wind_speed_10m_max", [])[i] if i < len(daily.get("wind_speed_10m_max", [])) else None,
                 "uv_index": daily.get("uv_index_max", [])[i] if i < len(daily.get("uv_index_max", [])) else None,
@@ -211,19 +226,23 @@ def get_weather_forecast(lat: float, lon: float, days: int = 14) -> Optional[dic
             "forecast": forecast
         }
     except Timeout:
-        logger.error("Open-Meteo forecast request timed out")
+        logger.error("Open-Meteo forecast request timed out (URL: %s, lat=%s, lon=%s, days=%s)", OPEN_METEO_URL, lat, lon, days)
 
     except ConnectionError:
-        logger.error("Connection error while fetching Open-Meteo forecast data")
+        logger.error("Connection error while fetching Open-Meteo forecast data (URL: %s, lat=%s, lon=%s)", OPEN_METEO_URL, lat, lon)
 
     except HTTPError as e:
-        logger.error(f"Open-Meteo forecast HTTP error: {e}")
+        logger.error("Open-Meteo forecast HTTP error (URL: %s, status: %s): %s", OPEN_METEO_URL, e.response.status_code if e.response is not None else "N/A", e)
+        if e.response is not None:
+            logger.error("Response snippet: %s", e.response.text[:500])
 
     except JSONDecodeError:
-        logger.error("Invalid JSON received from Open-Meteo forecast API")
+        logger.error("Invalid JSON received from Open-Meteo forecast API (URL: %s)", OPEN_METEO_URL)
 
     except RequestException as e:
-        logger.error(f"Open-Meteo forecast request failed: {e}")
+        logger.error("Open-Meteo forecast request failed (URL: %s, lat=%s, lon=%s): %s", OPEN_METEO_URL, lat, lon, e)
+        if e.response is not None:
+            logger.error("Response snippet (status %s): %s", e.response.status_code, e.response.text[:500])
 
     return None
 
@@ -251,9 +270,9 @@ def get_weather_openweathermap(lat: float, lon: float, api_key: str) -> Optional
             "source": "openweathermap",
             "lat": lat,
             "lon": lon,
-            "temperature": main.get("temp"),
-            "feels_like": main.get("feels_like"),
-            "humidity": main.get("humidity"),
+            "temperature": round(main.get("temp"), 1) if main.get("temp") is not None else None,
+            "feels_like": round(main.get("feels_like"), 1) if main.get("feels_like") is not None else None,
+            "humidity": round(main.get("humidity"), 1) if main.get("humidity") is not None else None,
             "precipitation": data.get("rain", {}).get("1h", 0),
             "wind_speed": wind.get("speed", 0) * 3.6,  # m/s → km/h
             "uv_index": None,  # needs separate UV call in OWM
@@ -262,19 +281,23 @@ def get_weather_openweathermap(lat: float, lon: float, api_key: str) -> Optional
             "icon": weather.get("icon"),
         }
     except Timeout:
-        logger.error("OpenWeatherMap request timed out")
+        logger.error("OpenWeatherMap request timed out (URL: %s, lat=%s, lon=%s)", OPENWEATHER_URL, lat, lon)
         
     except ConnectionError:
-        logger.error("Connection error while fetching OpenWeatherMap data")
+        logger.error("Connection error while fetching OpenWeatherMap data (URL: %s, lat=%s, lon=%s)", OPENWEATHER_URL, lat, lon)
 
     except HTTPError as e:
-        logger.error(f"OpenWeatherMap HTTP error: {e}")
+        logger.error("OpenWeatherMap HTTP error (URL: %s, status: %s): %s", OPENWEATHER_URL, e.response.status_code if e.response is not None else "N/A", e)
+        if e.response is not None:
+            logger.error("Response snippet: %s", e.response.text[:500])
 
     except JSONDecodeError:
-        logger.error("Invalid JSON received from OpenWeatherMap API")
+        logger.error("Invalid JSON received from OpenWeatherMap API (URL: %s)", OPENWEATHER_URL)
 
     except RequestException as e:
-        logger.error(f"OpenWeatherMap request failed: {e}")
+        logger.error("OpenWeatherMap request failed (URL: %s, lat=%s, lon=%s): %s", OPENWEATHER_URL, lat, lon, e)
+        if e.response is not None:
+            logger.error("Response snippet (status %s): %s", e.response.status_code, e.response.text[:500])
 
     return None
 

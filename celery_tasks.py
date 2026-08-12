@@ -1,6 +1,6 @@
 import os
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 import base64
 
 logger = logging.getLogger(__name__)
@@ -88,7 +88,7 @@ if CELERY_AVAILABLE:
                             failed_count = len([r for r in job.results if r.status == "error"])
                             if completed_count + failed_count + 1 >= job.total_images:
                                 job.status = "completed"
-                                job.completed_at = datetime.utcnow()
+                                job.completed_at = datetime.now(timezone.utc)
                         db.session.commit()
             except Exception as db_err:
                 logger.error(f"Error saving analysis result to database: {db_err}")
@@ -109,7 +109,7 @@ if CELERY_AVAILABLE:
                 'image_index': image_index,
                 'status': 'complete',
                 'results': results,
-                'timestamp': datetime.utcnow().isoformat()
+                'timestamp': datetime.now(timezone.utc).isoformat()
             }
             
         except Exception as e:
@@ -136,7 +136,7 @@ if CELERY_AVAILABLE:
                             failed_count = len([r for r in job.results if r.status == "error"])
                             if completed_count + failed_count + 1 >= job.total_images:
                                 job.status = "completed"
-                                job.completed_at = datetime.utcnow()
+                                job.completed_at = datetime.now(timezone.utc)
                         db.session.commit()
             except Exception as db_err:
                 logger.error(f"Error saving failure result to database: {db_err}")
@@ -160,7 +160,7 @@ if CELERY_AVAILABLE:
             job.failed_images = failed
             job.status = "completed" if (completed + failed) >= job.total_images else "processing"
             if job.status == "completed":
-                job.completed_at = datetime.utcnow()
+                job.completed_at = datetime.now(timezone.utc)
             db.session.commit()
 
             return {"job_id": job_id, "status": job.status, "completed": completed, "failed": failed}
@@ -180,7 +180,7 @@ if CELERY_AVAILABLE:
                 raise ValueError(f"Batch size exceeds maximum of {MAX_BATCH_SIZE}")
 
             job.status = "processing"
-            job.started_at = datetime.utcnow()
+            job.started_at = datetime.now(timezone.utc)
             job.total_images = len(images_data)
             db.session.commit()
 
@@ -227,7 +227,7 @@ else:
                     logger.error("Fallback worker: job not found %s", job_id)
                     return
                 job.status = "processing"
-                job.started_at = datetime.utcnow()
+                job.started_at = datetime.now(timezone.utc)
                 job.total_images = len(images_data)
                 db.session.commit()
 
@@ -250,7 +250,7 @@ else:
                 job.completed_images = completed
                 job.failed_images = failed
                 job.status = "completed"
-                job.completed_at = datetime.utcnow()
+                job.completed_at = datetime.now(timezone.utc)
                 db.session.commit()
 
         def _process_single(job_id, idx, image_name, b64):

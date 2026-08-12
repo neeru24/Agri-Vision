@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Optional
 
 from config.security_config import AccountLockoutConfig, load_account_lockout_config
@@ -47,7 +47,7 @@ class AccountLockoutService:
         if not self.config.enabled:
             return AccountLockoutState(False, False, None)
 
-        current_time = now or datetime.utcnow()
+        current_time = now or datetime.now(timezone.utc)
         locked_until = user.account_locked_until
         if locked_until is None:
             return AccountLockoutState(False, False, None)
@@ -67,7 +67,7 @@ class AccountLockoutService:
         user_agent: Optional[str],
         now: Optional[datetime] = None,
     ) -> AccountLockoutState:
-        current_time = now or datetime.utcnow()
+        current_time = now or datetime.now(timezone.utc)
         user.failed_login_attempts = int(user.failed_login_attempts or 0) + 1
         user.last_failed_login_at = current_time
         user.last_failed_ip = ip
@@ -110,7 +110,7 @@ class AccountLockoutService:
         user_agent: Optional[str],
         now: Optional[datetime] = None,
     ) -> None:
-        current_time = now or datetime.utcnow()
+        current_time = now or datetime.now(timezone.utc)
         user.failed_login_attempts = 0
         user.last_failed_login_at = None
         user.account_locked_until = None

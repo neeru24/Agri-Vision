@@ -2,7 +2,7 @@
 Report generation service for Agri-Vision
 Generates PDF reports for disease analysis and crop health
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -78,7 +78,7 @@ class ReportGenerator:
         
         # Report metadata
         metadata = [
-            ['Report Date:', datetime.now().strftime('%B %d, %Y')],
+            ['Report Date:', datetime.now(timezone.utc).strftime('%B %d, %Y')],
             ['User:', user_info.get('full_name', 'N/A')],
             ['Email:', user_info.get('email', 'N/A')],
             ['Role:', user_info.get('role', 'N/A').capitalize()]
@@ -365,7 +365,7 @@ class ReportGenerator:
         # Report metadata
         date_str = date_range if date_range else "All Time"
         metadata = [
-            ['Report Date:', datetime.now().strftime('%B %d, %Y')],
+            ['Report Date:', datetime.now(timezone.utc).strftime('%B %d, %Y')],
             ['Date Range:', date_str],
             ['User:', user_info.get('full_name', 'N/A')],
             ['Total Analyses:', str(len(analyses))]

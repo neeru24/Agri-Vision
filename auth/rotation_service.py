@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional, Tuple
 
 from auth.jwt_utils import create_access_token, create_refresh_token, decode_token, new_jti
@@ -16,7 +16,7 @@ class RefreshRotationError(Exception):
 
 
 def _utcnow() -> datetime:
-    return datetime.utcnow()
+    return datetime.now(timezone.utc)
 
 
 def rotate_refresh_token(

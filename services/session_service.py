@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 from auth.device_detection import parse_device_metadata
@@ -20,7 +20,7 @@ class SessionContext:
 
 
 def _utcnow() -> datetime:
-    return datetime.utcnow()
+    return datetime.now(timezone.utc)
 
 
 def _throttle_should_update(prev: Optional[datetime], *, throttle_seconds: int) -> bool:
