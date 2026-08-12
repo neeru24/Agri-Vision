@@ -190,3 +190,5 @@ textarea[aria-invalid="true"].form-textarea,
   }
 }
 
+
+/* fix: [Bug]: Landing page tagline string missing translation / loc (#794) */
