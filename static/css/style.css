@@ -3646,6 +3646,181 @@ input[type="range"]::-moz-range-thumb:hover {
     }
 }
 
+/* =========================================================
+   UI Bug Fixes (#817, #815, #816, #833, #831)
+   ========================================================= */
+
+/* #817: Login button contrast fix - override inline light-theme colors with theme-aware vars */
+.nav-menu a[href="/login"].btn-primary {
+    background: linear-gradient(135deg, var(--emerald-green), var(--fresh-green)) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff !important;
+    box-shadow: 0 4px 16px rgba(46, 139, 87, 0.3);
+}
+
+.nav-menu a[href="/login"].btn-primary:hover {
+    color: #ffffff !important;
+    box-shadow: 0 6px 24px rgba(46, 139, 87, 0.5);
+    transform: translateY(-2px);
+}
+
+/* #815: Footer link spacing with visual separators */
+.footer-links-compact {
+    gap: 0;
+}
+
+.footer-links-compact a {
+    padding: 0 16px;
+    position: relative;
+}
+
+.footer-links-compact a:not(:last-child)::after {
+    content: "|";
+    position: absolute;
+    right: -1px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.35;
+    color: rgba(255, 255, 255, 0.5);
+    pointer-events: none;
+}
+
+@media (max-width: 768px) {
+    .footer-links-compact a {
+        padding: 6px 14px;
+    }
+    .footer-links-compact a:not(:last-child)::after {
+        content: "";
+        display: none;
+    }
+}
+
+/* #816: Hero text readability overlay - prevents overlap with 3D globe */
+.hero-content {
+    position: relative;
+    z-index: 10;
+}
+
+.hero-content::before {
+    content: "";
+    position: absolute;
+    inset: -20px;
+    background: radial-gradient(ellipse at center, var(--bg-main) 0%, transparent 70%);
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: -1;
+    border-radius: 24px;
+}
+
+.hero-content h1 span {
+    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.12));
+}
+
+.hero-content p {
+    text-shadow: 0 1px 12px rgba(255, 255, 255, 0.6);
+}
+
+[data-theme="dark"] .hero-content::before {
+    background: radial-gradient(ellipse at center, rgba(18, 18, 18, 0.6) 0%, transparent 70%);
+}
+
+[data-theme="dark"] .hero-content p {
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* #833: Home page hero UI fixes - spacing, layout, z-index */
+.hero-content h1 {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-bg-blobs {
+    z-index: 0;
+}
+
+.hero-grid-overlay {
+    z-index: 1;
+}
+
+.scanner-container {
+    max-height: 360px;
+}
+
+.floating-telemetry-1,
+.floating-telemetry-2 {
+    z-index: 15;
+}
+
+/* #831: Footer alignment and spacing fixes */
+.footer {
+    overflow: hidden;
+    padding: 2.5rem 2rem 2rem;
+}
+
+.footer-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.footer-brand {
+    flex-shrink: 0;
+}
+
+.footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    margin-top: 0;
+}
+
+.footer-bottom p {
+    margin: 0;
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+.footer-social {
+    display: flex;
+    gap: 1.2rem;
+    align-items: center;
+}
+
+.footer-social a {
+    font-size: 1.15rem;
+    transition: var(--transition-smooth);
+    opacity: 0.85;
+}
+
+.footer-social a:hover {
+    opacity: 1;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .footer-container {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    .footer-links-compact {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+    }
+    .footer-social {
+        justify-content: center;
+    }
+}
+
 /* ========== HERO ACCESSIBILITY ENHANCEMENTS ========== */
 .hero-cta .btn:focus-visible {
     outline: 3px solid var(--ai-blue);
