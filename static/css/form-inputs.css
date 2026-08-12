@@ -190,3 +190,5 @@ textarea[aria-invalid="true"].form-textarea,
   }
 }
 
+
+/* fix: [Feature/UI]: Implement File Drag-and-Drop with Image Previe (#789) */
