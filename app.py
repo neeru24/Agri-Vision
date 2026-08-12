@@ -3989,3 +3989,4 @@ def api_admin_permissions():
         return jsonify({"status": "success", "id": perm.id})
     perms = Permission.query.all()
     return jsonify([{"id": p.id, "name": p.name, "slug": p.slug} for p in perms])
+# TODO: refactor: security hardening and gpu optimization (#863)
