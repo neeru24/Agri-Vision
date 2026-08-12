@@ -235,10 +235,10 @@
             {% endif %}
         {% endwith %}
         
-        <form method="POST" action="{{ url_for('login') }}">
+        <form method="POST" action="{{ url_for('login', next=request.args.get('next')) }}">
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                <input type="email" id="email" name="email" placeholder="Enter your email" value="{{ request.form.get('email', '') }}" required>
             </div>
             
            <div class="form-group">
@@ -285,14 +285,14 @@
         <div class="divider">or</div>
         
         {% if google_oauth_enabled %}
-        <a href="{{ url_for('auth_google') }}" class="btn-google" style="margin-bottom: 20px;">
+        <a href="{{ url_for('auth_google') }}{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}" class="btn-google" style="margin-bottom: 20px;">
             <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo">
             Sign in with Google
         </a>
         {% endif %}
         
         <div class="signup-link">
-            Don't have an account? <a href="{{ url_for('register') }}">Sign up</a>
+            Don't have an account? <a href="{{ url_for('register', next=request.args.get('next')) }}">Sign up</a>
         </div>
     </div>
     <script>
