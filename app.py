@@ -3989,3 +3989,5 @@ def api_admin_permissions():
         return jsonify({"status": "success", "id": perm.id})
     perms = Permission.query.all()
     return jsonify([{"id": p.id, "name": p.name, "slug": p.slug} for p in perms])
+
+# TODO: fix for #827: [Bug] Field survey data fails to sync after reconnecting to network
