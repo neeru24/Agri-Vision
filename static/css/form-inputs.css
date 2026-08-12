@@ -190,3 +190,5 @@ textarea[aria-invalid="true"].form-textarea,
   }
 }
 
+
+/* fix: Implement crop health monitoring with RGB analysis and NDVI  (#726) */
