@@ -283,7 +283,7 @@ Talisman(app, content_security_policy=csp, force_https=False)
 
 
 app.config["TEMPLATES_AUTO_RELOAD"] = True
-app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
+app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 86400
 app.jinja_env.auto_reload = True
 app.jinja_env.cache = {}
 
@@ -310,8 +310,8 @@ os.makedirs("static/uploads", exist_ok=True)
 os.makedirs("static/css", exist_ok=True)
 os.makedirs("models", exist_ok=True)
 
-ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
-ALLOWED_IMAGE_MIME_TYPES = {"image/png", "image/jpeg", "image/gif"}
+ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg"}
+ALLOWED_IMAGE_MIME_TYPES = {"image/png", "image/jpeg"}
 MAX_INFERENCE_DIMENSION = 1024
 DISPLAY_IMAGE_MAX_DIMENSION = 1200
 DISPLAY_JPEG_QUALITY = 80
@@ -340,49 +340,49 @@ growth_stage_classes = [
 
 disease_info_map = {
     "Aphids": {
-        "healthy_image": "static/images/healthy_leaf.jpg",
+        "healthy_image": "images/healthy_leaf.jpg",
         "description": "Aphids are small sap-sucking insects that weaken cotton plants by feeding on tender leaves and shoots.",
         "symptoms": "Curled leaves, sticky honeydew, yellowing, and clusters of tiny insects on the underside of leaves.",
         "treatment": "Remove heavily infested leaves, encourage natural predators, and use neem oil or recommended insecticide if infestation increases.",
     },
     "Army worm": {
-        "healthy_image": "static/images/healthy_leaf.jpg",
+        "healthy_image": "images/healthy_leaf.jpg",
         "description": "Army worms are leaf-feeding caterpillars that can quickly damage cotton foliage when populations build up.",
         "symptoms": "Chewed leaf edges, holes in leaves, skeletonized foliage, and visible larvae on plants.",
         "treatment": "Scout fields regularly, remove larvae where possible, and apply recommended biological or chemical control at early stages.",
     },
     "Bacterial blight": {
-        "healthy_image": "static/images/healthy_leaf.jpg",
+        "healthy_image": "images/healthy_leaf.jpg",
         "description": "Bacterial blight is a cotton disease that spreads through infected seed, crop residue, rain splash, and wind-driven moisture.",
         "symptoms": "Angular water-soaked leaf spots, dark lesions, yellowing, and drying of affected leaf tissue.",
         "treatment": "Avoid overhead irrigation, remove infected debris, use disease-free seed, and follow local copper-based spray recommendations if needed.",
     },
     "Cotton Boll Rot": {
-        "healthy_image": "static/images/healthy_leaf.jpg",
+        "healthy_image": "images/healthy_leaf.jpg",
         "description": "Cotton boll rot affects developing bolls, especially under humid conditions or poor field drainage.",
         "symptoms": "Soft or discolored bolls, fungal growth, rotting tissue, and premature boll drop.",
         "treatment": "Improve drainage and airflow, remove rotten bolls, avoid excess irrigation, and manage insects that create boll wounds.",
     },
     "Green Cotton Boll": {
-        "healthy_image": "static/images/healthy_leaf.jpg",
+        "healthy_image": "images/healthy_leaf.jpg",
         "description": "Green cotton boll indicates developing boll growth that should be monitored for nutrition, pests, and disease pressure.",
         "symptoms": "Green immature bolls with no clear disease symptoms unless stress, pest injury, or spotting appears.",
         "treatment": "Maintain balanced irrigation and nutrition, scout for pests, and continue regular field monitoring.",
     },
     "Healthy": {
-        "healthy_image": "static/images/healthy_leaf.jpg",
+        "healthy_image": "images/healthy_leaf.jpg",
         "description": "The leaf appears healthy with no major visible disease symptoms detected.",
         "symptoms": "Uniform green color, normal leaf shape, and no significant spots, mildew, curling, or pest damage.",
         "treatment": "Continue routine monitoring, balanced fertilization, proper irrigation, and preventive crop hygiene.",
     },
     "Powdery mildew": {
-        "healthy_image": "static/images/healthy_leaf.jpg",
+        "healthy_image": "images/healthy_leaf.jpg",
         "description": "Powdery mildew is a fungal disease that appears as white powdery growth on cotton leaves.",
         "symptoms": "White or gray powdery patches, yellowing leaves, reduced vigor, and premature leaf drying.",
         "treatment": "Improve airflow, remove infected debris, reduce leaf wetness, and apply recommended fungicide when needed.",
     },
     "Target Spot": {
-        "healthy_image": "static/images/healthy_leaf.jpg",
+        "healthy_image": "images/healthy_leaf.jpg",
         "description": "Target spot is a fungal leaf disease that produces circular lesions and can reduce cotton leaf area.",
         "symptoms": "Brown circular spots with ring-like patterns, yellow halos, leaf blight, and premature defoliation.",
         "treatment": "Reduce leaf wetness, improve spacing and airflow, remove infected residue, and use suitable fungicide if disease spreads.",
@@ -1281,6 +1281,8 @@ def apply_security_headers(response):
 # -------------------------------------------------------------------
 @app.after_request
 def add_no_cache_headers(response):
+    if request.path.startswith("/static/"):
+        return response
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
@@ -2203,7 +2205,7 @@ def comparison():
                 flash(f"Please select a file for {label}", "error")
                 return redirect(request.url)
             if not is_allowed_image(uploaded_file.filename):
-                flash(f"Invalid file type for {label}. Please upload PNG, JPG, JPEG, or GIF.", "error")
+                flash(f"Invalid file type for {label}. Please upload PNG, JPG, or JPEG.", "error")
                 return redirect(request.url)
 
         try:

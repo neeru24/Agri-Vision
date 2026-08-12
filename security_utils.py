@@ -120,7 +120,7 @@ def validate_image_upload(
 
     ext = sanitized_name.rsplit(".", 1)[1].lower()
     if ext not in allowed_extensions:
-        raise UploadValidationError("Invalid file type. Please upload PNG, JPG, JPEG, or GIF images.", status_code=400)
+        raise UploadValidationError("Invalid file type. Please upload PNG, JPG, or JPEG images.", status_code=400)
 
     try:
         file_storage.stream.seek(0)
