@@ -2314,7 +2314,12 @@ main{
 
 .footer-brand h2 { font-size: 1.3rem; color: var(--footer-text); margin: 0; }
 
-.footer-links-compact { display: flex; gap: 2rem; }
+.footer-links-compact {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem 1.5rem;
+}
 
 .footer-links-compact a {
     color: var(--footer-text);
@@ -2350,7 +2355,7 @@ main{
 
 @media (max-width: 768px) {
     .footer-container { flex-direction: column; text-align: center; gap: 1.5rem; }
-    .footer-links-compact { gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .footer-links-compact { gap: 0.75rem 1rem; }
     .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
 }
 
