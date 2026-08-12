@@ -1,6 +1,7 @@
 Flask
 numpy
 opencv-python-headless
+flask-talisman
 Pillow
 flask-cors
 tensorflow-cpu

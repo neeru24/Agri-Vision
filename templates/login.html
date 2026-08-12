@@ -1,315 +1,480 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Agri-Vision</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        .login-container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            width: 100%;
-            max-width: 400px;
-        }
-        
-        .logo {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .logo i {
-            font-size: 60px;
-            color: #667eea;
-        }
-        
-        .logo h1 {
-            margin: 10px 0 0 0;
-            color: #333;
-            font-size: 28px;
-        }
-        
-        .logo p {
-            color: #666;
-            margin: 5px 0 0 0;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 500;
-        }
-        
-        .form-group input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-            box-sizing: border-box;
-        }
-        
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .form-group input::placeholder {
-            color: #999;
-        }
-        
-        .remember-forgot {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            font-size: 14px;
-        }
-        
-        .remember-forgot label {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            color: #666;
-        }
-        
-        .remember-forgot input[type="checkbox"] {
-            margin-right: 8px;
-        }
-        
-        .remember-forgot a {
-            color: #667eea;
-            text-decoration: none;
-        }
-        
-        .remember-forgot a:hover {
-            text-decoration: underline;
-        }
-        
-        .btn-login {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn-google {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            padding: 12px;
-            background: white;
-            color: #333;
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s;
-            box-sizing: border-box;
-        }
-        
-        .btn-google:hover {
-            background: #f9fafb;
-            border-color: #d1d5db;
-        }
-        
-        .btn-google img {
-            width: 20px;
-            height: 20px;
-            margin-right: 10px;
-        }
-        
-        .divider {
-            text-align: center;
-            margin: 25px 0;
-            color: #999;
-            position: relative;
-        }
-        
-        .divider::before,
-        .divider::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            width: 45%;
-            height: 1px;
-            background: #e5e7eb;
-        }
-        
-        .divider::before {
-            left: 0;
-        }
-        
-        .divider::after {
-            right: 0;
-        }
-        
-        .signup-link {
-            text-align: center;
-            color: #666;
-        }
-        
-        .signup-link a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        
-        .signup-link a:hover {
-            text-decoration: underline;
-        }
-        
-        .alert {
-            padding: 12px 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-        
-        .alert-danger {
-            background: #fee2e2;
-            color: #dc2626;
-            border: 1px solid #fecaca;
-        }
-        
-        .alert-success {
-            background: #dcfce7;
-            color: #16a34a;
-            border: 1px solid #bbf7d0;
-        }
-        
-        .alert-info {
-            background: #dbeafe;
-            color: #2563eb;
-            border: 1px solid #bfdbfe;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Login | Agri-Vision</title>
+
+<link rel="stylesheet" href="/static/css/style.css">
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    background:
+    linear-gradient(rgba(243,250,243,.75),rgba(243,250,243,.75)),
+    linear-gradient(135deg,#D7F0D0,#B8E6B0,#8FD694);
+
+    padding:20px;
+}
+
+.login-container{
+
+    width:100%;
+    max-width:430px;
+
+    background:rgba(255,255,255,.88);
+    backdrop-filter:blur(12px);
+
+    border-radius:24px;
+
+    padding:45px;
+
+    box-shadow:
+    0 20px 45px rgba(0,0,0,.12);
+
+    border:1px solid rgba(255,255,255,.4);
+}
+
+.logo{
+    text-align:center;
+    margin-bottom:35px;
+}
+
+.logo i{
+
+    width:90px;
+    height:90px;
+
+    line-height:90px;
+
+    border-radius:50%;
+
+    background:linear-gradient(135deg,#43A047,#2E7D32);
+
+    color:white;
+
+    font-size:42px;
+
+    box-shadow:0 8px 20px rgba(46,125,50,.35);
+}
+
+.logo h1{
+
+    margin-top:18px;
+    color:#214E34;
+    font-size:32px;
+    font-weight:700;
+}
+
+.logo p{
+
+    margin-top:6px;
+    color:#5F6F65;
+    font-size:15px;
+}
+
+.alert{
+    padding:12px;
+    border-radius:12px;
+    margin-bottom:20px;
+    font-size:14px;
+}
+
+.alert-danger{
+    background:#FEECEC;
+    color:#C62828;
+}
+
+.alert-success{
+    background:#E8F5E9;
+    color:#2E7D32;
+}
+
+.alert-info{
+    background:#E8F5E9;
+    color:#2E7D32;
+}
+
+.form-group{
+
+    margin-bottom:22px;
+}
+
+.form-group label{
+
+    display:block;
+    margin-bottom:8px;
+
+    color:#234028;
+    font-weight:600;
+}
+
+.form-group input{
+
+    width:100%;
+    padding:14px 15px;
+
+    border:2px solid #DCEFD8;
+
+    border-radius:12px;
+
+    background:#FAFFFA;
+
+    font-size:15px;
+
+    transition:.3s;
+}
+
+.form-group input:focus{
+
+    outline:none;
+
+    border-color:#43A047;
+
+    box-shadow:0 0 0 4px rgba(67,160,71,.15);
+}
+
+.password-box{
+
+    position:relative;
+}
+
+.password-box i{
+
+    position:absolute;
+
+    top:50%;
+    right:15px;
+
+    transform:translateY(-50%);
+
+    color:#666;
+
+    cursor:pointer;
+}
+
+.remember-forgot{
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    margin-bottom:28px;
+
+    font-size:14px;
+}
+
+.remember-forgot label{
+
+    display:flex;
+    align-items:center;
+    color:#555;
+}
+
+.remember-forgot input{
+
+    margin-right:8px;
+}
+
+.remember-forgot a{
+
+    color:#2E7D32;
+    text-decoration:none;
+    font-weight:600;
+}
+
+.remember-forgot a:hover{
+
+    text-decoration:underline;
+}
+
+.btn-login{
+
+    width:100%;
+    padding:15px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:linear-gradient(135deg,#43A047,#2E7D32);
+
+    color:white;
+
+    font-size:17px;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:.3s;
+}
+
+.btn-login:hover{
+
+    transform:translateY(-2px);
+
+    box-shadow:0 10px 25px rgba(46,125,50,.35);
+}
+
+.divider{
+
+    margin:28px 0;
+
+    text-align:center;
+
+    color:#7A8D7B;
+
+    position:relative;
+}
+
+.divider:before,
+.divider:after{
+
+    content:"";
+
+    position:absolute;
+
+    width:42%;
+    height:1px;
+
+    background:#D8EBD5;
+
+    top:50%;
+}
+
+.divider:before{
+
+    left:0;
+}
+
+.divider:after{
+
+    right:0;
+}
+
+.btn-google{
+
+    width:100%;
+
+    display:flex;
+
+    justify-content:center;
+    align-items:center;
+
+    gap:12px;
+
+    text-decoration:none;
+
+    color:#333;
+
+    padding:13px;
+
+    border-radius:12px;
+
+    border:2px solid #D8EBD5;
+
+    transition:.3s;
+
+    background:white;
+}
+
+.btn-google:hover{
+
+    background:#F5FFF5;
+
+    border-color:#66BB6A;
+}
+
+.btn-google img{
+
+    width:20px;
+}
+
+.signup-link{
+
+    margin-top:25px;
+
+    text-align:center;
+
+    color:#666;
+}
+
+.signup-link a{
+
+    color:#2E7D32;
+
+    text-decoration:none;
+
+    font-weight:700;
+}
+
+.signup-link a:hover{
+
+    text-decoration:underline;
+}
+
+</style>
+
 </head>
+
 <body>
-    <div class="login-container">
-        <div class="logo">
-            <i class="fas fa-leaf"></i>
-            <h1>Agri-Vision</h1>
-            <p>Cotton Crop Analysis</p>
-        </div>
-        
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        
-        <form method="POST" action="{{ url_for('login') }}">
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="Enter your email" required>
-            </div>
-            
-           <div class="form-group">
-    <label for="password">Password</label>
 
-    <div style="position: relative;">
-        <input
-            type="password"
-            id="password"
-            name="password"
-            placeholder="Enter your password"
-            style="padding-right: 45px;"
-            required
-        >
+<div class="login-container">
 
-        <i
-            id="togglePassword"
-            class="fas fa-eye"
-            style="
-                position:absolute;
-                right:15px;
-                top:50%;
-                transform:translateY(-50%);
-                cursor:pointer;
-                color:#666;
-            "
-        ></i>
-    </div>
+<div class="logo">
+
+<i class="fas fa-seedling"></i>
+
+<h1>Agri-Vision</h1>
+
+<p>Smart Cotton Crop Disease Detection</p>
+
 </div>
-            
-            <div class="remember-forgot">
-                <label>
-                    <input type="checkbox" name="remember" value="remember">
-                    Remember me
-                </label>
-                <a href="{{ url_for('forgot_password') }}">Forgot password?</a>
-            </div>
-            
-            <button type="submit" class="btn-login">
-                <i class="fas fa-sign-in-alt"></i> Login
-            </button>
-        </form>
-        
-        <div class="divider">or</div>
-        
-        {% if google_oauth_enabled %}
-        <a href="{{ url_for('auth_google') }}" class="btn-google" style="margin-bottom: 20px;">
-            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo">
-            Sign in with Google
-        </a>
-        {% endif %}
-        
-        <div class="signup-link">
-            Don't have an account? <a href="{{ url_for('register') }}">Sign up</a>
-        </div>
-    </div>
-    <script>
-        const togglePassword = document.getElementById("togglePassword");
-        const password = document.getElementById("password");
-            
-        togglePassword.addEventListener("click", function () {
-            const type =
-                password.getAttribute("type") === "password"
-                    ? "text"
-                    : "password";
-        
-            password.setAttribute("type", type);
-        
-            this.classList.toggle("fa-eye");
-            this.classList.toggle("fa-eye-slash");
-        });
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="alert alert-{{ category }}">
+{{ message }}
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+<form method="POST" action="{{ url_for('login') }}">
+
+<div class="form-group">
+
+<label>Email</label>
+
+<input
+type="email"
+name="email"
+placeholder="Enter your email"
+required>
+
+</div>
+
+<div class="form-group">
+
+<label>Password</label>
+
+<div class="password-box">
+
+<input
+type="password"
+id="password"
+name="password"
+placeholder="Enter your password"
+style="padding-right:45px;"
+required>
+
+<i id="togglePassword" class="fas fa-eye"></i>
+
+</div>
+
+</div>
+
+<div class="remember-forgot">
+
+<label>
+
+<input
+type="checkbox"
+name="remember"
+value="remember">
+
+Remember me
+
+</label>
+
+<a href="{{ url_for('forgot_password') }}">
+
+Forgot password?
+
+</a>
+
+</div>
+
+<button class="btn-login" type="submit">
+
+<i class="fas fa-right-to-bracket"></i>
+
+Login
+
+</button>
+
+</form>
+
+<div class="divider">
+
+or
+
+</div>
+
+{% if google_oauth_enabled %}
+
+<a
+href="{{ url_for('auth_google') }}"
+class="btn-google"
+style="margin-bottom:20px;">
+
+<img
+src="https://developers.google.com/identity/images/g-logo.png">
+
+Sign in with Google
+
+</a>
+
+{% endif %}
+
+<div class="signup-link">
+
+Don't have an account?
+
+<a href="{{ url_for('register') }}">
+
+Sign Up
+
+</a>
+
+</div>
+
+</div>
+
+<script>
+
+const togglePassword=document.getElementById("togglePassword");
+const password=document.getElementById("password");
+
+togglePassword.addEventListener("click",()=>{
+
+const type=password.type==="password"?"text":"password";
+
+password.type=type;
+
+togglePassword.classList.toggle("fa-eye");
+togglePassword.classList.toggle("fa-eye-slash");
+
+});
+
 </script>
+
 </body>
 </html>
