@@ -3676,3 +3676,295 @@ input[type="range"]::-moz-range-thumb:hover {
         animation: none !important;
     }
 }
+
+/* =========================================================
+   Issue #832: Navbar UI fix
+   ========================================================= */
+
+/* Style the base.html inline header/nav to match theme */
+body > header {
+    background: var(--nav-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--glass-border);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+}
+
+body > header > div h1 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--emerald-green);
+}
+
+#hamburger {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background 0.2s;
+    color: var(--text-main);
+}
+
+#hamburger:hover {
+    background: var(--soft-mint);
+}
+
+#hamburger span {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background: var(--text-main);
+    border-radius: 3px;
+    transition: background 0.2s;
+}
+
+#main-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 0 16px 12px;
+}
+
+#main-nav a {
+    text-decoration: none;
+    color: var(--text-main);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: background 0.2s, color 0.2s;
+}
+
+#main-nav a:hover {
+    background: var(--soft-mint);
+    color: var(--emerald-green);
+}
+
+body > header hr {
+    border: none;
+    border-top: 1px solid var(--card-border);
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    #hamburger {
+        display: flex !important;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    #main-nav {
+        display: none;
+        flex-direction: column;
+        gap: 2px;
+        padding: 8px 16px 12px;
+    }
+
+    #main-nav.open {
+        display: flex;
+    }
+
+    #main-nav a {
+        padding: 10px 14px;
+        border-radius: 8px;
+    }
+}
+
+[data-theme="dark"] body > header {
+    background: var(--nav-bg);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] #main-nav a {
+    color: var(--text-main);
+}
+
+/* =========================================================
+   Issue #838: Sign-up page UI fix
+   ========================================================= */
+
+/* Dark theme support for signup page */
+[data-theme="dark"] .register-container {
+    background: var(--card-bg);
+}
+
+[data-theme="dark"] .register-container .logo h1 {
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .register-container .logo p {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .register-container .form-group label {
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .register-container .form-group input,
+[data-theme="dark"] .register-container .form-group select {
+    background: var(--cotton-white);
+    color: var(--text-main);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] .register-container .form-group input:focus,
+[data-theme="dark"] .register-container .form-group select:focus {
+    border-color: #667eea;
+}
+
+[data-theme="dark"] .register-container .divider {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .register-container .divider::before,
+[data-theme="dark"] .register-container .divider::after {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] .register-container .login-link {
+    color: var(--text-muted);
+}
+
+/* Mobile responsive padding for signup body */
+body:has(.register-container) {
+    padding: 16px;
+}
+
+@media (max-width: 480px) {
+    .register-container {
+        padding: 24px 20px !important;
+    }
+}
+
+/* =========================================================
+   Issue #837: Login page UI fix
+   ========================================================= */
+
+/* Dark theme support for login page */
+[data-theme="dark"] .login-container {
+    background: var(--card-bg);
+}
+
+[data-theme="dark"] .login-container .logo h1 {
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .login-container .logo p {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .login-container .form-group label {
+    color: var(--text-main);
+}
+
+[data-theme="dark"] .login-container .form-group input {
+    background: var(--cotton-white);
+    color: var(--text-main);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] .login-container .form-group input:focus {
+    border-color: #667eea;
+}
+
+[data-theme="dark"] .login-container .divider {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .login-container .divider::before,
+[data-theme="dark"] .login-container .divider::after {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] .login-container .signup-link {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .login-container .remember-forgot label {
+    color: var(--text-muted);
+}
+
+/* Mobile responsive padding for login body */
+body:has(.login-container) {
+    padding: 16px;
+}
+
+@media (max-width: 480px) {
+    .login-container {
+        padding: 28px 20px !important;
+    }
+}
+
+/* =========================================================
+   Issue #834: Demo page UI fix
+   ========================================================= */
+
+/* Fix invisible ai-demo-card - needs visible background since no img */
+.ai-demo-card {
+    min-height: 400px;
+    background: linear-gradient(145deg, rgba(46, 139, 87, 0.1), rgba(74, 144, 226, 0.08));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+[data-theme="dark"] .ai-demo-card {
+    background: linear-gradient(145deg, rgba(46, 139, 87, 0.18), rgba(74, 144, 226, 0.12));
+}
+
+/* Ensure demo overlay content is properly positioned */
+.demo-preview-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.demo-overlay {
+    gap: 12px;
+}
+
+.demo-detection,
+.demo-health,
+.demo-yield {
+    width: 100%;
+    max-width: 280px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Responsive demo fixes */
+@media (max-width: 600px) {
+    .demo-preview-section {
+        padding: 100px 5% 60px;
+    }
+
+    .demo-preview-left h2 {
+        font-size: 1.8rem;
+    }
+
+    .demo-stat-card {
+        padding: 16px;
+    }
+
+    .demo-stat-card h3 {
+        font-size: 1.6rem;
+    }
+
+    .ai-demo-card {
+        min-height: 320px;
+    }
+
+    .demo-detection,
+    .demo-health,
+    .demo-yield {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+        max-width: 220px;
+    }
+}
