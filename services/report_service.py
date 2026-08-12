@@ -386,7 +386,11 @@ class ReportGenerator:
         
         # Statistics
         if analyses:
-            healthy_count = sum(1 for a in analyses if a.get('disease_result', {}).get('predicted_class') == 'healthy')
+            healthy_count = sum(
+                1
+                for a in analyses
+                if ((a.get('disease_result') or {}).get('predicted_class', '').strip().lower() == 'healthy')
+            )
             diseased_count = len(analyses) - healthy_count
             avg_health = sum(a.get('health_score', 0) for a in analyses) / len(analyses)
             
@@ -416,7 +420,8 @@ class ReportGenerator:
             # Disease distribution
             disease_counts = {}
             for a in analyses:
-                disease = a.get('disease_result', {}).get('predicted_class', 'unknown')
+                disease = (a.get('disease_result') or {}).get('predicted_class', 'unknown')
+                disease = (disease or 'unknown').strip().lower()
                 disease_counts[disease] = disease_counts.get(disease, 0) + 1
             
             if disease_counts:
