@@ -3989,3 +3989,5 @@ def api_admin_permissions():
         return jsonify({"status": "success", "id": perm.id})
     perms = Permission.query.all()
     return jsonify([{"id": p.id, "name": p.name, "slug": p.slug} for p in perms])
+
+# TODO: fix for #718: [Bug] API Rate Limiting Not Enforced - Enables Brute Force and Resource Exhausti
