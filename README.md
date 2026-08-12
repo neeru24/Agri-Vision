@@ -442,8 +442,8 @@ Using Docker is the easiest way to run Agri-Vision as it avoids system dependenc
 1. Ensure you have [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed.
 2. Clone the repository and navigate into it:
    ```bash
-  git clone <https://github.com/neeru24/Agri-Vision>
-  cd <Agri-Vision>
+  git clone https://github.com/neeru24/Agri-Vision.git
+  cd Agri-Vision
   ### Create Virtual Environment
 
 ```bash
