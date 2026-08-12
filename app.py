@@ -2025,8 +2025,6 @@ def analyze():
 
             import time
             unique_filename = f"{int(time.time())}_{safe_filename}"
-            file_path = os.path.join("static", "uploads", unique_filename)
-            cv2.imwrite(file_path, image)
             
             from models import AnalysisHistory, db
             if current_user.is_authenticated:
