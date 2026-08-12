@@ -3283,7 +3283,7 @@ def api_disease_map():
     
     # Calculate statistics
     total_analyses = len(filtered_analyses)
-    healthy_count = sum(1 for a in filtered_analyses if a.disease_result and a.disease_result.get('predicted_class') == 'healthy')
+    healthy_count = sum(1 for a in filtered_analyses if a.disease_result and a.disease_result.get('predicted_class', '').lower() == 'healthy')
     diseased_count = total_analyses - healthy_count
     avg_health_score = sum(a.health_score for a in filtered_analyses if a.health_score) / len([a for a in filtered_analyses if a.health_score]) if filtered_analyses else 0
     regions = set(a.region for a in filtered_analyses if a.region)
@@ -3325,7 +3325,7 @@ def api_dashboard_stats():
     
     # Calculate basic statistics
     total_analyses = len(analyses)
-    healthy_count = sum(1 for a in analyses if a.disease_result and a.disease_result.get('predicted_class') == 'healthy')
+    healthy_count = sum(1 for a in analyses if a.disease_result and a.disease_result.get('predicted_class', '').lower() == 'healthy')
     diseased_count = total_analyses - healthy_count
     avg_health_score = sum(a.health_score for a in analyses if a.health_score) / len([a for a in analyses if a.health_score]) if analyses else 0
     
