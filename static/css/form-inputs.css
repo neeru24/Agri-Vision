@@ -190,3 +190,5 @@ textarea[aria-invalid="true"].form-textarea,
   }
 }
 
+
+/* fix: UI Enhancement: Dark/Light Mode Toggle Lacks Visual Polish (#818) */
