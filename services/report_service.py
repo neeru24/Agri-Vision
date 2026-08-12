@@ -249,7 +249,7 @@ class ReportGenerator:
             summary.append(f"The plant displays poor health with a score of {health_score:.1f}%, necessitating immediate intervention to address critical issues.")
         
         # Disease status
-        if disease == 'healthy':
+        if disease.lower() == 'healthy':
             summary.append("No disease symptoms were detected during the analysis. The plant appears to be free from common cotton diseases.")
         else:
             disease_name = disease.replace('_', ' ').title()
@@ -287,7 +287,7 @@ class ReportGenerator:
             insights.append("Poor health status - immediate action needed.")
         
         # Disease insight
-        if disease == 'healthy':
+        if disease.lower() == 'healthy':
             insights.append("No disease symptoms detected - continue preventive measures.")
         else:
             insights.append(f"Disease identified: {disease.replace('_', ' ').title()} detected.")
@@ -316,7 +316,7 @@ class ReportGenerator:
         disease = disease_result.get('predicted_class', 'healthy')
         health_score = analysis_data.get('health_score', 0)
         
-        if disease == 'healthy':
+        if disease.lower() == 'healthy':
             recommendations.append("Plant appears healthy. Continue regular monitoring.")
             recommendations.append("Maintain current irrigation and fertilization schedule.")
         else:
@@ -386,7 +386,7 @@ class ReportGenerator:
         
         # Statistics
         if analyses:
-            healthy_count = sum(1 for a in analyses if a.get('disease_result', {}).get('predicted_class') == 'healthy')
+            healthy_count = sum(1 for a in analyses if a.get('disease_result', {}).get('predicted_class', '').lower() == 'healthy')
             diseased_count = len(analyses) - healthy_count
             avg_health = sum(a.get('health_score', 0) for a in analyses) / len(analyses)
             
