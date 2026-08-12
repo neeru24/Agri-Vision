@@ -13,12 +13,18 @@ from requests.exceptions import (
     JSONDecodeError,
 )
 import logging
+import os
+import time
 from typing import Optional
 
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 logger = logging.getLogger(__name__)
+
+_weather_cache = {}
+_WEATHER_CACHE_TTL = int(os.getenv("WEATHER_CACHE_TTL", "600"))
+_FORECAST_CACHE_TTL = int(os.getenv("FORECAST_CACHE_TTL", "1800"))
 
 # Retry strategy for temporary API/network failures
 retry_strategy = Retry(
@@ -161,6 +167,12 @@ def get_weather_forecast(lat: float, lon: float, days: int = 14) -> Optional[dic
     Fetch weather forecast for 7-14 days from Open-Meteo (free, no API key).
     Returns daily forecast data suitable for disease prediction.
     """
+    def _fetch():
+        return _get_forecast_impl(lat, lon, days)
+    return _cached_or_fetch(lat, lon, _fetch, _FORECAST_CACHE_TTL, "fc")
+
+
+def _get_forecast_impl(lat: float, lon: float, days: int = 14) -> Optional[dict]:
     try:
         params = {
             "latitude": lat,
@@ -279,17 +291,36 @@ def get_weather_openweathermap(lat: float, lon: float, api_key: str) -> Optional
     return None
 
 
+def _cache_key(lat: float, lon: float, prefix: str = "wx") -> str:
+    return f"{prefix}:{lat:.4f}:{lon:.4f}"
+
+
+def _cached_or_fetch(lat: float, lon: float, fetch_fn, ttl: int, prefix: str):
+    key = _cache_key(lat, lon, prefix)
+    now = time.time()
+    entry = _weather_cache.get(key)
+    if entry and now - entry["ts"] < ttl:
+        return entry["data"]
+    data = fetch_fn()
+    if data is not None:
+        _weather_cache[key] = {"data": data, "ts": now}
+    return data
+
+
 def get_weather(lat: float, lon: float, owm_api_key: str = None) -> Optional[dict]:
     """
     Main entry point. Tries OpenWeatherMap first if API key is available,
     otherwise falls back to Open-Meteo (always free).
     Returns None gracefully if all sources fail.
     """
-    if owm_api_key:
-        result = get_weather_openweathermap(lat, lon, owm_api_key)
-        if result:
-            return result
-    return get_weather_open_meteo(lat, lon)
+    def _fetch():
+        if owm_api_key:
+            result = get_weather_openweathermap(lat, lon, owm_api_key)
+            if result:
+                return result
+        return get_weather_open_meteo(lat, lon)
+
+    return _cached_or_fetch(lat, lon, _fetch, _WEATHER_CACHE_TTL, "wx")
 
 
 def generate_weather_recommendations(weather: dict) -> list:

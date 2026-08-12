@@ -2508,6 +2508,9 @@ def api_weather():
     lon = request.args.get("lon", type=float)
     city = request.args.get("city", type=str)
 
+    if city and len(city) > 100:
+        return jsonify({"error": "City name too long (max 100 characters)"}), 400
+
     if city and not (lat is not None and lon is not None):
         geo = geocode_city(city)
         if not geo:
@@ -2585,12 +2588,15 @@ def api_analyze():
 @app.route("/api/analyze_stream", methods=["POST"])
 def api_analyze_stream():
     """Streaming endpoint for real-time analysis progress"""
+    enforce_request_size(get_upload_max_bytes())
     if 'file' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400
     file = request.files['file']
-    image_bytes = file.read()
-    if file.filename == '':
+    if not file.filename:
         return jsonify({'error': 'No file selected'}), 400
+    if not allowed_file(file.filename):
+        return jsonify({'error': 'Invalid file type'}), 400
+    image_bytes = file.read()
     
     def generate():
         try:
