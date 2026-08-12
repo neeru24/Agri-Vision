@@ -2268,8 +2268,14 @@ def comparison():
     return render_template("comparison.html")
 
 
+_demo_cache = None
+
 @app.route("/demo")
 def demo():
+    global _demo_cache
+    refresh = request.args.get("refresh") == "1"
+    if not refresh and _demo_cache is not None:
+        return _demo_cache
     try:
         example_disease_probs = [0.08, 0.02, 0.01, 0.10, 0.04, 0.65, 0.05, 0.05]
         demo_disease = {
@@ -2386,7 +2392,7 @@ def demo():
             "farmer_insights": insights,
             "treatment_recommendations": demo_treatment_recs
         }
-        return render_template(
+        _demo_cache = render_template(
             "results.html",
             results=example_json,
             filename="demo_cotton.jpg",
@@ -2404,8 +2410,10 @@ def demo():
             treatment_recommendations=demo_treatment_recs,
             weather=None,
         )
+        return _demo_cache
     except Exception as e:
         logger.error(f"Demo route failed: {e}")
+        _demo_cache = None
         return redirect(url_for("index"))
 
 
@@ -2558,6 +2566,13 @@ def api_analyze():
         if field_acres_error:
             return jsonify({"error":field_acres_error}),400
             
+        soil_n = request.form.get("N", type=float)
+        soil_p = request.form.get("P", type=float)
+        soil_k = request.form.get("K", type=float)
+        for name, val in [("N", soil_n), ("P", soil_p), ("K", soil_k)]:
+            if val is not None and (not math.isfinite(val) or val <= 0):
+                return jsonify({"error": f"Soil {name} must be a positive number"}), 400
+
         lat=request.form.get("lat",type=float)
         lon=request.form.get("lon",type=float)
         city=request.form.get("city",type=str)
@@ -2632,6 +2647,7 @@ def api_analyze_stream():
 
 @app.route("/api/batch_upload", methods=["POST"])
 @limiter.limit("3 per minute")
+@api_login_required
 def api_batch_upload():
     """Upload multiple images for batch analysis"""
     try:
@@ -2737,6 +2753,7 @@ def api_batch_upload():
         return jsonify({'error': 'An internal server error occurred'}), 500
 
 @app.route("/api/batch_status/<job_id>", methods=["GET"])
+@api_login_required
 def api_batch_status(job_id):
     """Get status of a batch job"""
     from models import BatchJob, db
@@ -2759,6 +2776,7 @@ def api_batch_status(job_id):
 
 
 @app.route("/api/batch_results/<job_id>", methods=["GET"])
+@api_login_required
 def api_batch_results(job_id):
     """Get all results for a batch job"""
     from models import BatchJob, db
@@ -2870,6 +2888,7 @@ def api_batch_status_stream(job_id):
 
 
 @app.route("/api/batch_results/<job_id>/export/csv", methods=["GET"])
+@api_login_required
 def export_batch_csv(job_id):
     """Export batch results as CSV"""
     from models import BatchJob
@@ -2917,6 +2936,7 @@ def export_batch_csv(job_id):
 
 
 @app.route("/api/batch_results/<job_id>/export/pdf", methods=["GET"])
+@api_login_required
 def export_batch_pdf(job_id):
     """Export batch results as PDF"""
     from models import BatchJob
@@ -3880,7 +3900,7 @@ def analyze_result():
     payload = request.form.get('payload')
 
     if not payload:
-        return "No analysis data received", 400
+        return jsonify({"error": "No analysis data received"}), 400
 
     results = json.loads(payload)
 
