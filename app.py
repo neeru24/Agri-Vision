@@ -1155,8 +1155,10 @@ def analyze_image(image: np.ndarray, image_bytes: Optional[bytes] = None, *, wea
 
         return result
     except Exception as exc:
-        logger.error("Unexpected error in image analysis: %s", exc)
-        return {"error": "The AI model encountered an unexpected error while analyzing the image. Please verify the image file format and content and try again."}
+        h, w = image.shape[:2] if image is not None else (0, 0)
+        sz = len(image.tobytes()) if image is not None else 0
+        logger.error("Unexpected error in image analysis: %s", exc, exc_info=True)
+        return {"error": f"The AI model encountered an error while analyzing the image (dimensions: {w}x{h}, file size: {sz} bytes, error: {type(exc).__name__}). Please verify the image file format and content and try again."}
 
 
 #---helper functions------
@@ -1275,6 +1277,9 @@ def apply_security_headers(response):
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
     return response
 # -------------------------------------------------------------------
 # FLASK ROUTES
@@ -2577,7 +2582,7 @@ def api_analyze():
         return jsonify({"error": str(exc)}), exc.status_code
     except Exception as e:
         logger.error(f"API analysis error: {e}", exc_info=True)
-        return jsonify({"error": "An internal server error occurred"}), 500
+        return jsonify({"error": f"An internal error occurred during image analysis. Error type: {type(e).__name__}. Please verify the image format and try again."}), 500
     finally:
         cleanup_temp_upload(temp_path)
 
@@ -3469,12 +3474,16 @@ def api_analyses():
     return jsonify({'analyses': analyses_list})
 
 
+REPORT_TIMEOUT_SECONDS = int(os.getenv("REPORT_TIMEOUT_SECONDS", "120"))
+
+
 @app.route("/api/generate-report/<analysis_id>")
 @login_required
 def generate_report(analysis_id):
     """Generate PDF report for a single analysis"""
     from models import AnalysisHistory
     from io import BytesIO
+    from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
     
     try:
         from services.report_service import ReportGenerator
@@ -3505,7 +3514,13 @@ def generate_report(analysis_id):
             'role': current_user.role
         }
         
-        pdf_bytes = generator.generate_analysis_report(report_data, user_info)
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(generator.generate_analysis_report, report_data, user_info)
+            try:
+                pdf_bytes = future.result(timeout=REPORT_TIMEOUT_SECONDS)
+            except FuturesTimeout:
+                logger.error(f"Report generation timed out for analysis {analysis_id} after {REPORT_TIMEOUT_SECONDS}s")
+                return jsonify({'error': f'Report generation timed out after {REPORT_TIMEOUT_SECONDS} seconds. Try again with a smaller dataset or contact support.'}), 504
         
         return send_file(
             BytesIO(pdf_bytes),
@@ -3525,6 +3540,7 @@ def generate_summary_report():
     from models import AnalysisHistory
     from datetime import datetime, timedelta
     from io import BytesIO
+    from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
     
     try:
         from services.report_service import ReportGenerator
@@ -3556,7 +3572,13 @@ def generate_summary_report():
         }
         
         date_range = f"Last {days} days"
-        pdf_bytes = generator.generate_summary_report(analyses_data, user_info, date_range)
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(generator.generate_summary_report, analyses_data, user_info, date_range)
+            try:
+                pdf_bytes = future.result(timeout=REPORT_TIMEOUT_SECONDS)
+            except FuturesTimeout:
+                logger.error(f"Summary report generation timed out after {REPORT_TIMEOUT_SECONDS}s for {len(analyses)} analyses")
+                return jsonify({'error': f'Report generation timed out after {REPORT_TIMEOUT_SECONDS} seconds. Try a shorter date range or contact support.'}), 504
         
         return send_file(
             BytesIO(pdf_bytes),
@@ -3588,11 +3610,13 @@ def symptom_checker():
 @app.route("/api/diseases")
 def api_diseases():
     """API endpoint to get list of diseases"""
+    import html
     from models import Disease
     
-    search = request.args.get('search', '')
-    severity = request.args.get('severity', '')
-    affected_part = request.args.get('affected_part', '')
+    raw_search = request.args.get('search', '')
+    search = html.escape(raw_search.strip())[:100]
+    severity = html.escape(request.args.get('severity', '').strip())[:50]
+    affected_part = html.escape(request.args.get('affected_part', '').strip())[:100]
     
     query = Disease.query
     
@@ -3628,9 +3652,10 @@ def api_disease_detail(disease_id):
 @app.route("/api/symptoms")
 def api_symptoms():
     """API endpoint to get list of symptoms"""
+    import html
     from models import Symptom
     
-    category = request.args.get('category', '')
+    category = html.escape(request.args.get('category', '').strip())[:100]
     
     query = Symptom.query
     
@@ -3713,7 +3738,7 @@ def api_weather_forecast():
         forecast_data = get_weather_forecast(lat, lon, days)
         
         if not forecast_data:
-            return jsonify({'error': 'Failed to fetch weather forecast'}), 500
+            return jsonify({'error': f'Failed to fetch weather forecast for lat={lat}, lon={lon}, days={days}. The weather service may be unavailable or the location may be invalid.'}), 500
         
         # Get disease predictions
         predictor = DiseasePredictor()
@@ -3727,8 +3752,8 @@ def api_weather_forecast():
             'disease_predictions': predictions
         })
     except Exception as e:
-        logger.error(f"Error fetching weather forecast: {e}", exc_info=True)
-        return jsonify({'error': 'An internal server error occurred'}), 500
+        logger.error(f"Error fetching weather forecast for lat={lat}, lon={lon}: {e}", exc_info=True)
+        return jsonify({'error': f'An internal error occurred while fetching the weather forecast for lat={lat}, lon={lon}. Details: {type(e).__name__}: {e}'}), 500
 
 
 @app.route("/api/disease-prediction/<disease_name>")
@@ -3772,17 +3797,18 @@ def api_disease_prediction(disease_name):
             'recommendations': recommendations
         })
     except Exception as e:
-        logger.error(f"Error getting disease prediction: {e}", exc_info=True)
-        return jsonify({'error': 'An internal server error occurred'}), 500
+        logger.error(f"Error getting disease prediction for '{disease_name}' at lat={lat}, lon={lon}: {e}", exc_info=True)
+        return jsonify({'error': f'An internal error occurred while generating disease prediction for "{disease_name}" at lat={lat}, lon={lon}. Details: {type(e).__name__}: {e}'}), 500
 
 
 @app.route("/api/historical-patterns")
 def api_historical_patterns():
     """API endpoint to analyze historical disease patterns"""
+    import html
     from models import DiseaseOccurrence
     from services.disease_prediction_service import HistoricalPatternAnalyzer
     
-    location = request.args.get('location', '')
+    location = html.escape(request.args.get('location', '').strip())[:200]
     disease_id = request.args.get('disease_id', type=int)
     
     try:
@@ -3842,7 +3868,6 @@ def api_report_disease_occurrence():
             return jsonify({'error': 'Disease not found'}), 404
         
         # Parse date
-        from datetime import datetime
         try:
             occurrence_date = datetime.strptime(occurrence_date, '%Y-%m-%d').date()
         except ValueError:
