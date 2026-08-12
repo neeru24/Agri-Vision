@@ -162,15 +162,18 @@ class DiseasePredictor:
         """
         Calculate normalized score for a single factor (0-1)
         """
+        if max_threshold <= min_threshold:
+            return 0.0
+
         if value < min_threshold:
             # Below minimum - linear decrease
-            return max(0, value / min_threshold * 0.5)
+            return max(0.0, value / max(min_threshold, 0.001) * 0.5)
         elif value > max_threshold:
             # Above maximum - cap at 1
             return 1.0
         else:
             # Within optimal range
-            return 0.8 + (value - min_threshold) / (max_threshold - min_threshold) * 0.2
+            return max(0.0, 0.8 + (value - min_threshold) / (max_threshold - min_threshold) * 0.2)
     
     def get_risk_level(self, risk_score: float) -> str:
         """Convert risk score to risk level"""
@@ -439,7 +442,7 @@ class HistoricalPatternAnalyzer:
                 weather_risk * 0.3
             )
             
-            predictions[disease_name] = min(combined_risk, 100)
+            predictions[disease_name] = min(max(combined_risk, 0), 100)
         
         return predictions
     
