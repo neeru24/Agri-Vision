@@ -190,3 +190,5 @@ textarea[aria-invalid="true"].form-textarea,
   }
 }
 
+
+/* fix: Bug: Batch API endpoints lack @login_required — unauthentica (#842) */
