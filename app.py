@@ -218,6 +218,25 @@ else:
 
 from functools import wraps
 
+_login_attempts: Dict[str, list] = {}
+_LOGIN_RATE_LIMIT = 5
+_LOGIN_WINDOW_SECONDS = 60
+
+def rate_limit_login(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        ip = get_client_ip()
+        now = datetime.utcnow().timestamp()
+        timestamps = _login_attempts.get(ip, [])
+        timestamps = [t for t in timestamps if now - t < _LOGIN_WINDOW_SECONDS]
+        if len(timestamps) >= _LOGIN_RATE_LIMIT:
+            flash('Too many login attempts. Please try again later.', 'danger')
+            return render_template('login.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED), 429
+        timestamps.append(now)
+        _login_attempts[ip] = timestamps
+        return f(*args, **kwargs)
+    return decorated
+
 def api_login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -908,6 +927,27 @@ def is_allowed_image(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
 
 
+def validate_pagination(page_arg=None, per_page_arg=None):
+    page = 1
+    per_page = 50
+    errors = []
+    if page_arg is not None:
+        try:
+            page = int(page_arg)
+            if page < 1:
+                errors.append("page must be >= 1")
+        except (TypeError, ValueError):
+            errors.append("page must be an integer")
+    if per_page_arg is not None:
+        try:
+            per_page = int(per_page_arg)
+            if per_page < 1 or per_page > 100:
+                errors.append("per_page must be between 1 and 100")
+        except (TypeError, ValueError):
+            errors.append("per_page must be an integer")
+    return page, per_page, errors
+
+
 def calculate_file_hash(file_storage) -> str:
     """Generate SHA-256 hash for an uploaded file using chunk reading."""
     sha256_hash = hashlib.sha256()
@@ -1455,7 +1495,10 @@ def delete_model():
             "message": f"Model {data['model_type']} version {data['version']} deleted successfully"
         })
     except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+        msg = str(e)
+        if "not found" in msg.lower():
+            return jsonify({"error": msg}), 404
+        return jsonify({"error": msg}), 400
     except Exception as e:
         logger.error(f"Error deleting model: {e}", exc_info=True)
         return jsonify({"error": "An internal server error occurred"}), 500
@@ -1492,7 +1535,10 @@ def set_ab_ratio():
             "message": f"A/B test ratio for {data['model_type']} version {data['version']} set to {data['ratio']}"
         })
     except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+        msg = str(e)
+        if "not found" in msg.lower():
+            return jsonify({"error": msg}), 404
+        return jsonify({"error": msg}), 400
     except Exception as e:
         logger.error(f"Error setting A/B ratio: {e}", exc_info=True)
         return jsonify({"error": "An internal server error occurred"}), 500
@@ -2096,7 +2142,7 @@ def api_explain():
         results = analyze_image(compressed_rgb, image_bytes=_raw_image_bytes)
         
         if "error" in results:
-            return jsonify({"status": "error", "error": results["error"]}), 500
+            return jsonify({"status": "error", "error": results["error"]}), 400
             
         disease_result = results.get("disease", {})
         
@@ -2142,12 +2188,12 @@ def api_explain_target():
             
         image = cv2.imread(full_image_path)
         if image is None:
-            return jsonify({"status": "error", "error": "Failed to read original image file"}), 500
+            return jsonify({"status": "error", "error": "Failed to read original image file"}), 400
             
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         
         if model_manager.resnet_model is None:
-            return jsonify({"status": "error", "error": "Classification model is not loaded"}), 500
+            return jsonify({"status": "error", "error": "Classification model is not loaded"}), 503
             
         input_tensor = preprocess_image_for_resnet(image_rgb)
         
@@ -3020,6 +3066,7 @@ def batch_results_page(job_id):
 
 @app.route("/login", methods=["GET", "POST"])
 @limiter.limit("5 per minute")
+@rate_limit_login
 def login():
     """Login page"""
     if current_user.is_authenticated:
@@ -3166,6 +3213,11 @@ def register():
         # Validation
         if not full_name or not email or not password:
             flash('All fields are required', 'danger')
+            return render_template('register.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
+        
+        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_regex, email.strip()):
+            flash('Please enter a valid email address', 'danger')
             return render_template('register.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
         
         if password != confirm_password:
@@ -3450,11 +3502,19 @@ def api_analyses():
     """API endpoint to get list of analyses for report generation"""
     from models import AnalysisHistory
     
-    # Get analyses for current user
-    if current_user.is_researcher():
-        analyses = AnalysisHistory.query.order_by(AnalysisHistory.created_at.desc()).limit(50).all()
-    else:
-        analyses = AnalysisHistory.query.filter_by(user_id=current_user.id).order_by(AnalysisHistory.created_at.desc()).limit(50).all()
+    page, per_page, errors = validate_pagination(
+        request.args.get('page'), request.args.get('per_page')
+    )
+    if errors:
+        return jsonify({"error": "; ".join(errors)}), 400
+    
+    query = AnalysisHistory.query
+    if not current_user.is_researcher():
+        query = query.filter_by(user_id=current_user.id)
+    query = query.order_by(AnalysisHistory.created_at.desc())
+    
+    total = query.count()
+    analyses = query.offset((page - 1) * per_page).limit(per_page).all()
     
     analyses_list = []
     for a in analyses:
@@ -3466,7 +3526,13 @@ def api_analyses():
             'health_score': a.health_score
         })
     
-    return jsonify({'analyses': analyses_list})
+    return jsonify({
+        'analyses': analyses_list,
+        'page': page,
+        'per_page': per_page,
+        'total': total,
+        'total_pages': (total + per_page - 1) // per_page
+    })
 
 
 @app.route("/api/generate-report/<analysis_id>")
