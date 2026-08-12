@@ -20,7 +20,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_talisman import Talisman
 from io import BytesIO
-from services.weather_service import get_weather
+from services.weather_service import get_weather, geocode_city
 from services.model_cache import (
     init_cache_backend,
     get_cached_prediction,
@@ -3697,7 +3697,7 @@ def disease_forecast():
 @app.route("/api/weather-forecast")
 def api_weather_forecast():
     """API endpoint to get weather forecast for a location"""
-    from services.weather_service import get_weather_forecast
+    from services.weather_service import get_weather, geocode_city_forecast
     from services.disease_prediction_service import DiseasePredictor
     
     lat = request.args.get('lat', type=float)
@@ -3734,7 +3734,7 @@ def api_weather_forecast():
 @app.route("/api/disease-prediction/<disease_name>")
 def api_disease_prediction(disease_name):
     """API endpoint to get prediction for a specific disease"""
-    from services.weather_service import get_weather_forecast
+    from services.weather_service import get_weather, geocode_city_forecast
     from services.disease_prediction_service import DiseasePredictor
     
     lat = request.args.get('lat', type=float)
