@@ -759,9 +759,8 @@
       const totalDisplay = document.getElementById('total-yield-display');
       const kgTotalDisplay = document.getElementById('total-kg-ha-display');
 
-      const minPerAcre = {{ yield_estimate.yield_min_acre }
-    };
-    const maxPerAcre = {{ yield_estimate.yield_max_acre }};
+      const minPerAcre = {{ yield_estimate.yield_min_acre }};
+      const maxPerAcre = {{ yield_estimate.yield_max_acre }};
 
     slider.addEventListener('input', function () {
       const acres = parseFloat(this.value);
