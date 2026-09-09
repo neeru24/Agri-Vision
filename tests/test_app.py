@@ -682,7 +682,11 @@ def test_post_api_analyze_oversized_file(client, oversized_file):
 def test_api_analyze_rate_limit(client, valid_image):
     img_bytes = valid_image.getvalue()
     original_limit = app.app.config.get("API_UPLOAD_RATE_LIMIT")
+    original_enabled = app.app.config.get("RATELIMIT_ENABLED")
+    original_testing = app.app.config.get("RATE_LIMIT_TESTING")
     app.app.config["API_UPLOAD_RATE_LIMIT"] = "1 per minute"
+    app.app.config["RATELIMIT_ENABLED"] = True
+    app.app.config["RATE_LIMIT_TESTING"] = True
     try:
         resp_one = client.post(
             "/api/analyze",
@@ -701,6 +705,8 @@ def test_api_analyze_rate_limit(client, valid_image):
         assert resp_two.status_code == 429
     finally:
         app.app.config["API_UPLOAD_RATE_LIMIT"] = original_limit
+        app.app.config["RATELIMIT_ENABLED"] = original_enabled
+        app.app.config["RATE_LIMIT_TESTING"] = original_testing
 
 
 def test_api_analyze_cleans_temp_upload(client, valid_image, tmp_path):

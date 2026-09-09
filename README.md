@@ -439,57 +439,94 @@ There are two ways to run this project: using Docker (Recommended) or setting it
 ## 🐳 Option A: Run with Docker (Recommended)
 Using Docker is the easiest way to run Agri-Vision as it avoids system dependency issues and automatically sets up the environment.
 
-1. Ensure you have [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed.
-2. Clone the repository and navigate into it:
-   ```bash
-  git clone <https://github.com/neeru24/Agri-Vision>
-  cd <Agri-Vision>
-  ### Create Virtual Environment
+### Prerequisites
+
+- Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) or Docker Engine with Docker Compose support.
+- Make sure the Docker daemon is running before starting the app.
+
+### 1. Clone the repository
 
 ```bash
-python -m venv venv
-
-
-Be careful with the markdown formatting/backticks.
-
-
-### Activate Virtual Environment
-
-For Windows:
-
-```bash
-venv\Scripts\activate
+git clone https://github.com/neeru24/Agri-Vision.git
+cd Agri-Vision
 ```
 
-For macOS/Linux:
+### 2. Create a Docker environment file
+
+The Compose file reads runtime values from your shell or from a local `.env` file. At minimum, set a strong Flask `SECRET_KEY`.
 
 ```bash
-source venv/bin/activate
+cp .env.example .env
 ```
-   ```
 
-   ### Install Dependencies
+Update `.env` with values for your environment:
+
+```env
+SECRET_KEY=replace-with-a-generated-secret
+OPENWEATHER_API_KEY=your-openweather-key
+```
+
+Generate a local secret if needed:
 
 ```bash
-pip install -r requirements.txt
+python -c "import secrets; print(secrets.token_urlsafe(64))"
 ```
 
-### Run the Flask App
+### 3. Build and run the Flask container
 
 ```bash
-python app.py
+docker compose up --build
 ```
-### Open in Browser
+
+If your Docker installation still uses the legacy Compose command, run:
+
+```bash
+docker-compose up --build
+```
+
+The Flask app is exposed at:
 
 ```txt
-http://127.0.0.1:5000/
+http://localhost:5000
 ```
 
-3. Build and start the container:
-   ```bash
-   docker-compose up --build
-   ```
-4. Access the web interface at `http://localhost:5000`.
+The `docker-compose.yml` file mounts these local directories into the container so uploaded files, model files, and generated results persist between container restarts:
+
+- `./static/uploads:/app/static/uploads`
+- `./models:/app/models`
+- `./results:/app/results`
+
+### 4. Run with the optional Nginx reverse proxy
+
+The repository includes `nginx.conf` and a production Compose profile. Use it when you want Nginx in front of the Flask app:
+
+```bash
+docker compose --profile production up --build
+```
+
+Nginx listens on ports `80` and `443`, proxies app traffic to the Flask service, and serves `/static/` assets from the mounted static directory.
+
+### 5. Useful Docker commands
+
+```bash
+# View running services
+docker compose ps
+
+# Follow application logs
+docker compose logs -f agri-vision
+
+# Stop containers without deleting mounted data
+docker compose down
+
+# Rebuild after dependency or Dockerfile changes
+docker compose up --build
+```
+
+### Troubleshooting
+
+- If port `5000` is already in use, change the host port mapping in `docker-compose.yml`, for example `"5001:5000"`.
+- If the health check fails, inspect the app logs with `docker compose logs -f agri-vision`.
+- If model files are missing, place them under the local `models/` directory before starting the containers.
 
 ---
 

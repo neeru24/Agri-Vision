@@ -1296,18 +1296,32 @@ def health_check():
     """
     Readiness endpoint.
 
-    Returns HTTP 503 with {"status": "loading"} while models are being warmed up
-    in the background thread, and HTTP 200 with {"status": "ready"} once they are
-    available.  Kubernetes / Docker HEALTHCHECK probes should wait for 200.
+    Returns HTTP 503 with {"status": "loading"} while models are warming up,
+    HTTP 503 with {"status": "degraded"} when loading finished without both
+    models, and HTTP 200 with {"status": "healthy"} once both models are ready.
+    Kubernetes / Docker HEALTHCHECK probes should wait for 200.
     """
-    ready = _model_load_event.is_set()
-    status = _model_load_status.get("status", "loading")
+    models_ready = bool(
+        getattr(model_manager, "loaded", False)
+        and getattr(model_manager, "resnet_model", None) is not None
+        and getattr(model_manager, "yolo_model", None) is not None
+    )
+    model_load_finished = bool(getattr(model_manager, "loaded", False))
+    ready = _model_load_event.is_set() or model_load_finished
+    status = "healthy" if models_ready else _model_load_status.get("status", "loading")
+    if model_load_finished and not models_ready:
+        status = "degraded"
+    if ready and status == "ready":
+        status = "healthy"
+    if ready and status == "timeout":
+        status = "degraded"
     payload = {
         "status": status if ready else "loading",
+        "model_loaded": models_ready,
         "models": model_manager.diagnostics() if ready else {},
         "cache": inference_cache_stats(),
     }
-    if not ready or status not in ("ready", "timeout"):
+    if not ready or status not in ("healthy",):
         return jsonify(payload), 503
     return jsonify(payload), 200
 
@@ -1988,8 +2002,14 @@ def health():
     return health_check()
 
 
+def get_upload_rate_limit(config_key, default):
+    if app.config.get("TESTING") and not app.config.get("RATE_LIMIT_TESTING"):
+        return "100000 per minute"
+    return app.config.get(config_key, default)
+
+
 @app.route("/analyze", methods=["GET", "POST"])
-@limiter.limit(lambda: app.config.get("UPLOAD_RATE_LIMIT", "10 per minute"))
+@limiter.limit(lambda: get_upload_rate_limit("UPLOAD_RATE_LIMIT", "10 per minute"))
 @login_required
 def analyze():
     if request.method == "POST":
@@ -2540,7 +2560,7 @@ def api_yield_history():
 @app.route("/api/analyze", methods=["POST"])
 @app.route("/api/predict", methods=["POST"])
 @app.route("/predict", methods=["POST"])
-@limiter.limit(lambda: app.config.get("API_UPLOAD_RATE_LIMIT", "10 per minute"))
+@limiter.limit(lambda: get_upload_rate_limit("API_UPLOAD_RATE_LIMIT", "10 per minute"))
 def api_analyze():
     temp_path = None
     try:
@@ -2577,6 +2597,8 @@ def api_analyze():
         return jsonify({"error": str(exc)}), exc.status_code
     except Exception as e:
         logger.error(f"API analysis error: {e}", exc_info=True)
+        if app.config.get("TESTING"):
+            return jsonify({"error": str(e)}), 500
         return jsonify({"error": "An internal server error occurred"}), 500
     finally:
         cleanup_temp_upload(temp_path)

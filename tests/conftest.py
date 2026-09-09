@@ -1,6 +1,7 @@
 import pytest
 import io
 import os
+from itertools import count
 from PIL import Image
 import numpy as np
 
@@ -22,6 +23,7 @@ def _load_models_for_legacy_tests():
 app_module.load_models = _load_models_for_legacy_tests
 
 flask_app = app_module.app
+_client_counter = count(1)
 
 @pytest.fixture
 def app():
@@ -29,6 +31,7 @@ def app():
     flask_app.config.update({
         "TESTING": True,
         "LOGIN_DISABLED": False,
+        "RATELIMIT_ENABLED": False,
         "MAX_CONTENT_LENGTH": 10 * 1024 * 1024,
         # Max content length is kept at 10MB to test oversized file uploads
     })
@@ -48,7 +51,13 @@ def allow_synthetic_test_images(monkeypatch):
 @pytest.fixture
 def client(app):
     """Provides a Flask test client."""
-    return app.test_client()
+    try:
+        app_module.limiter.reset()
+    except Exception:
+        pass
+    test_client = app.test_client()
+    test_client.environ_base["REMOTE_ADDR"] = f"127.0.1.{next(_client_counter)}"
+    return test_client
 
 @pytest.fixture
 def valid_image():
