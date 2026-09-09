@@ -659,6 +659,48 @@ curl -X POST http://localhost:5000/api/analyze \
 
 ---
 
+
+## ✅ Input Validation & Error Handling
+
+The `/api/analyze` endpoint validates the upload **before** running any model
+inference (YOLOv8 / ResNet50). Malformed requests return a clean JSON error and
+a `4xx` status code — they never produce a raw `500` traceback.
+
+**Request constraints**
+
+| Constraint | Rule |
+|------------|------|
+| `file` (required) | Multipart form field containing the image |
+| Allowed types | `PNG`, `JPG`, `JPEG`, `GIF` — checked by extension **and** file content (magic bytes) |
+| Max size | `10 MB` (`UPLOAD_MAX_BYTES` / `MAX_CONTENT_LENGTH`) |
+| `field_acres` | Optional; must be a positive number when provided |
+| Rate limit | `10` requests / minute / IP |
+
+**Error responses**
+
+All errors share the JSON shape `{"error": "<message>"}` so clients can handle
+them uniformly with the success payload above.
+
+| Status | Trigger | `error` message |
+|--------|---------|-----------------|
+| `400` | No `file` part in the request | `No file uploaded` |
+| `400` | Empty filename / no file selected | `No file selected.` |
+| `400` | Unsupported extension or non-image content | `Invalid file type. Please upload PNG, JPG, JPEG, or GIF images.` |
+| `400` | Image is corrupt or undecodable | `Unable to process this image. It may be corrupt or in an unsupported format.` |
+| `400` | File content does not match its claimed type | `Invalid image content: <reason>` |
+| `400` | `field_acres` is non-numeric or non-positive | `field_acres must be a positive number` |
+| `413` | Upload exceeds the `10 MB` limit | `File exceeds maximum upload size.` |
+| `429` | Rate limit exceeded | (standard rate-limit response) |
+
+Example — uploading a non-image file:
+
+```bash
+curl -X POST http://localhost:5000/api/analyze \
+  -F "file=@notes.txt"
+# -> 400 {"error": "Invalid file type. Please upload PNG, JPG, JPEG, or GIF images."}
+```
+
+---
 # 🎯 Usage
 
 ## 🌐 Web Interface
