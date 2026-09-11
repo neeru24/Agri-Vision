@@ -1203,26 +1203,87 @@
      -->
 
 <div style="display:flex; justify-content:flex-end; gap:1.2rem; margin-top:2rem; margin-bottom:2rem; flex-wrap:wrap;">
-  <button onclick="readInsights()" class="btn-action btn-action-primary" data-i18n="res_voice"
-    aria-label="Read analysis insights aloud using voice assistant">
-    <i class="fas fa-volume-up"></i> Voice Assistant
-  </button>
-  <button onclick="exportToPDF()" class="btn-action btn-action-secondary" data-i18n="res_pdf"
-    aria-label="Download analysis results as PDF report">
-    <i class="fas fa-file-pdf"></i> Download PDF Report
-  </button>
-</div>
+        <button onclick="readInsights()" class="btn-action btn-action-primary" data-i18n="res_voice" aria-label="Read analysis insights aloud using voice assistant">
+          <i class="fas fa-volume-up"></i> Voice Assistant
+        </button>
+        <button onclick="exportToPDF()" class="btn-action btn-action-secondary" data-i18n="res_pdf" aria-label="Download analysis results as PDF report">
+          <i class="fas fa-file-pdf"></i> Download PDF Report
+        </button>
+        <button onclick="openReportModal()" class="btn-action btn-action-secondary" aria-label="View analysis report as formatted JSON">
+          <i class="fas fa-file-code"></i> View Analysis Report
+        </button>
+      </div>
 
-<div class="results-footer"><b data-i18n="res_time">Analysis Time:</b> {{ timestamp }}</div>
+      <div class="results-footer"><b data-i18n="res_time">Analysis Time:</b> {{ timestamp }}</div>
 
-<details class="results-details">
-  <summary class="results-summary">Show Full Model Output (JSON)</summary>
-  <pre class="results-pre">{{ raw_json }}</pre>
-</details>
+      <details class="results-details">
+        <summary class="results-summary">Show Full Model Output (JSON)</summary>
+        <pre class="results-pre">{{ raw_json }}</pre>
+      </details>
 
-</div>
-</div>
+    </div>
+  </div>
 </section>
+
+<!-- View Analysis Report Modal -->
+<div id="report-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:var(--card-bg, #fff); border-radius:16px; padding:2rem; max-width:700px; width:90%; max-height:80vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+    
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+      <h2 style="margin:0; font-size:1.2rem; color:var(--text-main);"><i class="fas fa-file-code" style="color:var(--emerald-green);"></i> Analysis Report</h2>
+      <div style="display:flex; gap:0.8rem; align-items:center;">
+        <button onclick="copyReport()" id="copy-btn" style="background:var(--emerald-green); color:white; border:none; border-radius:8px; padding:0.4rem 1rem; cursor:pointer; font-size:0.85rem; font-weight:600;">
+          <i class="fas fa-copy"></i> Copy
+        </button>
+        <button onclick="closeReportModal()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:var(--text-muted);">✕</button>
+      </div>
+    </div>
+
+    <pre id="report-content" style="overflow-y:auto; background:rgba(0,0,0,0.04); border-radius:10px; padding:1.2rem; font-size:0.82rem; line-height:1.6; color:var(--text-main); border:1px solid var(--card-border); flex:1; white-space:pre-wrap; word-break:break-word;"></pre>
+  </div>
+</div>
+
+<script>
+  const rawReportData = {{ raw_json | safe }};
+
+  function buildReport() {
+    const report = {
+      "Analysis Time": "{{ timestamp }}",
+      "Detected Disease": rawReportData?.disease?.predicted_class || "Unknown",
+      "Disease Confidence": (rawReportData?.disease?.confidence * 100).toFixed(1) + "%" || "N/A",
+      "Health Score": rawReportData?.disease?.health_score?.toFixed(2) + "%" || "N/A",
+      "Growth Stage": rawReportData?.growth?.main_class || "Not detected",
+      "Growth Confidence": rawReportData?.growth?.confidence ? (rawReportData.growth.confidence * 100).toFixed(1) + "%" : "N/A",
+      "Recommendations": rawReportData?.recommendations || [],
+      "Full Model Output": rawReportData
+    };
+    return JSON.stringify(report, null, 2);
+  }
+
+  function openReportModal() {
+    document.getElementById("report-content").textContent = buildReport();
+    const modal = document.getElementById("report-modal");
+    modal.style.display = "flex";
+  }
+
+  function closeReportModal() {
+    document.getElementById("report-modal").style.display = "none";
+  }
+
+  function copyReport() {
+    const text = document.getElementById("report-content").textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById("copy-btn");
+      btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+      setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copy'; }, 2000);
+    });
+  }
+
+  // Close modal on backdrop click
+  document.getElementById("report-modal").addEventListener("click", function(e) {
+    if (e.target === this) closeReportModal();
+  });
+</script>
 
 <!-- Load PDF Generation Libraries -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
