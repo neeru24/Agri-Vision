@@ -6,16 +6,16 @@
         "model_type": "resnet",
         "path": "models/cotton_crop_disease_classification/full_resnet50_model.pth",
         "accuracy": 0.9983,
-        "training_date": "2026-06-05T20:49:11.557676",
+        "training_date": "2026-06-25T15:52:45.462097",
         "dataset_version": "v1.0",
         "parameters": 0,
         "is_active": true,
         "ab_test_ratio": 0.0,
         "performance_metrics": {
-          "total_requests": 30,
-          "successful_predictions": 30,
-          "avg_confidence": 0.5314059528444861,
-          "avg_inference_time": 0.13157158692677817,
+          "total_requests": 0,
+          "successful_predictions": 0,
+          "avg_confidence": 0.0,
+          "avg_inference_time": 0.0,
           "error_count": 0
         }
       }
@@ -26,7 +26,7 @@
         "model_type": "yolo",
         "path": "models/cotton_crop_growth_stage_prediction/best.pt",
         "accuracy": 0.6006,
-        "training_date": "2026-06-05T20:49:11.561716",
+        "training_date": "2026-06-25T15:52:45.472802",
         "dataset_version": "v1.0",
         "parameters": 0,
         "is_active": true,
@@ -43,5 +43,5 @@
   },
   "ab_test_enabled": true,
   "rollback_threshold": 0.75,
-  "last_updated": "2026-06-16T21:51:57.042790"
+  "last_updated": "2026-06-25T15:52:45.493089"
 }
