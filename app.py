@@ -1349,7 +1349,7 @@ def stories():
 @login_required
 @require_any_role(['researcher', 'admin'])
 def admin_dashboard():
-    return render_template("admin.html")
+    return render_template("admin_dashboard.html")
 
 
 # --- Model Management Admin Endpoints ---
