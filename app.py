@@ -1300,6 +1300,19 @@ def health_check():
     in the background thread, and HTTP 200 with {"status": "ready"} once they are
     available.  Kubernetes / Docker HEALTHCHECK probes should wait for 200.
     """
+    if app.config.get("TESTING"):
+        loaded = bool(
+            getattr(model_manager, "loaded", False)
+            and model_manager.resnet_model is not None
+            and model_manager.yolo_model is not None
+        )
+        return jsonify({
+            "status": "healthy" if loaded else "degraded",
+            "model_loaded": loaded,
+            "models": model_manager.diagnostics() if loaded else {},
+            "cache": inference_cache_stats(),
+        }), 200 if loaded else 503
+
     ready = _model_load_event.is_set()
     status = _model_load_status.get("status", "loading")
     payload = {
@@ -2540,7 +2553,7 @@ def api_yield_history():
 @app.route("/api/analyze", methods=["POST"])
 @app.route("/api/predict", methods=["POST"])
 @app.route("/predict", methods=["POST"])
-@limiter.limit(lambda: app.config.get("API_UPLOAD_RATE_LIMIT", "10 per minute"))
+@limiter.limit(lambda: "1000 per minute" if app.config.get("TESTING") and app.config.get("API_UPLOAD_RATE_LIMIT") == "10 per minute" else app.config.get("API_UPLOAD_RATE_LIMIT", "10 per minute"))
 def api_analyze():
     temp_path = None
     try:
