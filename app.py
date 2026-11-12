@@ -685,28 +685,19 @@ class GradCAM:
 # -------------------------------------------------------------------
 # INFERENCE PIPELINE
 # -------------------------------------------------------------------
+def preprocess_image_for_resnet(image: np.ndarray, target_size: Tuple[int, int] = (224, 224)) -> torch.Tensor:
+    if image.ndim == 2:
+        image = np.stack([image] * 3, axis=-1)
+    elif image.ndim == 3 and image.shape[2] == 1:
+        image = np.concatenate([image] * 3, axis=-1)
 
-# Define ONCE at module level — built once, reused every request.
-# Includes ImageNet normalization required by ResNet50 for correct inference.
-RESNET_TRANSFORM = transforms.Compose([
-    transforms.ToPILImage(),
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize(
-        mean=[0.485, 0.456, 0.406],
-        std=[0.229, 0.224, 0.225],
-    ),
-])
-
-
-def preprocess_image_for_resnet(image: np.ndarray) -> torch.Tensor:
-    """Preprocess an RGB numpy image for ResNet50 inference.
-
-    Uses the module-level RESNET_TRANSFORM pipeline which includes
-    ImageNet normalization (mean=[0.485, 0.456, 0.406],
-    std=[0.229, 0.224, 0.225]).
-    """
-    return RESNET_TRANSFORM(image).unsqueeze(0)
+    transform = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.Resize(target_size),
+        transforms.ToTensor(),
+    ])
+    tensor = transform(image).unsqueeze(0)
+    return tensor
 
 
 def infer_disease(image):
