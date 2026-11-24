@@ -293,7 +293,6 @@ except RuntimeError as exc:
     logger.critical(str(exc))
     raise SystemExit(str(exc))
 app.secret_key = secret_key
-app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
 app.config["MAX_FORM_MEMORY_SIZE"] = 25 * 1024 * 1024
 app.config.setdefault("UPLOAD_MAX_BYTES", app.config["MAX_CONTENT_LENGTH"])
 app.config.setdefault("UPLOAD_RATE_LIMIT", "10 per minute")
